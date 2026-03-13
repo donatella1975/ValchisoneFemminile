@@ -1354,7 +1354,7 @@ function matchCardHTML(m) {
         <div class="mc-meta">
           ${m.location ? `<span class="mc-loc">📍 ${m.location}</span>` : ''}
           ${m.notes ? `<span class="mc-note">• ${m.notes}</span>` : ''}
-          ${m.location ? `<a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
+          ${m.location ? `<a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo hockey ' + m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
         </div>
       </div>
       <div class="mc-right">
