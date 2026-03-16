@@ -577,9 +577,8 @@ window.addEventListener('load', () => {
   calYear  = now.getFullYear();
   calMonth = now.getMonth();
 
-  const waitFb = setInterval(() => {
-    if (!window._fbListen) return;
-    clearInterval(waitFb);
+  function initFb() {
+    if (!window._fbListen) { setTimeout(initFb, 100); return; }
 
     window._fbListen(data => {
       const all = data ? Object.values(data) : [];
@@ -598,7 +597,8 @@ window.addEventListener('load', () => {
       renderLivePage();
       renderLiveAdminPanel();
     });
-  }, 80);
+  }
+  initFb();
 });
 
 // ─── NAVIGATION ────────────────────────────────────────
