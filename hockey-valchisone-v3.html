@@ -78,8 +78,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .section-title { font-family:'Bricolage Grotesque',sans-serif; font-size:20px; font-weight:800; color:var(--ink); }
 
 /* ─── FILTER BAR ─────────────────────────────── */
-.filter-bar { display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; scrollbar-width:none; -ms-overflow-style:none; }
-.filter-bar::-webkit-scrollbar { display:none; }
+.filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+
 .ftab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:5px 12px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; flex-shrink:0; }
 .ftab.active { background:var(--green); color:white; border-color:var(--green); }
 .ftab.valch { color:var(--orange); border-color:#fed7aa; }
@@ -371,9 +371,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <div class="hero">
   <h1>Stagione 2025/2026</h1>
   <div class="hero-sub"><span>H.P. Valchisone Femminile</span></div>
-  <div class="hero-btns">
-    <button class="hero-subsection active-sport" id="btn-sport-prato" onclick="switchSport('prato')">🏑 Campionato Prato</button>
-    <button class="hero-subsection" id="btn-sport-indoor" onclick="switchSport('indoor')">🏑 Campionato Indoor</button>
+  <div class="hero-btns" style="flex-wrap:nowrap;justify-content:center">
+    <button class="hero-subsection active-sport" id="btn-sport-prato" onclick="switchSport('prato')" style="flex:1;max-width:200px">🏑 Prato</button>
+    <button class="hero-subsection" id="btn-sport-indoor" onclick="switchSport('indoor')" style="flex:1;max-width:200px">🏑 Indoor</button>
   </div>
   <div class="hero-live-badge" id="hero-live-badge" onclick="goToLive()">
     <div class="live-dot"></div>
@@ -390,8 +390,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <div class="filter-bar" id="filter-partite"></div>
     <div class="print-box">
       <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="openPrintDialog('partite','list')">📋 Elenco</button>
-      <button class="btn-pdf btn-pdf-cal" onclick="openPrintDialog('partite','calendar')">📅 Calendario</button>
+      <button class="btn-pdf" onclick="quickPrint('partite','list')">📋 Elenco</button>
+      <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('partite','calendar')">📅 Calendario</button>
     </div>
   </div>
   <div class="cal-wrap">
@@ -411,8 +411,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <div class="filter-bar" id="filter-indoor"></div>
     <div class="print-box">
       <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="openPrintDialog('indoor','list')">📋 Elenco</button>
-      <button class="btn-pdf btn-pdf-cal" onclick="openPrintDialog('indoor','calendar')">📅 Calendario</button>
+      <button class="btn-pdf" onclick="quickPrint('indoor','list')">📋 Elenco</button>
+      <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('indoor','calendar')">📅 Calendario</button>
     </div>
   </div>
   <div id="indoor-list"><div class="loading">Caricamento…</div></div>
