@@ -1382,7 +1382,8 @@ function filterAdminList() {
         <div class="amatch-teams">${m.home} vs ${m.away}</div>
         <div class="amatch-meta"><span class="cat-badge cat-${m.cat}" style="font-size:9px;padding:2px 5px">${cat.icon} ${cat.short||cat.label}</span> ${fmtDate(m.date)} ${m.time||''} ${hasSc?`<strong>${m.scoreHome}–${m.scoreAway}</strong>`:''}</div>
       </div>
-      <button class="btn btn-sm btn-ghost" onclick="editMatch('${m.id}')">✏️</button>
+      <button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal('${m.id}')" title="Aggiorna risultato">🏑 ${hasSc?'Modifica':'Risultato'}</button>
+      <button class="btn btn-sm btn-ghost" onclick="editMatch('${m.id}')" title="Modifica partita">✏️</button>
       <button class="btn btn-sm btn-ghost" onclick="deleteMatch('${m.id}')" style="color:#ef4444">🗑</button>
     </div>`;
   }).join('');
