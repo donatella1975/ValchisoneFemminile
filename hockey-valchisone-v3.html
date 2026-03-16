@@ -853,7 +853,7 @@ function renderLivePage() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div class="sb-live-dot" style="${l.finished?'animation:none;background:#aaa':''}"></div>
           <span class="sb-live-label" style="${l.finished?'color:#aaa':''}">${l.finished?'FINALE':'Live'}</span>
-          <span class="sb-half-badge" id="live-half-display">1° Quarto</span>
+          <span class="sb-half-badge" id="live-half-display">Q1</span>
         </div>
         <div class="sb-timer-wrap">
           <div style="display:flex;align-items:baseline;gap:6px">
@@ -921,7 +921,7 @@ function renderLiveAdminPanel() {
       </div>
       <div style="background:#f9fafb;border-radius:10px;padding:10px 12px;margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280">$(['1° Quarto','2° Quarto','3° Quarto','4° Quarto'][Math.min((liveData.half||1)-1,3)]||'1° Quarto')</span>
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280">${['Q1','Q2','Q3','Q4'][Math.min((liveData.half||1)-1,3)]||'Q1'}</span>
           <div style="text-align:right">
             <div style="font-size:11px;color:#6b7280">Parziale: <strong id="admin-timer-display">00:00</strong></div>
             <div style="font-size:11px;color:#6b7280">Totale: <strong id="admin-timer-total">00:00</strong></div>
@@ -1052,10 +1052,10 @@ function timerPause() {
 function timerHalf() {
   if (!liveData) return;
   const cur = liveData.half || 1;
-  const QUARTERS = ['1° Quarto','2° Quarto','3° Quarto','4° Quarto'];
+  const QUARTERS = ['1 Quarto','2 Quarto','3 Quarto','4 Quarto'];
   const isLast = cur >= 4;
   const label = isLast
-    ? 'Terminare la partita (fine 4° Quarto)?'
+    ? 'Terminare la partita (fine 4 Quarto)?'
     : `Terminare ${QUARTERS[cur-1]} e iniziare ${QUARTERS[cur]}?`;
   if (!confirm(label)) return;
   const partial = getPartialMs(liveData);
@@ -1083,7 +1083,7 @@ function startTimerTick() {
     if (!liveData || !liveData.active) return;
     const partial = msToDisplay(getPartialMs(liveData));
     const total   = msToDisplay(getTotalMs(liveData));
-    const QNAMES = ['1° Quarto','2° Quarto','3° Quarto','4° Quarto']; const half = QNAMES[Math.min((liveData.half||1)-1,3)];
+    const QNAMES = ['1 Quarto','2 Quarto','3 Quarto','4 Quarto']; const half = QNAMES[Math.min((liveData.half||1)-1,3)];
 
     const el1 = document.getElementById('live-timer-display');
     const el2 = document.getElementById('live-timer-total');
