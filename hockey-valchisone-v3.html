@@ -296,6 +296,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   header, .hero, .cal-wrap, .filter-bar-wrap, .btn-pdf, .print-box, .print-label,
   .nav-admin, #login-wrap, #page-admin, #page-classifica, #page-live,
   .nav-admin, .class-tabs, .btn-map, .mc-right button { display:none !important; }
+  /* When print preview is open, print only its content */
+  body > *:not(#print-preview-overlay) { display:none !important; }
+  #print-preview-overlay { position:static !important; overflow:visible !important; }
+  #print-preview-toolbar { display:none !important; }
 }
 
 /* ─── RESPONSIVE ─────────────────────────────── */
@@ -306,6 +310,28 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .hero h1 { font-size:20px; }
   .standings-table { font-size:11px; }
   .standings-table th, .standings-table td { padding:7px 3px; }
+}
+@media (min-width:900px) {
+  body { font-size:15px; }
+  .mc-team { font-size:15px; max-width:220px; }
+  .mc-score { font-size:20px; }
+  .t-hour { font-size:18px; }
+  .cat-badge { font-size:12px; padding:3px 9px; }
+  .status-badge { font-size:12px; padding:3px 9px; }
+  .mc-meta { font-size:13px; }
+  .mc-vs { font-size:12px; }
+  .day-label { font-size:13px; }
+  .ftab { font-size:13px; padding:7px 16px; }
+  .standings-table { font-size:14px; }
+  .standings-table th { font-size:12px; }
+  .standings-table th, .standings-table td { padding:10px 8px; }
+  .st-pts { font-size:16px; }
+  .event-card { font-size:14px; }
+  .ev-title { font-size:18px; }
+  .ev-dates, .ev-meta { font-size:13px; }
+  .btn-map { font-size:12px; padding:4px 12px; }
+  .npill { font-size:13px; padding:6px 14px; }
+  .logo-txt { font-size:15px; }
 }
 </style>
 </head>
@@ -610,6 +636,16 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button onclick="confirmPrint()" style="padding:9px 22px;border-radius:8px;border:none;background:#1a7a2e;color:white;font-size:13px;font-weight:700;cursor:pointer">🖨️ Stampa</button>
     </div>
   </div>
+</div>
+
+<!-- PRINT PREVIEW OVERLAY -->
+<div id="print-preview-overlay" style="display:none;position:fixed;inset:0;background:white;z-index:9999;overflow-y:auto;flex-direction:column">
+  <div id="print-preview-toolbar" style="position:sticky;top:0;background:#1a7a2e;padding:10px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:1">
+    <span id="print-preview-title" style="color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;flex:1"></span>
+    <button onclick="doPrint()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">🖨️ Stampa / Salva PDF</button>
+    <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">✕ Chiudi</button>
+  </div>
+  <div id="print-preview-body" style="padding:28px;max-width:960px;margin:0 auto;width:100%"></div>
 </div>
 
 <script>
@@ -1550,6 +1586,41 @@ function cancelEventEdit() {
   document.getElementById('btn-cancel-ev').style.display = 'none';
 }
 
+
+// ─── QUICK PRINT (usa filtri attivi) ──────────────────
+function quickPrint(section, mode) {
+  const isIndoor  = section === 'indoor';
+  const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
+  const catFilter = isIndoor ? fIndoor : fPartite;
+  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label || catFilter);
+  const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const indoorCats = ['a1f','rfi','alfi'];
+  const pratoIds   = ['af','rf','alf'];
+
+  let ms = (isIndoor ? allIndoor : allMatches)
+    .filter(m => catFilter === 'all' || m.cat === catFilter)
+    .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
+    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+
+  let evs = allEvents
+    .filter(e => {
+      const hasCats = e.cats && e.cats.length > 0;
+      if (isIndoor) {
+        if (hasCats && e.cats.every(c => pratoIds.includes(c))) return false;
+        if (catFilter !== 'all') { if (!hasCats) return false; return e.cats.includes(catFilter); }
+        if (hasCats && !e.cats.some(c => indoorCats.includes(c))) return false;
+      } else {
+        if (hasCats && e.cats.every(c => indoorCats.includes(c))) return false;
+        if (catFilter !== 'all') { if (!hasCats) return false; return e.cats.includes(catFilter); }
+        if (hasCats && !e.cats.some(c => pratoIds.includes(c))) return false;
+      }
+      return true;
+    });
+
+  if (mode === 'list') printList(section, sport, catName, today, ms, evs);
+  else                 printCalView(section, sport, catName, today, ms, evs);
+}
+
 // ─── PRINT DIALOG ────────────────────────────────────────
 let _pdSection='', _pdMode='';
 function openPrintDialog(section, mode) {
@@ -1599,34 +1670,122 @@ function buildPrintHeader(sport,catName,today){return`<div class="pdf-header"><i
 function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'-'+m+'-'+y;}
 
 const PRINT_BASE_CSS=`*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;background:white;color:#1a1a1a;padding:24px 28px;font-size:13px;}.pdf-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1a7a2e;padding-bottom:12px;margin-bottom:20px;}.pdf-logo{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #1a7a2e;flex-shrink:0;}.pdf-club h1{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;color:#1a7a2e;}.pdf-club p{font-size:11px;color:#666;margin-top:2px;}.pdf-meta{margin-left:auto;text-align:right;font-size:10px;color:#888;line-height:1.6;}.pdf-meta strong{color:#1a3a22;}@page{margin:1.4cm 1.1cm;}`;
-function openPrintWindow(title,styles,bodyHTML){
-  const win=window.open('','_blank');
-  const toolbarCSS = `
-    .print-toolbar{position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:10px 20px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2);}
-    .print-toolbar span{color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;flex:1;}
-    .tb-btn{border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
-    .tb-print{background:white;color:#1a7a2e;}
-    .tb-close{background:rgba(255,255,255,.2);color:white;}
-    .print-body{margin-top:56px;}
-    @media print{.print-toolbar{display:none!important;}.print-body{margin-top:0;}}
-  `;
-  win.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>${title} — HP Valchisone</title>${styles}<style>${toolbarCSS}</style></head><body>
-    <div class="print-toolbar">
-      <span>📄 ${title}</span>
-      <button class="tb-btn tb-print" onclick="window.print()">🖨️ Stampa / Salva PDF</button>
-      <button class="tb-btn tb-close" onclick="window.close()">✕ Chiudi</button>
-    </div>
-    <div class="print-body">${bodyHTML}</div>
-  </body></html>`);
-  win.document.close();
+let _printStyles = '';
+function openPrintWindow(title, styles, bodyHTML) {
+  _printStyles = styles;
+  document.getElementById('print-preview-title').textContent = '📄 ' + title;
+  document.getElementById('print-preview-body').innerHTML = bodyHTML;
+  document.getElementById('print-preview-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closePrintPreview() {
+  document.getElementById('print-preview-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function doPrint() {
+  // Inject print styles and trigger print
+  let styleEl = document.getElementById('_print_style_inject');
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_print_style_inject'; document.head.appendChild(styleEl); }
+  // Extract CSS from styles string
+  const cssMatch = _printStyles.match(/<style>([\s\S]*?)<\/style>/);
+  styleEl.textContent = cssMatch ? cssMatch[1] : '';
+  // Show only preview for printing
+  document.getElementById('print-preview-toolbar').style.display = 'none';
+  window.print();
+  document.getElementById('print-preview-toolbar').style.display = '';
+  if (styleEl) styleEl.textContent = '';
 }
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const groups={};items.forEach(it=>{const d=it.type==='event'?(it.data.dateStart||''):it.date;if(!groups[d])groups[d]=[];groups[d].push(it);});
-  let body='';Object.keys(groups).sort().forEach(date=>{const d=new Date(date+'T12:00:00');const label=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});body+=`<div class="day-group"><div class="day-label">${label}</div>`;groups[date].forEach(it=>{if(it.type==='match')body+=printMatchRow(it.data);else body+=printEventRow(it.data);});body+='</div>';});
+  let body='';Object.keys(groups).sort().forEach(date=>{
+    const d=new Date(date+'T12:00:00');
+    const dow=d.toLocaleDateString('it-IT',{weekday:'long'});
+    const dayNum=d.toLocaleDateString('it-IT',{day:'numeric'});
+    const monthYear=d.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+    body+=`<div class="day-group"><div class="day-header"><div class="day-left"><span class="day-dow">${dow}</span><span class="day-num">${dayNum}</span></div><span class="day-month">${monthYear}</span></div>`;
+    groups[date].forEach(it=>{if(it.type==='match')body+=printMatchRow(it.data);else body+=printEventRow(it.data);});
+    body+='</div>';
+  });
   if(!body)body='<p style="color:#888;text-align:center;padding:40px">Nessuna partita</p>';
-  openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${PRINT_BASE_CSS}.day-group{margin-bottom:16px;break-inside:avoid;}.day-label{font-family:'Bricolage Grotesque',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1a7a2e;padding-bottom:4px;border-bottom:2px solid #b9dfc0;margin-bottom:7px;}.match-row{display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:7px;margin-bottom:4px;overflow:hidden;break-inside:avoid;}.match-row.cat-row-af{border-left:4px solid #be185d;}.match-row.cat-row-rf{border-left:4px solid #6d28d9;}.match-row.cat-row-alf{border-left:4px solid #0e7490;}.match-row.cat-row-a1f{border-left:4px solid #c2410c;}.match-row.cat-row-rfi{border-left:4px solid #6d28d9;}.match-row.cat-row-alfi{border-left:4px solid #0e7490;}.row-time{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;background:#1a7a2e;color:white;padding:8px 10px;min-width:50px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.match-row.cat-row-af .row-time{background:linear-gradient(160deg,#9d174d,#ec4899);}.match-row.cat-row-rf .row-time{background:linear-gradient(160deg,#5b21b6,#7c3aed);}.match-row.cat-row-alf .row-time{background:linear-gradient(160deg,#0c4a6e,#0284c7);}.match-row.cat-row-a1f .row-time{background:linear-gradient(160deg,#9a3412,#ea580c);}.match-row.cat-row-rfi .row-time{background:linear-gradient(160deg,#5b21b6,#7c3aed);}.match-row.cat-row-alfi .row-time{background:linear-gradient(160deg,#0c4a6e,#0284c7);}.row-body{flex:1;padding:5px 8px;}.row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}.row-teams .valch{color:#e8620a;}.row-vs{font-size:9px;color:#bbb;font-weight:700;}.row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;color:#1a7a2e;margin-left:auto;padding:0 4px;}.row-loc{font-size:10px;color:#888;margin-top:2px;}.row-right{padding:5px 8px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:65px;}.cat-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:6px;text-transform:uppercase;}.cat-af{background:rgba(236,72,153,.12);color:#be185d;}.cat-rf{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alf{background:rgba(6,182,212,.12);color:#0e7490;}.cat-a1f{background:rgba(234,88,12,.12);color:#c2410c;}.cat-rfi{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alfi{background:rgba(6,182,212,.12);color:#0e7490;}.status-badge{font-size:9px;font-weight:600;padding:2px 5px;border-radius:5px;}.s-done{background:#dcfce7;color:#166534;}.s-todo{background:#fff7ed;color:#c2410c;}.ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:7px;padding:7px 11px;margin-bottom:4px;}.ev-row-type{font-size:9px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;}.ev-row-meta{font-size:10px;color:#888;margin-top:2px;}</style>`,buildPrintHeader(sport,catName,today)+body);}
-function printMatchRow(m){const cat=CATS[m.cat]||{};const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}"><div class="row-time">${m.time||'—'}</div><div class="row-body"><div class="row-teams"><span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span><span class="row-vs">VS</span><span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}</div>${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}</div><div class="row-right"><span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span></div></div>`;}
+  const CSS=PRINT_BASE_CSS+`
+    .day-group{margin-bottom:22px;break-inside:avoid;}
+    .day-header{display:flex;align-items:center;justify-content:space-between;background:#f0faf2;border-left:5px solid #1a7a2e;border-radius:0 8px 8px 0;padding:8px 14px;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .day-left{display:flex;align-items:baseline;gap:8px;}
+    .day-dow{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:700;color:#1a7a2e;text-transform:capitalize;}
+    .day-num{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;color:#1a3a22;line-height:1;}
+    .day-month{font-size:12px;color:#6b7280;font-weight:600;text-transform:capitalize;}
+    .match-row{display:flex;align-items:stretch;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:5px;overflow:hidden;break-inside:avoid;}
+    .match-row.cat-row-af{border-left:4px solid #be185d;}.match-row.cat-row-rf{border-left:4px solid #6d28d9;}.match-row.cat-row-alf{border-left:4px solid #0e7490;}.match-row.cat-row-a1f{border-left:4px solid #c2410c;}.match-row.cat-row-rfi{border-left:4px solid #6d28d9;}.match-row.cat-row-alfi{border-left:4px solid #0e7490;}
+    .row-time{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;background:#1a7a2e;color:white;padding:10px 12px;min-width:58px;text-align:center;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .match-row.cat-row-af .row-time{background:#9d174d;}.match-row.cat-row-rf .row-time{background:#5b21b6;}.match-row.cat-row-alf .row-time{background:#0c4a6e;}.match-row.cat-row-a1f .row-time{background:#9a3412;}.match-row.cat-row-rfi .row-time{background:#5b21b6;}.match-row.cat-row-alfi .row-time{background:#0c4a6e;}
+    .row-body{flex:1;padding:8px 12px;}
+    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;}.row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;margin-left:auto;}
+    .row-loc{font-size:11px;color:#888;}
+    .row-right{padding:8px 10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;min-width:75px;}
+    .cat-badge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:8px;text-transform:uppercase;}
+    .cat-af{background:rgba(236,72,153,.12);color:#be185d;}.cat-rf{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alf{background:rgba(6,182,212,.12);color:#0e7490;}.cat-a1f{background:rgba(234,88,12,.12);color:#c2410c;}.cat-rfi{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alfi{background:rgba(6,182,212,.12);color:#0e7490;}
+    .status-badge{font-size:9px;font-weight:600;padding:3px 7px;border-radius:6px;}
+    .s-done{background:#dcfce7;color:#166534;}.s-todo{background:#fff7ed;color:#c2410c;}
+    .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:8px;padding:9px 13px;margin-bottom:5px;}
+    .ev-row-type{font-size:9px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;}.ev-row-meta{font-size:10px;color:#888;margin-top:2px;}
+  `;
+  openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
+}
+function printStandings() {
+  const sport = classSport === 'indoor' ? '🏑 Indoor' : '🏑 Prato';
+  const today = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const el = document.getElementById('standings-content');
+  if (!el) return;
+  const content = el.innerHTML;
+  const CSS = `${PRINT_BASE_CSS}
+    .standings-wrap{background:white;border-radius:10px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:20px;break-inside:avoid;}
+    .standings-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;padding:12px 16px;border-bottom:2px solid #d4f5dc;color:#1a3a22;background:#f0faf2;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;padding:7px 6px;text-align:center;background:#f9fafb;border-bottom:1px solid #f3f4f6;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    th:first-child{text-align:left;padding-left:12px;}
+    td{padding:8px 6px;text-align:center;border-bottom:1px solid #f9fafb;}
+    td:first-child{text-align:left;padding-left:12px;font-weight:600;}
+    tr:last-child td{border-bottom:none;}
+    .valch-row td{background:#fffbf5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .valch-row td:first-child{color:#e8620a;}
+    .st-pos{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:13px;}
+    .st-pts{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:14px;color:#1a7a2e;}
+    .dr-pos{color:#16a34a;font-weight:700;}.dr-neg{color:#dc2626;font-weight:700;}
+  `;
+  openPrintWindow('Classifica ' + sport,
+    `<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,
+    buildPrintHeader(sport, 'Classifica', today) + content
+  );
+}
+
+function printMatchRow(m){
+  const cat=CATS[m.cat]||{};
+  const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);
+  const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
+  const d=new Date(m.date+'T12:00:00');
+  const dow=d.toLocaleDateString('it-IT',{weekday:'short'});
+  return `<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}">
+  <div class="row-time-col">
+    <div class="row-hour">${m.time||'—'}</div>
+    <div class="row-dow">${dow}</div>
+  </div>
+  <div class="row-body">
+    <div class="row-teams">
+      <span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span>
+      <span class="row-vs">VS</span>
+      <span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>
+      ${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}
+    </div>
+    ${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}
+  </div>
+  <div class="row-right">
+    <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
+    <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
+  </div>
+</div>`;
+}
 function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}</div></div>`;}
 function printCalView(section,sport,catName,today,ms,evs){
   const allDts=[...ms.map(m=>m.date),...evs.map(e=>e.dateStart||'').filter(Boolean)];if(!allDts.length){alert('Nessuna partita da stampare');return;}
