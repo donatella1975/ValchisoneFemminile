@@ -1720,23 +1720,24 @@ function printList(section,sport,catName,today,ms,evs){
   });
   if(!body)body='<p style="color:#888;text-align:center;padding:40px">Nessuna partita</p>';
   const CSS=PRINT_BASE_CSS+`
-    .day-group{margin-bottom:16px;break-inside:avoid;}
-    .day-label{font-family:'Bricolage Grotesque',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#1a7a2e;padding-bottom:4px;border-bottom:2px solid #b9dfc0;margin-bottom:7px;}
-    .match-row{display:flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:7px;margin-bottom:4px;overflow:hidden;break-inside:avoid;}
+    .day-group{margin-bottom:26px;break-inside:avoid;}
+    .day-label{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:white;background:#1a7a2e;padding:7px 14px;border-radius:6px;margin-bottom:10px;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .match-row{display:flex;align-items:stretch;border:1px solid #e5e7eb;border-radius:9px;margin-bottom:8px;overflow:hidden;break-inside:avoid;}
     .match-row.cat-row-af{border-left:4px solid #be185d;}.match-row.cat-row-rf{border-left:4px solid #6d28d9;}.match-row.cat-row-alf{border-left:4px solid #0e7490;}.match-row.cat-row-a1f{border-left:4px solid #c2410c;}.match-row.cat-row-rfi{border-left:4px solid #6d28d9;}.match-row.cat-row-alfi{border-left:4px solid #0e7490;}
-    .row-time{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;background:#1a7a2e;color:white;padding:8px 10px;min-width:50px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .match-row.cat-row-af .row-time{background:#9d174d;}.match-row.cat-row-rf .row-time{background:#5b21b6;}.match-row.cat-row-alf .row-time{background:#0c4a6e;}.match-row.cat-row-a1f .row-time{background:#9a3412;}.match-row.cat-row-rfi .row-time{background:#5b21b6;}.match-row.cat-row-alfi .row-time{background:#0c4a6e;}
-    .row-body{flex:1;padding:5px 8px;}
-    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-    .row-teams .valch{color:#e8620a;}.row-vs{font-size:9px;color:#bbb;font-weight:700;}.row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;color:#1a7a2e;margin-left:auto;padding:0 4px;}
-    .row-loc{font-size:10px;color:#888;margin-top:2px;}
-    .row-right{padding:5px 8px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:65px;}
-    .cat-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:6px;text-transform:uppercase;}
+    .row-body{flex:1;padding:9px 14px;display:flex;align-items:center;gap:12px;}
+    .row-time{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a1a1a;min-width:48px;flex-shrink:0;}
+    .row-sep{width:1px;height:32px;background:#e5e7eb;flex-shrink:0;}
+    .row-teams-wrap{flex:1;}
+    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#ccc;font-weight:700;}.row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;}
+    .row-loc{font-size:11px;color:#9ca3af;margin-top:3px;}
+    .row-right{padding:9px 12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;min-width:80px;border-left:1px solid #f3f4f6;}
+    .cat-badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;text-transform:uppercase;}
     .cat-af{background:rgba(236,72,153,.12);color:#be185d;}.cat-rf{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alf{background:rgba(6,182,212,.12);color:#0e7490;}.cat-a1f{background:rgba(234,88,12,.12);color:#c2410c;}.cat-rfi{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alfi{background:rgba(6,182,212,.12);color:#0e7490;}
-    .status-badge{font-size:9px;font-weight:600;padding:2px 5px;border-radius:5px;}
+    .status-badge{font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;}
     .s-done{background:#dcfce7;color:#166534;}.s-todo{background:#fff7ed;color:#c2410c;}
-    .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:7px;padding:7px 11px;margin-bottom:4px;}
-    .ev-row-type{font-size:9px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;}.ev-row-meta{font-size:10px;color:#888;margin-top:2px;}
+    .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:9px;padding:10px 14px;margin-bottom:8px;}
+    .ev-row-type{font-size:10px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;}.ev-row-meta{font-size:11px;color:#888;margin-top:3px;}
   `;
   openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
 }
@@ -1767,7 +1768,7 @@ function printStandings() {
   );
 }
 
-function printMatchRow(m){const cat=CATS[m.cat]||{};const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}"><div class="row-time">${m.time||'—'}</div><div class="row-body"><div class="row-teams"><span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span><span class="row-vs">VS</span><span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}</div>${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}</div><div class="row-right"><span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span></div></div>`;}
+function printMatchRow(m){const cat=CATS[m.cat]||{};const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}"><div class="row-body"><span class="row-time">${m.time||'—'}</span><div class="row-sep"></div><div class="row-teams-wrap"><div class="row-teams"><span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span><span class="row-vs">VS</span><span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}</div>${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}</div></div><div class="row-right"><span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span></div></div>`;}
 function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}</div></div>`;}
 function printCalView(section,sport,catName,today,ms,evs){
   const allDts=[...ms.map(m=>m.date),...evs.map(e=>e.dateStart||'').filter(Boolean)];if(!allDts.length){alert('Nessuna partita da stampare');return;}
