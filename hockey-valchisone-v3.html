@@ -423,7 +423,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <input type="hidden" id="edit-id">
       <div class="form-row">
         <div class="form-field"><label>Categoria</label>
-          <select id="m-cat">
+          <select id="m-cat" onchange="populateDataLists()">
             <option value="af">⚡ A2 Femminile (Prato)</option>
             <option value="a1f">🔥 A1 Femminile (Indoor)</option>
             <option value="rf">🟣 Ragazze U16 (Prato)</option>
@@ -535,11 +535,17 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <h3>📋 Gestione Squadre e Campi</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Squadre</div>
-          <div id="teams-editor" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">🏑 Squadre Prato</div>
+          <div id="teams-prato-editor" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="display:flex;gap:6px;margin-bottom:12px">
+            <input type="text" id="new-team-prato" placeholder="Nuova squadra prato..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <button class="btn btn-green btn-sm" onclick="addTeam('prato')">+</button>
+          </div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#c2410c;margin-bottom:6px">🏑 Squadre Indoor</div>
+          <div id="teams-indoor-editor" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
           <div style="display:flex;gap:6px">
-            <input type="text" id="new-team-input" placeholder="Nuova squadra..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
-            <button class="btn btn-green btn-sm" onclick="addTeam()">+ Aggiungi</button>
+            <input type="text" id="new-team-indoor" placeholder="Nuova squadra indoor..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <button class="btn btn-green btn-sm" onclick="addTeam('indoor')">+</button>
           </div>
         </div>
         <div>
@@ -624,12 +630,16 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
-let teamsList = [], fieldsList = [];
-const DEFAULT_TEAMS = [
+let teamsListPrato = [], teamsListIndoor = [], fieldsList = [];
+const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
   'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
   'HC LARIO','HOCKEY CLUB LARIO','ASD HOCKEY CLUB ARGENTIA',
-  'MILANO HP','ASD SEVENINFINITY'
+  'MILANO HP'
+];
+const DEFAULT_TEAMS_INDOOR = [
+  'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','USD MONCALVESE HOCKEY',
+  'ASD HOCKEY CLUB ARGENTIA','ASD SEVENINFINITY','HC LARIO'
 ];
 const DEFAULT_FIELDS = [
   'Tazzoli - Corso Enrico Tazzoli, 78, 10135 Torino TO',
@@ -675,8 +685,9 @@ window.addEventListener('load', () => {
       renderMatches(); renderIndoor();
     });
     window._fbListenLists(data => {
-      teamsList  = data?.teams  ? data.teams  : [...DEFAULT_TEAMS];
-      fieldsList = data?.fields ? data.fields : [...DEFAULT_FIELDS];
+      teamsListPrato  = data?.teamsPrato  ? data.teamsPrato  : [...DEFAULT_TEAMS_PRATO];
+      teamsListIndoor = data?.teamsIndoor ? data.teamsIndoor : [...DEFAULT_TEAMS_INDOOR];
+      fieldsList      = data?.fields      ? data.fields      : [...DEFAULT_FIELDS];
     });
     window._fbListenLive(data => {
       liveData = data || null;
@@ -698,7 +709,7 @@ function showPage(name, btn) {
   if (name === 'partite')    { renderCalendar(); renderMatches(); syncHeroBtns('prato'); }
   if (name === 'indoor')     { renderIndoor(); syncHeroBtns('indoor'); }
   if (name === 'classifica') renderStandings();
-  if (name === 'live')       renderLivePage();
+  if (name === 'live')       { renderLivePage(); setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 50); }
   if (name === 'admin')      showAdminLogin();
 }
 
@@ -920,6 +931,8 @@ function goToLive() {
 
 function renderLiveBadge() {
   startTimerTick();
+  // Scroll al tabellone
+  setTimeout(() => { document.getElementById('page-live')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
   const badge = document.getElementById('hero-live-badge');
   const matchText = document.getElementById('hero-live-match');
   const navLive = document.getElementById('nav-live-btn');
@@ -1319,9 +1332,12 @@ function showAdminListView() {
 }
 
 function populateDataLists() {
+  const cat = document.getElementById('m-cat')?.value || 'af';
+  const isIndoor = ['a1f','rfi','alfi'].includes(cat);
+  const teams = isIndoor ? teamsListIndoor : teamsListPrato;
   const tl = document.getElementById('teams-list');
   const fl = document.getElementById('fields-list');
-  if (tl) tl.innerHTML = teamsList.map(t => `<option value="${t}">`).join('');
+  if (tl) tl.innerHTML = teams.map(t => `<option value="${t}">`).join('');
   if (fl) fl.innerHTML = fieldsList.map(f => `<option value="${f}">`).join('');
 }
 // ─── ADMIN ──────────────────────────────────────────────
