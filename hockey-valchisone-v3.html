@@ -87,13 +87,13 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .print-box { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:flex-end; }
 
 /* ─── CALENDAR ─────────────────────────────────── */
-.cal-wrap { background:white; border-radius:var(--radius); box-shadow:0 2px 12px rgba(0,0,0,.06); padding:16px; margin-bottom:20px; }
+.cal-wrap { background:white; border-radius:var(--radius); box-shadow:0 2px 12px rgba(0,0,0,.06); padding:10px 12px; margin-bottom:12px; }
 .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
 .cal-title { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; color:var(--ink); }
 .cal-nav { background:none; border:1.5px solid #e5e7eb; border-radius:8px; width:30px; height:30px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-.cal-dow { font-size:10px; font-weight:700; text-align:center; padding:4px 0; color:var(--ink3); text-transform:uppercase; }
-.cal-day-btn { aspect-ratio:1; border:none; background:transparent; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all .12s; color:var(--ink2); position:relative; }
+.cal-dow { font-size:9px; font-weight:700; text-align:center; padding:2px 0; color:var(--ink3); text-transform:uppercase; }
+.cal-day-btn { aspect-ratio:1; border:none; background:transparent; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; transition:all .12s; color:var(--ink2); position:relative; max-height:36px; }
 .cal-day-btn:hover { background:#f3f4f6; }
 .cal-day-btn.has-match::after { content:''; width:5px; height:5px; border-radius:50%; background:var(--orange); position:absolute; bottom:3px; }
 .cal-day-btn.selected { background:var(--green); color:white; }
@@ -382,9 +382,12 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 <!-- CLASSIFICA -->
 <div class="page" id="page-classifica">
-  <div class="class-tabs">
-    <button class="ctab active" id="ctab-prato" onclick="setClassSport('prato')">🏑 Prato</button>
-    <button class="ctab" id="ctab-indoor" onclick="setClassSport('indoor')">🏑 Indoor</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+    <div class="class-tabs" style="margin-bottom:0">
+      <button class="ctab active" id="ctab-prato" onclick="setClassSport('prato')">🏑 Prato</button>
+      <button class="ctab" id="ctab-indoor" onclick="setClassSport('indoor')">🏑 Indoor</button>
+    </div>
+    <button class="btn-pdf" onclick="printStandings()">🖨️ Stampa Classifica</button>
   </div>
   <div id="standings-content"><div class="loading">Caricamento…</div></div>
 </div>
@@ -398,10 +401,13 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   </div>
   <div id="admin-panel" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div class="admin-tabs" style="margin-bottom:0">
-        <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
-        <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')">🔴 Live</button>
-        <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <div class="admin-tabs" style="margin-bottom:0">
+          <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
+          <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
+        </div>
+        <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
+        <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')" style="background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5">🔴 Live</button>
       </div>
       <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px">🚪 Esci</button>
     </div>
@@ -536,7 +542,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#666;margin-bottom:7px">Mese</label>
       <div id="pd-months" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
-    <div id="pd-valch-row" style="display:none;margin-bottom:18px">
+    <div id="pd-valch-row" style="margin-bottom:18px">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px">
         <input type="checkbox" id="pd-valch" style="width:16px;height:16px;accent-color:#e8620a">
         <span style="font-size:13px;font-weight:700;color:#c2410c">🟠 Solo partite Valchisone</span>
@@ -740,6 +746,36 @@ function renderIndoor() {
   }).join('');
 }
 
+
+// ─── MAP ADDRESS LOOKUP ────────────────────────────────
+const MAP_ADDRESSES = {
+  'Tazzoli': 'Corso Enrico Tazzoli, 78, 10135 Torino TO',
+  'Corso Tazzoli': 'Corso Enrico Tazzoli, 78, 10135 Torino TO',
+  'MICHELLONET': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'Villar Perosa': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'Lorenzoni': 'Viale Madonna dei Fiori, 49, 12042 Bra CN',
+  'MADONNA DEI FIORI': 'Viale Madonna dei Fiori, 49, 12042 Bra CN',
+  'Bra': 'Viale Madonna dei Fiori, 49, 12042 Bra CN',
+  'Cernusco': 'Via Carlo Goldoni, 19, 20063 Cernusco sul Naviglio MI',
+  'Boccaccio': 'Via Carlo Goldoni, 19, 20063 Cernusco sul Naviglio MI',
+  'Moncalvo': 'Via Goria, 4, 14036 Moncalvo AT',
+  'UMBERTO MICCO': 'Via Goria, 4, 14036 Moncalvo AT',
+  'Torrazza': 'Via Torrazza Piemonte, 14, 10127 Torino TO',
+  'Palazzetto': 'Viale Risorgimento, 31A, 12042 Bra CN',
+  'Pinasca': 'SP23, 51, 10060 Pinasca TO',
+  'Agogna': 'Via Milano, 65, 27030 Castello d Agogna PV',
+  'Seveninfinity': 'Via Enrico Fermi, 1, 20064 Gorgonzola MI',
+  'Gorgonzola': 'Via Enrico Fermi, 1, 20064 Gorgonzola MI',
+};
+function getMapAddress(location) {
+  if (!location) return '';
+  const loc = location.toUpperCase();
+  for (const [key, addr] of Object.entries(MAP_ADDRESSES)) {
+    if (loc.includes(key.toUpperCase())) return addr;
+  }
+  return 'campo hockey ' + location;
+}
+
 // ─── MATCH CARD HTML ────────────────────────────────────
 function matchCardHTML(m, showAdmin) {
   const cat = CATS[m.cat]||{};
@@ -759,7 +795,7 @@ function matchCardHTML(m, showAdmin) {
       ${hasSc ? `<span class="mc-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}
     </div>
     <div class="mc-meta">
-      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo hockey ' + m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
+      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
     </div>
   </div>
@@ -1384,9 +1420,9 @@ function openPrintDialog(section, mode) {
   const seen=new Set(), mChips=[];
   allDts.forEach(d=>{ const[yr,mo]=d.split('-'); const key=yr+'-'+mo; if(!seen.has(key)){seen.add(key);mChips.push({key,label:MONTHS_IT[+mo-1]+' '+yr});} });
   document.getElementById('pd-months').innerHTML='<button class="pd-chip active" data-val="all" onclick="pdToggleMo(this)">Tutti i mesi</button>'+mChips.map(m=>`<button class="pd-chip" data-val="${m.key}" onclick="pdToggleMo(this)">${m.label}</button>`).join('');
-  // Show Solo Valchisone only for calendar mode
+  // Show Solo Valchisone for both modes
   const valchRow = document.getElementById('pd-valch-row');
-  if (valchRow) valchRow.style.display = mode === 'calendar' ? '' : 'none';
+  if (valchRow) valchRow.style.display = '';
   const valchCb = document.getElementById('pd-valch');
   if (valchCb) valchCb.checked = false;
   document.getElementById('print-dialog-overlay').style.display='flex';
