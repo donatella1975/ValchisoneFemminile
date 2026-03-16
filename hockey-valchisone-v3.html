@@ -1748,8 +1748,20 @@ function printList(section,sport,catName,today,ms,evs){
   let body='';Object.keys(groups).sort().forEach(date=>{
     const d=new Date(date+'T12:00:00');
     const label=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    // Group matches by time for this day
+    const dayMatches = groups[date].filter(it=>it.type==='match');
+    const dayEvents  = groups[date].filter(it=>it.type==='event');
     body+=`<div class="day-group"><div class="day-label">${label}</div>`;
-    groups[date].forEach(it=>{if(it.type==='match')body+=printMatchRow(it.data);else body+=printEventRow(it.data);});
+    dayMatches.sort((a,b)=>(a.data.time||'').localeCompare(b.data.time||''));
+    // Group by time
+    const byTime={};
+    dayMatches.forEach(it=>{const t=it.data.time||'—';if(!byTime[t])byTime[t]=[];byTime[t].push(it);});
+    Object.keys(byTime).sort().forEach(t=>{
+      body+=`<div class="time-group"><div class="time-label">${t}</div>`;
+      byTime[t].forEach(it=>body+=printMatchRow(it.data));
+      body+='</div>';
+    });
+    dayEvents.forEach(it=>body+=printEventRow(it.data));
     body+='</div>';
   });
   if(!body)body='<p style="color:#888;text-align:center;padding:40px">Nessuna partita</p>';
@@ -1758,19 +1770,28 @@ function printList(section,sport,catName,today,ms,evs){
     .day-label{font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#1a7a2e;padding-bottom:5px;border-bottom:2.5px solid #1a7a2e;margin-bottom:8px;}
     .match-row{display:flex;align-items:stretch;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;overflow:hidden;break-inside:avoid;}
     .match-row.cat-row-af{border-left:4px solid #be185d;}.match-row.cat-row-rf{border-left:4px solid #6d28d9;}.match-row.cat-row-alf{border-left:4px solid #0e7490;}.match-row.cat-row-a1f{border-left:4px solid #c2410c;}.match-row.cat-row-rfi{border-left:4px solid #6d28d9;}.match-row.cat-row-alfi{border-left:4px solid #0e7490;}
-    .row-time{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;background:#1a7a2e;color:white;padding:10px 12px;min-width:56px;text-align:center;display:flex;align-items:center;justify-content:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .match-row.cat-row-af .row-time{background:#9d174d;}.match-row.cat-row-rf .row-time{background:#5b21b6;}.match-row.cat-row-alf .row-time{background:#0c4a6e;}.match-row.cat-row-a1f .row-time{background:#9a3412;}.match-row.cat-row-rfi .row-time{background:#5b21b6;}.match-row.cat-row-alfi .row-time{background:#0c4a6e;}
+
     .row-body{flex:1;padding:9px 13px;}
-    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
-    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;}.row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;margin-left:auto;}
-    .row-loc{font-size:11px;color:#888;}
-    .row-right{padding:9px 12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;min-width:78px;border-left:1px solid #f3f4f6;}
+    .row-header{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;flex-shrink:0;}
+    .row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;margin-left:auto;flex-shrink:0;}
+    .row-loc{font-size:10px;color:#aaa;margin-top:2px;}
+    .row-right{padding:9px 10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;min-width:72px;border-left:1px solid #f3f4f6;}
     .cat-badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;text-transform:uppercase;}
     .cat-af{background:rgba(236,72,153,.12);color:#be185d;}.cat-rf{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alf{background:rgba(6,182,212,.12);color:#0e7490;}.cat-a1f{background:rgba(234,88,12,.12);color:#c2410c;}.cat-rfi{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alfi{background:rgba(6,182,212,.12);color:#0e7490;}
     .status-badge{font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;}
     .s-done{background:#dcfce7;color:#166534;}.s-todo{background:#fff7ed;color:#c2410c;}
     .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:8px;padding:9px 13px;margin-bottom:6px;}
     .ev-row-type{font-size:10px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;}.ev-row-meta{font-size:11px;color:#888;margin-top:3px;}
+    .time-group{margin-bottom:8px;}
+    .time-label{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:#374151;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+    .time-label::after{content:'';flex:1;height:1px;background:#f3f4f6;}
+    .row-body{flex:1;padding:8px 13px;}
+    .row-header{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
+    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;flex-shrink:0;}
+    .row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;color:#1a7a2e;flex-shrink:0;}
   `;
   openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
 }
@@ -1801,7 +1822,27 @@ function printStandings() {
   );
 }
 
-function printMatchRow(m){const cat=CATS[m.cat]||{};const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}"><div class="row-time">${m.time||'—'}</div><div class="row-body"><div class="row-teams"><span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span><span class="row-vs">VS</span><span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}</div>${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}</div><div class="row-right"><span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span></div></div>`;}
+function printMatchRow(m){
+  const cat=CATS[m.cat]||{};
+  const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);
+  const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
+  return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}">
+  <div class="row-body">
+    <div class="row-header">
+      <div class="row-teams">
+        <span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span>
+        <span class="row-vs">vs</span>
+        <span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>
+      </div>
+      ${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}
+    </div>
+    ${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}
+  </div>
+  <div class="row-right">
+    <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
+    <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
+  </div>
+</div>`;}
 function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}</div></div>`;}
 function printCalView(section,sport,catName,today,ms,evs){
   const allDts=[...ms.map(m=>m.date),...evs.map(e=>e.dateStart||'').filter(Boolean)];if(!allDts.length){alert('Nessuna partita da stampare');return;}
