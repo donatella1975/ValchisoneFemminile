@@ -12,6 +12,8 @@
   import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
   const db  = getDatabase(app);
+  window._fbSaveLists   = (data) => set(ref(db,'lists'), data);
+  window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
   window._fbSave        = (data) => set(ref(db,'matches'), data);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
   window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
@@ -407,6 +409,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div class="admin-tabs" style="margin-bottom:0">
           <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
           <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
+        <button class="admin-tab" id="tab-lists" onclick="switchFormTab('lists')">📋 Squadre/Campi</button>
         </div>
         <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
         <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')" style="background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5">🔴 Live</button>
@@ -435,9 +438,17 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div class="form-field"><label>Data</label><input type="date" id="m-date"></div>
         <div class="form-field"><label>Ora</label><input type="time" id="m-time"></div>
       </div>
-      <div class="form-field"><label>Squadra Casa</label><input type="text" id="m-home" placeholder="es. HP VALCHISONE FEMMINILE"></div>
-      <div class="form-field"><label>Squadra Ospite</label><input type="text" id="m-away" placeholder="es. CUS TORINO"></div>
-      <div class="form-field"><label>Campo / Luogo</label><input type="text" id="m-loc" placeholder="es. Campo Michellonet – Via Dante, 9, Villar Perosa"></div>
+      <div class="form-field"><label>Squadra Casa</label>
+  <input type="text" id="m-home" list="teams-list" placeholder="Seleziona o scrivi squadra" autocomplete="off">
+  <datalist id="teams-list"></datalist>
+</div>
+      <div class="form-field"><label>Squadra Ospite</label>
+  <input type="text" id="m-away" list="teams-list" placeholder="Seleziona o scrivi squadra" autocomplete="off">
+</div>
+      <div class="form-field"><label>Campo / Luogo</label>
+  <input type="text" id="m-loc" list="fields-list" placeholder="Seleziona o scrivi campo" autocomplete="off">
+  <datalist id="fields-list"></datalist>
+</div>
       <div class="form-row">
         <div class="form-field"><label>Gol Casa</label><input type="number" id="m-sh" min="0" placeholder="–"></div>
         <div class="form-field"><label>Gol Ospite</label><input type="number" id="m-sa" min="0" placeholder="–"></div>
@@ -519,6 +530,29 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
 
+    <!-- LISTS MANAGEMENT -->
+    <div id="form-lists" class="admin-section" style="display:none">
+      <h3>📋 Gestione Squadre e Campi</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Squadre</div>
+          <div id="teams-editor" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="new-team-input" placeholder="Nuova squadra..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <button class="btn btn-green btn-sm" onclick="addTeam()">+ Aggiungi</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Campi di gioco</div>
+          <div id="fields-editor" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="new-field-input" placeholder="Nuovo campo..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <button class="btn btn-green btn-sm" onclick="addField()">+ Aggiungi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- EVENT LIST -->
     <div id="event-list-section" class="admin-section" style="display:none">
       <h3>Eventi salvati</h3>
@@ -590,6 +624,25 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
+let teamsList = [], fieldsList = [];
+const DEFAULT_TEAMS = [
+  'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
+  'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
+  'HC LARIO','HOCKEY CLUB LARIO','ASD HOCKEY CLUB ARGENTIA',
+  'MILANO HP','ASD SEVENINFINITY'
+];
+const DEFAULT_FIELDS = [
+  'Tazzoli - Corso Enrico Tazzoli, 78, 10135 Torino TO',
+  'CAMPO HOCKEY SANDRO MICHELLONET - Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'Augusto Lorenzoni - Viale Madonna dei Fiori, 49, 12042 Bra CN',
+  'Campo Comunale - Via Carlo Goldoni, 19, 20063 Cernusco sul Naviglio MI',
+  'UMBERTO MICCO - Via Goria, 4, 14036 Moncalvo AT',
+  'Palestra Torrazza - Via Torrazza Piemonte, 14, 10127 Torino TO',
+  'Palazzetto dello Sport - Viale Risorgimento, 31/A, 12042 Bra CN',
+  'Palasport Comunale - Strada Provinciale 23, 51, 10060 Pinasca-Dubbione TO',
+  'Centro S. Comunale - Via Milano, 65, 27030 Castello dAgogna PV',
+  'C.S. Seveninfinity - Via Toscana, 7, 20064 Gorgonzola MI'
+];
 let fPartite = 'all', fIndoor = 'all', onlyValch = false;
 let calYear, calMonth, calSelected = null;
 let currentPage = 'partite', classSport = 'prato';
@@ -620,6 +673,10 @@ window.addEventListener('load', () => {
     window._fbListenEvents(data => {
       allEvents = data ? Object.values(data) : [];
       renderMatches(); renderIndoor();
+    });
+    window._fbListenLists(data => {
+      teamsList  = data?.teams  ? data.teams  : [...DEFAULT_TEAMS];
+      fieldsList = data?.fields ? data.fields : [...DEFAULT_FIELDS];
     });
     window._fbListenLive(data => {
       liveData = data || null;
@@ -1260,6 +1317,13 @@ function showAdminListView() {
   document.getElementById('admin-list-section').style.display = '';
   cancelMatchEdit();
 }
+
+function populateDataLists() {
+  const tl = document.getElementById('teams-list');
+  const fl = document.getElementById('fields-list');
+  if (tl) tl.innerHTML = teamsList.map(t => `<option value="${t}">`).join('');
+  if (fl) fl.innerHTML = fieldsList.map(f => `<option value="${f}">`).join('');
+}
 // ─── ADMIN ──────────────────────────────────────────────
 let isAdminOpen = false;
 function showAdminLogin() {
@@ -1280,6 +1344,7 @@ function doLogin() {
     document.getElementById('admin-panel').style.display = '';
     renderAdminList();
     renderLiveAdminPanel();
+    populateDataLists();
   } else {
     alert('Password errata');
     document.getElementById('pwd-input').value = '';
@@ -1298,16 +1363,18 @@ function switchFormTab(tab) {
   ['match','live','event'].forEach(t => {
     document.getElementById('tab-'+t+'-admin'||'tab-'+t) && null;
   });
-  document.getElementById('tab-match').classList.toggle('active', tab==='match');
-  document.getElementById('tab-live-admin').classList.toggle('active', tab==='live');
-  document.getElementById('tab-event').classList.toggle('active', tab==='event');
+  ['match','live-admin','event','lists'].forEach(t => {
+    const btn = document.getElementById('tab-'+t); if(btn) btn.classList.toggle('active', tab===t);
+  });
   document.getElementById('form-match').style.display    = tab==='match' ? '' : 'none';
   document.getElementById('form-live').style.display     = tab==='live'  ? '' : 'none';
   document.getElementById('form-event').style.display    = tab==='event' ? '' : 'none';
-  const aml = document.querySelector('.admin-section:has(#admin-match-list)');
+  document.getElementById('form-lists').style.display    = tab==='lists' ? '' : 'none';
+  const aml = document.getElementById('admin-list-section');
   if (aml) aml.style.display = tab==='match' ? '' : 'none';
   const ael = document.getElementById('event-list-section');
   if (ael) ael.style.display = tab==='event' ? '' : 'none';
+  if (tab==='lists') renderListsEditor();
 }
 
 function saveMatch() {
