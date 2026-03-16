@@ -272,6 +272,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .admin-section { background:white; border-radius:var(--radius); box-shadow:0 2px 10px rgba(0,0,0,.06); padding:18px; margin-bottom:16px; }
 .admin-section h3 { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; margin-bottom:14px; color:var(--ink); }
 .admin-match-list { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
+.admin-fchip { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:16px; padding:4px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.admin-fchip.active { background:var(--green); color:white; border-color:var(--green); }
 .amatch { background:#f9fafb; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px; font-size:13px; }
 .amatch-info { flex:1; min-width:0; }
 .amatch-teams { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -448,14 +450,21 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
     <!-- EXISTING MATCHES -->
     <div class="admin-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
-        <h3 style="margin-bottom:0">Partite salvate</h3>
-        <div style="position:relative;flex:1;max-width:260px">
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
-          <input type="text" id="admin-search" placeholder="Cerca squadra o data…"
-            oninput="filterAdminList(this.value)"
-            style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
-        </div>
+      <h3 style="margin-bottom:10px">Partite salvate</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="admin-cat-filters">
+        <button class="admin-fchip active" data-cat="all" onclick="setAdminCat(this)">Tutte</button>
+        <button class="admin-fchip" data-cat="af" onclick="setAdminCat(this)">⚡ A2</button>
+        <button class="admin-fchip" data-cat="rf" onclick="setAdminCat(this)">🟣 Ragazze</button>
+        <button class="admin-fchip" data-cat="alf" onclick="setAdminCat(this)">🩵 Allieve</button>
+        <button class="admin-fchip" data-cat="a1f" onclick="setAdminCat(this)">🔥 A1</button>
+        <button class="admin-fchip" data-cat="rfi" onclick="setAdminCat(this)">🟣 Ragazze I</button>
+        <button class="admin-fchip" data-cat="alfi" onclick="setAdminCat(this)">🩵 Allieve I</button>
+      </div>
+      <div style="position:relative;margin-bottom:10px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+        <input type="text" id="admin-search" placeholder="Cerca squadra…"
+          oninput="filterAdminList()"
+          style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
       </div>
       <div class="admin-match-list" id="admin-match-list"><div class="loading">Caricamento…</div></div>
     </div>
@@ -1320,22 +1329,30 @@ function cancelMatchEdit() {
 function renderAdminList() {
   const el = document.getElementById('admin-match-list');
   if (!el || !isAdminOpen) return;
-  const searchVal = document.getElementById('admin-search')?.value || '';
-  filterAdminList(searchVal);
+  filterAdminList();
 }
 
-function filterAdminList(query) {
+let _adminCat = 'all';
+function setAdminCat(btn) {
+  _adminCat = btn.dataset.cat;
+  document.querySelectorAll('.admin-fchip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterAdminList();
+}
+
+function filterAdminList() {
   const el = document.getElementById('admin-match-list');
   if (!el || !isAdminOpen) return;
-  const q = query.toLowerCase().trim();
+  const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
-  const filtered = q ? all.filter(m =>
-    m.home.toLowerCase().includes(q) ||
-    m.away.toLowerCase().includes(q) ||
-    m.date.includes(q) ||
-    (m.cat && m.cat.toLowerCase().includes(q)) ||
-    (m.location && m.location.toLowerCase().includes(q))
-  ) : all;
+  const filtered = all.filter(m => {
+    if (_adminCat !== 'all' && m.cat !== _adminCat) return false;
+    if (!q) return true;
+    return m.home.toLowerCase().includes(q) ||
+           m.away.toLowerCase().includes(q) ||
+           m.date.includes(q) ||
+           (m.location && m.location.toLowerCase().includes(q));
+  });
   if (!filtered.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
   el.innerHTML = filtered.map(m => {
     const cat = CATS[m.cat]||{}; const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined;
