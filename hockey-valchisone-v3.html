@@ -67,7 +67,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .hero-live-text small { display:block; font-weight:400; font-size:11px; opacity:.8; }
 
 /* ─── CONTAINER ─────────────────────────────── */
-.container { max-width:960px; margin:0 auto; padding:20px 14px; position:relative; z-index:1; }
+.container { max-width:1280px; margin:0 auto; padding:20px 20px; position:relative; z-index:1; }
 .page { display:none; }
 .page.active { display:block; }
 
@@ -415,7 +415,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
 
     <!-- MATCH FORM -->
-    <div id="form-match" class="admin-section">
+    <div id="form-match" class="admin-section" style="display:none">
       <h3 id="form-match-title">Aggiungi Partita</h3>
       <input type="hidden" id="edit-id">
       <div class="form-row">
@@ -443,7 +443,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div class="form-field"><label>Gol Ospite</label><input type="number" id="m-sa" min="0" placeholder="–"></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-ghost btn-sm" id="btn-cancel-match" onclick="cancelMatchEdit()" style="display:none">Annulla</button>
+        <button class="btn btn-ghost btn-sm" id="btn-cancel-match" onclick="cancelMatchEdit()">← Torna alla lista</button>
         <button class="btn btn-green" onclick="saveMatch()">Salva Partita</button>
       </div>
     </div>
@@ -1246,6 +1246,17 @@ function renderStandings() {
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
 }
 
+
+function showAddForm() {
+  document.getElementById('form-match').style.display = '';
+  document.getElementById('admin-list-section').style.display = 'none';
+  document.getElementById('form-match').scrollIntoView({behavior:'smooth'});
+}
+function showAdminListView() {
+  document.getElementById('form-match').style.display = 'none';
+  document.getElementById('admin-list-section').style.display = '';
+  cancelMatchEdit();
+}
 // ─── ADMIN ──────────────────────────────────────────────
 let isAdminOpen = false;
 function showAdminLogin() {
@@ -1316,7 +1327,7 @@ function saveMatch() {
   all.forEach(x => { obj[x.id] = x; });
   obj[id] = m;
   window._fbSave(obj);
-  cancelMatchEdit();
+  cancelMatchEdit(); // also returns to list view
 }
 
 function cancelMatchEdit() {
@@ -1324,6 +1335,11 @@ function cancelMatchEdit() {
   document.getElementById('m-cat').value = 'af';
   document.getElementById('form-match-title').textContent = 'Aggiungi Partita';
   document.getElementById('btn-cancel-match').style.display = 'none';
+  // Go back to list view
+  const fm = document.getElementById('form-match');
+  const al = document.getElementById('admin-list-section');
+  if (fm) fm.style.display = 'none';
+  if (al) al.style.display = '';
 }
 
 function renderAdminList() {
@@ -1348,9 +1364,11 @@ function filterAdminList() {
   const filtered = all.filter(m => {
     if (_adminCat !== 'all' && m.cat !== _adminCat) return false;
     if (!q) return true;
+    const dateIT = fmtDate(m.date); // GG-MM-AAAA
     return m.home.toLowerCase().includes(q) ||
            m.away.toLowerCase().includes(q) ||
            m.date.includes(q) ||
+           dateIT.includes(q) ||
            (m.location && m.location.toLowerCase().includes(q));
   });
   if (!filtered.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
@@ -1371,6 +1389,8 @@ function editMatch(id) {
   const all = [...allMatches,...allIndoor];
   const m = all.find(x=>x.id===id); if(!m) return;
   switchFormTab('match');
+  document.getElementById('form-match').style.display = '';
+  document.getElementById('admin-list-section').style.display = 'none';
   document.getElementById('edit-id').value  = m.id;
   document.getElementById('m-cat').value    = m.cat;
   document.getElementById('m-date').value   = m.date;
