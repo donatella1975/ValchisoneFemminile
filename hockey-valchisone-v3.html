@@ -448,7 +448,15 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
     <!-- EXISTING MATCHES -->
     <div class="admin-section">
-      <h3>Partite salvate</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
+        <h3 style="margin-bottom:0">Partite salvate</h3>
+        <div style="position:relative;flex:1;max-width:260px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+          <input type="text" id="admin-search" placeholder="Cerca squadra o data…"
+            oninput="filterAdminList(this.value)"
+            style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
+        </div>
+      </div>
       <div class="admin-match-list" id="admin-match-list"><div class="loading">Caricamento…</div></div>
     </div>
 
@@ -1312,9 +1320,24 @@ function cancelMatchEdit() {
 function renderAdminList() {
   const el = document.getElementById('admin-match-list');
   if (!el || !isAdminOpen) return;
+  const searchVal = document.getElementById('admin-search')?.value || '';
+  filterAdminList(searchVal);
+}
+
+function filterAdminList(query) {
+  const el = document.getElementById('admin-match-list');
+  if (!el || !isAdminOpen) return;
+  const q = query.toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
-  if (!all.length) { el.innerHTML = '<div class="loading">Nessuna partita</div>'; return; }
-  el.innerHTML = all.map(m => {
+  const filtered = q ? all.filter(m =>
+    m.home.toLowerCase().includes(q) ||
+    m.away.toLowerCase().includes(q) ||
+    m.date.includes(q) ||
+    (m.cat && m.cat.toLowerCase().includes(q)) ||
+    (m.location && m.location.toLowerCase().includes(q))
+  ) : all;
+  if (!filtered.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
+  el.innerHTML = filtered.map(m => {
     const cat = CATS[m.cat]||{}; const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined;
     return `<div class="amatch">
       <div class="amatch-info">
