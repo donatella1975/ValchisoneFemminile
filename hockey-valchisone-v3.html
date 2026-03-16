@@ -6,19 +6,19 @@
 <title>H.P. Valchisone Femminile — Campionato 2025/26</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script>
-  const app = firebase.initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
-  const db  = firebase.database();
-  window._fbSave        = (data) => db.ref('matches').set(data);
-  window._fbListen      = (cb)   => db.ref('matches').on('value', snap => cb(snap.val()));
-  window._fbSaveEvents  = (data) => db.ref('events').set(data);
-  window._fbListenEvents= (cb)   => db.ref('events').on('value', snap => cb(snap.val()));
-  window._fbSaveLive    = (data) => db.ref('live').set(data);
-  window._fbListenLive  = (cb)   => db.ref('live').on('value', snap => cb(snap.val()));
-  window._fbRemoveLive  = ()     => db.ref('live').remove();
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
+  const db  = getDatabase(app);
+  window._fbSave        = (data) => set(ref(db,'matches'), data);
+  window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
+  window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
+  window._fbListenEvents= (cb)   => onValue(ref(db,'events'), snap => cb(snap.val()));
+  window._fbSaveLive    = (data) => set(ref(db,'live'), data);
+  window._fbListenLive  = (cb)   => onValue(ref(db,'live'), snap => cb(snap.val()));
+  window._fbRemoveLive  = ()     => remove(ref(db,'live'));
 </script>
 
 <style>
@@ -578,12 +578,19 @@ window.addEventListener('load', () => {
   calMonth = now.getMonth();
 
   function initFb() {
-    if (!window._fbListen) { setTimeout(initFb, 100); return; }
+    if (!window._fbListen) { 
+      console.log('Waiting for Firebase...');
+      setTimeout(initFb, 100); 
+      return; 
+    }
+    console.log('Firebase ready, loading data...');
 
     window._fbListen(data => {
+      console.log('Matches received:', data ? Object.keys(data).length : 0);
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
+      console.log('Prato:', allMatches.length, 'Indoor:', allIndoor.length);
       renderCalendar(); renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
     });
@@ -832,7 +839,7 @@ function renderLivePage() {
   const goals = l.goals ? Object.values(l.goals).sort((a,b) => (a.minute||0)-(b.minute||0)) : [];
   const goalsHtml = goals.length ? goals.map(g => `
     <div class="event-log-item">
-      <div class="eli-minute">${g.minute||'?'}'</div>
+      <div class="eli-minute">${g.minute||"?"}'</div>
       <div class="eli-icon">🏑</div>
       <div class="eli-text">
         <div class="eli-player">${g.player||'—'}</div>
@@ -903,7 +910,7 @@ function renderLiveAdminPanel() {
     const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)) : [];
     const goalsAdmin = goals.map(g => `
       <div class="event-log-item">
-        <div class="eli-minute">${g.minute||'?'}'</div>
+        <div class="eli-minute">${g.minute||"?"}'</div>
         <div class="eli-icon">🏑</div>
         <div class="eli-text"><div class="eli-player">${g.player||'—'}</div><div class="eli-team">${g.team||''}</div></div>
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
@@ -1066,7 +1073,7 @@ function timerHalf() {
 
 function timerReset() {
   if (!confirm('Azzerare entrambi i cronometri?')) return;
-  const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0, totalElapsed: 0, half: 1}; // 4 quarti da 15'
+  const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0, totalElapsed: 0, half: 1}; // resetarti da 15'
   window._fbSaveLive(updated);
 }
 
@@ -1214,7 +1221,7 @@ function doLogin() {
 }
 
 function doLogout() {
-  if (!confirm('Vuoi uscire dall'area admin?')) return;
+  if (!confirm("Vuoi uscire dall'area admin?")) return;
   isAdminOpen = false;
   document.getElementById('pwd-input').value = '';
   document.getElementById('login-wrap').style.display = '';
