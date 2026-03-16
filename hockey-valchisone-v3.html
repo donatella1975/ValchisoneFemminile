@@ -939,7 +939,7 @@ function renderLiveAdminPanel() {
     const matchOpts = [...allMatches, ...allIndoor]
       .filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; })
       .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
-      .map(m => `<option value="${m.id}">${m.date} ${m.time||''} – ${m.home} vs ${m.away}</option>`)
+      .map(m => `<option value="${m.id}">${fmtDate(m.date)} ${m.time||''} – ${m.home} vs ${m.away}</option>`)
       .join('');
     el.innerHTML = `
       <p style="font-size:13px;color:#6b7280;margin-bottom:14px">Seleziona la partita da trasmettere in diretta:</p>
