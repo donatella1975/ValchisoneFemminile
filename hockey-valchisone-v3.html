@@ -825,8 +825,18 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   c.innerHTML = html;
 }
 
-function setFPartite(v) { fPartite = v; renderCalendar(); renderMatches(); }
-function setFIndoor(v)   { fIndoor  = v; renderIndoor(); }
+function setFPartite(v) {
+  if (v === 'all') { fPartite = new Set(['all']); }
+  else { fPartite.delete('all'); if (fPartite.has(v)) { fPartite.delete(v); if(fPartite.size===0) fPartite.add('all'); } else { fPartite.add(v); } }
+  buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
+  renderCalendar(); renderMatches();
+}
+function setFIndoor(v) {
+  if (v === 'all') { fIndoor = new Set(['all']); }
+  else { fIndoor.delete('all'); if (fIndoor.has(v)) { fIndoor.delete(v); if(fIndoor.size===0) fIndoor.add('all'); } else { fIndoor.add(v); } }
+  buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
+  renderCalendarIndoor(); renderIndoor();
+}
 function toggleValch()   { onlyValch = !onlyValch; renderCalendar(); renderMatches(); renderIndoor(); renderStandings(); }
 
 // ─── CALENDAR ──────────────────────────────────────────
