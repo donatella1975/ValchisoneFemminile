@@ -678,7 +678,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">✕ Chiudi</button>
     </div>
   <div style="background:#e5e7eb;min-height:100vh;padding:24px">
-  <div id="print-preview-body" style="background:white;max-width:960px;margin:0 auto;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;min-height:297mm"></div>
+  <div id="print-preview-body" style="background:white;max-width:960px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;overflow:hidden"></div>
 </div>
 </div>
 
@@ -1780,17 +1780,27 @@ let _ppSection = '', _ppMode = '';
 function openPrintWindow(title, styles, bodyHTML) {
   _printStyles = styles;
   document.getElementById('print-preview-title').textContent = '📄 ' + title;
-  // Inject print font styles into preview
-  const styleEl = document.getElementById('_preview_style') || (() => {
-    const s = document.createElement('style'); s.id = '_preview_style'; document.head.appendChild(s); return s;
-  })();
-  const cssMatch = styles.match(/<style>([\s\S]*?)<\/style>/);
-  styleEl.textContent = cssMatch ? '#print-preview-body { ' + cssMatch[1] + ' }' : '';
-  document.getElementById('print-preview-body').innerHTML = bodyHTML;
+  // Use iframe for complete CSS isolation
+  const container = document.getElementById('print-preview-body');
+  container.innerHTML = '<iframe id="print-iframe" style="width:100%;border:none;min-height:600px" scrolling="no"></iframe>';
+  const iframe = document.getElementById('print-iframe');
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">${styles}</head><body style="margin:0;padding:0;background:white">${bodyHTML}</body></html>`);
+  doc.close();
+  // Auto-resize iframe to content height
+  iframe.onload = () => {
+    try { iframe.style.height = (iframe.contentWindow.document.body.scrollHeight + 40) + 'px'; } catch(e){}
+  };
+  setTimeout(() => {
+    try { iframe.style.height = (iframe.contentWindow.document.body.scrollHeight + 40) + 'px'; } catch(e){}
+  }, 300);
   document.getElementById('print-preview-overlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  // Scroll to top of overlay
   document.getElementById('print-preview-overlay').scrollTop = 0;
+  // Remove old injected styles if any
+  const old = document.getElementById('_preview_style');
+  if (old) old.textContent = '';
 }
 function closePrintPreview() {
   document.getElementById('print-preview-overlay').style.display = 'none';
@@ -1801,17 +1811,11 @@ function closePrintPreview() {
   if (ppCatFilters) ppCatFilters.innerHTML = '';
 }
 function doPrint() {
-  // Inject print styles and trigger print
-  let styleEl = document.getElementById('_print_style_inject');
-  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_print_style_inject'; document.head.appendChild(styleEl); }
-  // Extract CSS from styles string
-  const cssMatch = _printStyles.match(/<style>([\s\S]*?)<\/style>/);
-  styleEl.textContent = cssMatch ? cssMatch[1] : '';
-  // Show only preview for printing
-  document.getElementById('print-preview-toolbar').style.display = 'none';
-  window.print();
-  document.getElementById('print-preview-toolbar').style.display = '';
-  if (styleEl) styleEl.textContent = '';
+  const iframe = document.getElementById('print-iframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  }
 }
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
@@ -1863,15 +1867,46 @@ function printTableView(section,sport,catName,today,ms,evs){if(!ms.length){alert
 function printPocketView(section,sport,catName,today,ms,evs){if(!ms.length){alert('Nessuna partita da stampare');return;}ms.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));const groups={};ms.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m);});let body='<div class="pg">';Object.keys(groups).sort().forEach(date=>{const d=new Date(date+'T12:00:00');const label=d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();groups[date].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach((m,i)=>{const cat=CATS[m.cat]||{};const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;const hV=m.home.toUpperCase().includes(VALCH);const aV=m.away.toUpperCase().includes(VALCH);body+=`<div class="pc"><div class="pcr"><span class="pcd">${i===0?label:''}</span><span class="pct">${m.time||'--'}</span><span class="pcts"><span${hV?' class="v"':''}>${m.home}</span><span class="pvs">vs</span><span${aV?' class="v"':''}>${m.away}</span>${hasSc?` <b>${m.scoreHome}-${m.scoreAway}</b>`:''}</span></div><div class="pccat">${cat.icon||''} ${cat.short||''} ${hasSc?'Finale':'Da giocare'}</div></div>`;});});body+='</div>';const CSS=PRINT_BASE_CSS+`@page{size:A4;margin:.8cm;}body{padding:6px;}.pg{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid #d1d5db;font-size:9px;}.pc{border-right:1px solid #d1d5db;border-bottom:1px solid #d1d5db;padding:4px 7px;break-inside:avoid;}.pc:nth-child(even){border-right:none;}.pcr{display:flex;align-items:center;gap:4px;}.pcd{font-size:8px;font-weight:700;text-transform:uppercase;color:#6b7280;white-space:nowrap;min-width:58px;}.pct{font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:800;color:#1a1a1a;white-space:nowrap;min-width:34px;}.pcts{font-family:'Bricolage Grotesque',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.pcts .v{color:#e8620a;}.pvs{font-size:8px;color:#bbb;margin:0 2px;}.pccat{font-size:8px;color:#9ca3af;margin-top:1px;padding-left:38px;}`;openPrintWindow('Tascabile '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);}
 
 function printStandings() {
-  _ppLayout = 'list'; // reset layout for standings
+  _ppLayout = 'list';
   const sport = classSport === 'indoor' ? '🏑 Indoor' : '🏑 Prato';
   const today = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const el = document.getElementById('standings-content');
-  if (!el) return;
-  // Hide layout buttons for standings
   const ppLayout = document.getElementById('pp-layout-btns');
   if (ppLayout) ppLayout.style.display = 'none';
-  const content = el.innerHTML;
+  const ppCatFilters = document.getElementById('pp-cat-filters');
+  if (ppCatFilters) ppCatFilters.innerHTML = '';
+
+  // Rebuild standings HTML from data (not from DOM)
+  const indoorCats = ['a1f','rfi','alfi'];
+  const catGroups = classSport==='indoor'
+    ? [['a1f','🔥 A1 Femminile Indoor'],['rfi','🟣 Ragazze U16 Indoor'],['alfi','🩵 Allieve U14 Indoor']]
+    : [['af','⚡ A2 Femminile'],['rf','🟣 Ragazze U16'],['alf','🩵 Allieve U14']];
+  const allM = classSport==='indoor' ? allIndoor : allMatches;
+
+  let content = '';
+  catGroups.forEach(([cat, catLabel]) => {
+    const teams = new Set();
+    allM.filter(m=>m.cat===cat).forEach(m=>{teams.add(m.home);teams.add(m.away);});
+    if (!teams.size) return;
+    const stats = {};
+    teams.forEach(t => { stats[t]={pt:0,g:0,v:0,pe:0,pa:0,n:0,gf:0,gs:0,dr:0}; });
+    allM.filter(m=>m.cat===cat&&m.scoreHome!==undefined&&m.scoreAway!==undefined).forEach(m=>{
+      const sh=parseInt(m.scoreHome),sa=parseInt(m.scoreAway);
+      if(!stats[m.home]||!stats[m.away])return;
+      stats[m.home].g++;stats[m.away].g++;
+      stats[m.home].gf+=sh;stats[m.home].gs+=sa;stats[m.home].dr+=sh-sa;
+      stats[m.away].gf+=sa;stats[m.away].gs+=sh;stats[m.away].dr+=sa-sh;
+      if(sh>sa){stats[m.home].v++;stats[m.home].pt+=3;stats[m.away].pa++;}
+      else if(sh<sa){stats[m.away].v++;stats[m.away].pt+=3;stats[m.home].pa++;}
+      else{stats[m.home].n++;stats[m.away].n++;stats[m.home].pt++;stats[m.away].pt++;}
+    });
+    const sorted = [...teams].sort((a,b)=>stats[b].pt-stats[a].pt||stats[b].dr-stats[a].dr||stats[b].gf-stats[a].gf);
+    const rows = sorted.map((t,i)=>{
+      const s=stats[t];const isV=t.toUpperCase().includes(VALCH);
+      return `<tr class="${isV?'valch-row':''}"><td class="st-pos">${i+1}</td><td>${t}</td><td class="st-pts">${s.pt}</td><td>${s.g}</td><td>${s.v}</td><td>${s.pe}</td><td>${s.pa}</td><td>${s.n}</td><td class="${s.dr>0?'dr-pos':s.dr<0?'dr-neg':''}">${s.dr>0?'+':''}${s.dr}</td><td>${s.gf}</td><td>${s.gs}</td></tr>`;
+    }).join('');
+    content += `<div class="standings-wrap"><div class="standings-title">${catLabel}</div><table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>PE</th><th>PA</th><th>N</th><th>DR</th><th>GF</th><th>GS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+
   const CSS = `${PRINT_BASE_CSS}
     .standings-wrap{background:white;border-radius:10px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:20px;break-inside:avoid;}
     .standings-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;padding:12px 16px;border-bottom:2px solid #d4f5dc;color:#1a3a22;background:#f0faf2;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -1879,10 +1914,10 @@ function printStandings() {
     th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;padding:7px 6px;text-align:center;background:#f9fafb;border-bottom:1px solid #f3f4f6;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     th:first-child{text-align:left;padding-left:12px;}
     td{padding:8px 6px;text-align:center;border-bottom:1px solid #f9fafb;}
-    td:first-child{text-align:left;padding-left:12px;font-weight:600;}
+    td:nth-child(2){text-align:left;padding-left:12px;font-weight:600;}
     tr:last-child td{border-bottom:none;}
     .valch-row td{background:#fffbf5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .valch-row td:first-child{color:#e8620a;}
+    .valch-row td:nth-child(2){color:#e8620a;}
     .st-pos{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:13px;}
     .st-pts{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:14px;color:#1a7a2e;}
     .dr-pos{color:#16a34a;font-weight:700;}.dr-neg{color:#dc2626;font-weight:700;}
