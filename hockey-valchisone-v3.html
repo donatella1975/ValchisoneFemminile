@@ -1671,6 +1671,7 @@ function refreshPrintPreview() {
 function quickPrint(section, mode, format, isRefresh) {
   _ppSection = section;
   _ppMode = mode;
+  window._lastPrintSection = section;
   const isIndoor  = section === 'indoor';
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
@@ -1778,43 +1779,33 @@ let _printStyles = '';
 let _ppSection = '', _ppMode = '';
 
 function openPrintWindow(title, styles, bodyHTML) {
-  // Store for format switching
-  window._lastPrintArgs = {title, styles, bodyHTML};
-  const toolbar = `<div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:8px 16px;display:flex;align-items:center;gap:8px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2);flex-wrap:wrap">
-    <span style="color:white;font-size:12px;font-weight:700;font-family:sans-serif;white-space:nowrap">📄 ${title}</span>
-    <div id="fmt-btns" style="display:flex;gap:4px;flex-wrap:wrap">
-      <span id="fmt-elenco" onclick="switchFmt('elenco')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📋 Elenco</span>
-      <span id="fmt-a4" onclick="switchFmt('a4')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📄 A4 2 colonne</span>
-      <span id="fmt-pocket" onclick="switchFmt('pocket')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">👜 Tascabile</span>
+  const fmt = title.includes('A4') ? 'a4landscape' : title.includes('Tascabile') ? 'pocket' : 'normal';
+  const sec = window._lastPrintSection || 'partite';
+  const toolbar = `<div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:8px 16px;display:flex;align-items:center;gap:6px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2);flex-wrap:wrap">
+    <div style="display:flex;gap:4px">
+      <button onclick="window.opener&&window.opener.quickPrint('${sec}','list','normal',true);window.close()" style="background:${'normal'===fmt?'white':'rgba(255,255,255,.25)'};color:${'normal'===fmt?'#1a7a2e':'white'};border:none;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer">📋 Elenco</button>
+      <button onclick="window.opener&&window.opener.quickPrint('${sec}','list','a4landscape',true);window.close()" style="background:${'a4landscape'===fmt?'white':'rgba(255,255,255,.25)'};color:${'a4landscape'===fmt?'#1a7a2e':'white'};border:none;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer">📄 A4 2 colonne</button>
+      <button onclick="window.opener&&window.opener.quickPrint('${sec}','list','pocket',true);window.close()" style="background:${'pocket'===fmt?'white':'rgba(255,255,255,.25)'};color:${'pocket'===fmt?'#1a7a2e':'white'};border:none;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer">👜 Tascabile</button>
     </div>
+    <span style="color:rgba(255,255,255,.6);font-size:11px;font-weight:600;font-family:sans-serif;margin-left:4px">${title}</span>
     <div style="margin-left:auto;display:flex;gap:6px">
-      <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
+      <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button>
       <button onclick="window.close()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">✕ Chiudi</button>
     </div>
   </div><div style="height:52px"></div>`;
   const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '</body></html>';
-  // Determine current format from title
-  const _fmt = title.includes('A4') ? 'a4' : title.includes('Tascabile') ? 'pocket' : 'elenco';
-  const _activateScript = `<script>document.addEventListener('DOMContentLoaded',function(){
-    var btns={'elenco':'fmt-elenco','a4':'fmt-a4','pocket':'fmt-pocket'};
-    var cur='${_fmt}';
-    Object.keys(btns).forEach(function(k){
-      var el=document.getElementById(btns[k]);
-      if(el){el.style.background=k===cur?'white':'rgba(255,255,255,.2)';el.style.color=k===cur?'#1a7a2e':'white';}
-    });
-  });<\/script>`;
-  const fullHTMLwScript = fullHTML.replace('</head>', _activateScript + '</head>');
-  const blob = new Blob([fullHTMLwScript], {type: 'text/html'});
+  const blob = new Blob([fullHTML], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.target = '_blank';
-  a.rel = 'noopener';
+  a.rel = 'opener';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
+
 function doPrint() {}
 function closePrintPreview() {}
 
@@ -1867,6 +1858,59 @@ function printTableView(section,sport,catName,today,ms,evs){if(!ms.length){alert
 
 // ─── POCKET VIEW ─────────────────────────────────────
 function printPocketView(section,sport,catName,today,ms,evs){if(!ms.length){alert('Nessuna partita da stampare');return;}ms.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));const groups={};ms.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m);});let body='<div class="pg">';Object.keys(groups).sort().forEach(date=>{const d=new Date(date+'T12:00:00');const label=d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();groups[date].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach((m,i)=>{const cat=CATS[m.cat]||{};const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;const hV=m.home.toUpperCase().includes(VALCH);const aV=m.away.toUpperCase().includes(VALCH);body+=`<div class="pc"><div class="pcr"><span class="pcd">${i===0?label:''}</span><span class="pct">${m.time||'--'}</span><span class="pcts"><span${hV?' class="v"':''}>${m.home}</span><span class="pvs">vs</span><span${aV?' class="v"':''}>${m.away}</span>${hasSc?` <b>${m.scoreHome}-${m.scoreAway}</b>`:''}</span></div><div class="pccat">${cat.icon||''} ${cat.short||''} ${hasSc?'Finale':'Da giocare'}</div></div>`;});});body+='</div>';const CSS=PRINT_BASE_CSS+`@page{size:A4;margin:.8cm;}body{padding:6px;}.pg{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid #d1d5db;font-size:9px;}.pc{border-right:1px solid #d1d5db;border-bottom:1px solid #d1d5db;padding:4px 7px;break-inside:avoid;}.pc:nth-child(even){border-right:none;}.pcr{display:flex;align-items:center;gap:4px;}.pcd{font-size:8px;font-weight:700;text-transform:uppercase;color:#6b7280;white-space:nowrap;min-width:58px;}.pct{font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:800;color:#1a1a1a;white-space:nowrap;min-width:34px;}.pcts{font-family:'Bricolage Grotesque',sans-serif;font-size:9px;font-weight:800;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.pcts .v{color:#e8620a;}.pvs{font-size:8px;color:#bbb;margin:0 2px;}.pccat{font-size:8px;color:#9ca3af;margin-top:1px;padding-left:38px;}`;openPrintWindow('Tascabile '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);}
+
+// --- PRINT LIST A4 LANDSCAPE (2 colonne) ---
+function printListA4(section,sport,catName,today,ms,evs){
+  if(!ms.length){alert('Nessuna partita da stampare');return;}
+  ms.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const groups={};
+  [...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).forEach(it=>{const d=it.type==='event'?(it.data.dateStart||''):it.date;if(!groups[d])groups[d]=[];groups[d].push(it);});
+  let body='<div class="twocol">';
+  Object.keys(groups).sort().forEach(date=>{
+    const d=new Date(date+'T12:00:00');
+    const label=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+    const dayMs=groups[date].filter(it=>it.type==='match').sort((a,b)=>(a.data.time||'').localeCompare(b.data.time||''));
+    const dayEvs=groups[date].filter(it=>it.type==='event');
+    const times=[...new Set(dayMs.map(m=>m.data.time||''))].filter(Boolean).sort();
+    const timeStr=times.length===1?times[0]:'';
+    body+=`<div class="dblk"><div class="dhd"><span class="dlbl">${label}</span>${timeStr?`<span class="dtm">${timeStr}</span>`:''}</div>`;
+    dayMs.forEach(it=>{
+      const m=it.data,cat=CATS[m.cat]||{};
+      const hV=m.home.toUpperCase().includes(VALCH),aV=m.away.toUpperCase().includes(VALCH);
+      const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
+      const showTime=times.length>1;
+      body+=`<div class="mrow c-${m.cat}"><div class="mr1">${showTime?`<span class="mtm">${m.time||'--'}</span>`:''}<span class="mteams"><span${hV?' class="v"':''}>${m.home}</span><span class="vs">vs</span><span${aV?' class="v"':''}>${m.away}</span></span>${hasSc?`<span class="msc">${m.scoreHome}-${m.scoreAway}</span>`:''}</div>${m.location?`<div class="mloc">${m.location}</div>`:''}<div class="mr2"><span class="cb c-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="sb ${hasSc?'sd':'st'}">${hasSc?'Finale':'Da giocare'}</span></div></div>`;
+    });
+    dayEvs.forEach(it=>{const e=it.data;const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?fmt(e.dateStart)+'->'+fmt(e.dateEnd):fmt(e.dateStart||'');body+=`<div class="evr">${e.title||''} - ${dates}${e.location?' - '+e.location:''}</div>`;});
+    body+='</div>';
+  });
+  body+='</div>';
+  const hdr=`<div class="hd"><div><div class="hdn">H.P. Valchisone Femminile</div><div class="hds">${sport} - ${catName} - 2025/26</div></div><div class="hdd">${today}</div></div>`;
+  const css=`@page{size:A4 landscape;margin:.8cm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a1a;padding:0}.hd{display:flex;align-items:center;gap:10px;border-bottom:2px solid #1a7a2e;padding:6px 10px;margin-bottom:8px}.hdn{font-size:14px;font-weight:800;color:#1a7a2e}.hds{font-size:9px;color:#6b7280}.hdd{margin-left:auto;font-size:9px;color:#9ca3af}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;padding:0 10px}.dblk{break-inside:avoid;margin-bottom:4px}.dhd{display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #1a7a2e;padding-bottom:3px;margin-bottom:4px}.dlbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e}.dtm{font-size:9px;font-weight:800;text-transform:uppercase;color:#1a7a2e;margin-left:6px;padding-left:6px;border-left:1.5px solid #b9dfc0}.mrow{border:1px solid #e5e7eb;border-left:2.5px solid #9ca3af;border-radius:4px;margin-bottom:3px;padding:3px 6px;break-inside:avoid}.mrow.c-af{border-left-color:#be185d}.mrow.c-rf{border-left-color:#6d28d9}.mrow.c-alf{border-left-color:#0e7490}.mrow.c-a1f{border-left-color:#c2410c}.mrow.c-rfi{border-left-color:#6d28d9}.mrow.c-alfi{border-left-color:#0e7490}.mr1{display:flex;align-items:center;gap:4px;margin-bottom:1px}.mtm{font-size:9px;font-weight:800;color:#1a7a2e;text-transform:uppercase;min-width:32px;flex-shrink:0}.mteams{font-size:10px;font-weight:700;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mteams .v{color:#e8620a}.vs{font-size:8px;color:#bbb;margin:0 2px}.msc{font-size:11px;font-weight:800;color:#1a7a2e;margin-left:auto}.mloc{font-size:8px;color:#9ca3af;margin-bottom:1px}.mr2{display:flex;gap:4px}.cb{font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;border:1px solid currentColor;text-transform:uppercase}.c-af{color:#be185d}.c-rf{color:#6d28d9}.c-alf{color:#0e7490}.c-a1f{color:#c2410c}.c-rfi{color:#6d28d9}.c-alfi{color:#0e7490}.sb{font-size:8px;font-weight:600;padding:1px 4px;border-radius:3px;border:1px solid currentColor}.sd{color:#166534}.st{color:#c2410c}.evr{font-size:9px;border-left:2px solid #e8620a;padding:2px 5px;margin-bottom:3px;color:#9a3412}`;
+  openPrintWindow('A4 2 colonne - '+sport,`<style>${css}</style>`,hdr+body);
+}
+
+// --- PRINT LIST TASCABILE ---
+function printListPocket(section,sport,catName,today,ms,evs){
+  if(!ms.length){alert('Nessuna partita da stampare');return;}
+  ms.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const groups={};ms.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m);});
+  let body='<div class="pg">';
+  Object.keys(groups).sort().forEach(date=>{
+    const d=new Date(date+'T12:00:00');
+    const label=d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
+    groups[date].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach((m,i)=>{
+      const cat=CATS[m.cat]||{},hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
+      const hV=m.home.toUpperCase().includes(VALCH),aV=m.away.toUpperCase().includes(VALCH);
+      body+=`<div class="pc c-${m.cat}"><div class="pc1"><span class="pcd">${i===0?label:''}</span><span class="pct">${m.time||'--'}</span><span class="pcts"><span${hV?' class="v"':''}>${m.home}</span><span class="pvs">vs</span><span${aV?' class="v"':''}>${m.away}</span>${hasSc?` <b>${m.scoreHome}-${m.scoreAway}</b>`:''}</span></div><div class="pc2"><span class="cb c-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="sb ${hasSc?'sd':'st'}">${hasSc?'Finale':'Da giocare'}</span></div></div>`;
+    });
+  });
+  body+='</div>';
+  const hdr=`<div class="hd"><div><div class="hdn">HP Valchisone F.</div><div class="hds">${catName} - 25/26</div></div><div class="hdd">${today}</div></div>`;
+  const css=`@page{size:A5;margin:.6cm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9px;color:#1a1a1a}.hd{display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #1a7a2e;padding-bottom:5px;margin-bottom:6px}.hdn{font-size:11px;font-weight:800;color:#1a7a2e}.hds{font-size:8px;color:#6b7280}.hdd{margin-left:auto;font-size:8px;color:#9ca3af;text-align:right}.pg{display:flex;flex-direction:column;gap:2px}.pc{border-left:2px solid #9ca3af;padding:3px 5px;break-inside:avoid}.c-af{border-left-color:#be185d}.c-rf{border-left-color:#6d28d9}.c-alf{border-left-color:#0e7490}.c-a1f{border-left-color:#c2410c}.c-rfi{border-left-color:#6d28d9}.c-alfi{border-left-color:#0e7490}.pc1{display:flex;align-items:center;gap:3px}.pcd{font-size:7px;font-weight:700;text-transform:uppercase;color:#6b7280;white-space:nowrap;min-width:52px}.pct{font-size:10px;font-weight:800;color:#1a7a2e;text-transform:uppercase;white-space:nowrap;min-width:28px}.pcts{font-size:8px;font-weight:800;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcts .v{color:#e8620a}.pvs{font-size:7px;color:#bbb;margin:0 1px}.pc2{display:flex;gap:3px;margin-top:1px;padding-left:80px}.cb{font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px;border:1px solid currentColor;text-transform:uppercase}.sb{font-size:7px;font-weight:600;padding:1px 3px;border-radius:2px;border:1px solid currentColor}.sd{color:#166534}.st{color:#c2410c}`;
+  openPrintWindow('Tascabile - '+sport,`<style>${css}</style>`,hdr+body);
+}
+
 
 function printStandings() {
   _ppLayout = 'list';
