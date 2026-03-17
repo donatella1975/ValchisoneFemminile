@@ -273,10 +273,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .admin-tab.active { background:var(--green); color:white; }
 .admin-section { background:white; border-radius:var(--radius); box-shadow:0 2px 10px rgba(0,0,0,.06); padding:18px; margin-bottom:16px; }
 .admin-section h3 { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; margin-bottom:14px; color:var(--ink); }
-.admin-match-list { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
+.admin-match-list { display:flex; flex-direction:column; gap:3px; max-height:500px; overflow-y:auto; }
 .admin-fchip { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:16px; padding:4px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
 .admin-fchip.active { background:var(--green); color:white; border-color:var(--green); }
-.amatch { background:#f9fafb; border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px; font-size:13px; }
+.amatch { background:#f9fafb; border-radius:8px; padding:6px 10px; display:flex; align-items:center; gap:6px; font-size:13px; }
 .amatch-info { flex:1; min-width:0; }
 .amatch-teams { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; }
 .amatch-meta { font-size:12px; color:var(--ink3); margin-top:1px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
@@ -362,7 +362,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('indoor',this)">🏑 Indoor</button>
       <button class="nav-pill" id="nav-live-btn" onclick="showPage('live',this)">🔴 Live</button>
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
-      <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin">⚙️</button>
     </nav>
   </div>
@@ -419,6 +418,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="btn-pdf" onclick="quickPrint('indoor','list','pocket')">👜 Tascabile</button>
       <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('indoor','calendar')">📅 Calendario</button>
     </div>
+  </div>
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calIndoorPrev()">◀</button>
+      <div class="cal-title" id="cal-indoor-title"></div>
+      <button class="cal-nav" onclick="calIndoorNext()">▶</button>
+    </div>
+    <div class="cal-grid" id="cal-indoor-grid"></div>
   </div>
   <div id="indoor-list"><div class="loading">Caricamento…</div></div>
 </div>
@@ -729,6 +736,9 @@ const DEFAULT_FIELDS = [
 ];
 let fPartite = 'all', fIndoor = 'all', onlyValch = false;
 let calYear, calMonth, calSelected = null;
+let calIndoorYear = new Date().getFullYear();
+let calIndoorMonth = new Date().getMonth();
+let calIndoorSelected = null;
 let currentPage = 'partite', classSport = 'prato';
 
 // ─── INIT ───────────────────────────────────────────────
@@ -747,7 +757,7 @@ window.addEventListener('load', () => {
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
-      renderCalendar(); renderMatches(); renderIndoor(); renderStandings();
+      renderCalendar(); renderCalendarIndoor(); renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
     });
     window._fbListenEvents(data => {
@@ -778,7 +788,7 @@ function showPage(name, btn) {
   if (btn) btn.classList.add('active');
   currentPage = name;
   if (name === 'partite')    { renderCalendar(); renderMatches(); syncHeroBtns('prato'); }
-  if (name === 'indoor')     { renderIndoor(); syncHeroBtns('indoor'); }
+  if (name === 'indoor')     { renderCalendarIndoor(); renderIndoor(); syncHeroBtns('indoor'); }
   if (name === 'classifica') renderStandings();
   if (name === 'live')       { renderLivePage(); setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 50); }
   if (name === 'eventi')     { renderEventiPage(); }
@@ -844,6 +854,8 @@ function renderCalendar() {
 }
 function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
 function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+function calIndoorPrev() { calIndoorMonth--; if(calIndoorMonth<0){calIndoorMonth=11;calIndoorYear--;} renderCalendarIndoor(); }
+function calIndoorNext() { calIndoorMonth++; if(calIndoorMonth>11){calIndoorMonth=0;calIndoorYear++;} renderCalendarIndoor(); }
 function selectCalDay(ds) { calSelected = calSelected===ds ? null : ds; renderCalendar(); renderMatches(); }
 
 // ─── RENDER MATCHES ─────────────────────────────────────
@@ -878,6 +890,36 @@ function renderMatches() {
 }
 
 // ─── RENDER INDOOR ──────────────────────────────────────
+function renderCalendarIndoor() {
+  const titleEl = document.getElementById('cal-indoor-title');
+  const gridEl  = document.getElementById('cal-indoor-grid');
+  if (!titleEl || !gridEl) return;
+  titleEl.textContent = MONTHS_IT[calIndoorMonth] + ' ' + calIndoorYear;
+  const matchDates = new Set(allIndoor
+    .filter(m => fIndoor==='all'||m.cat===fIndoor)
+    .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
+    .map(m => m.date));
+  const todayStr = new Date().toISOString().slice(0,10);
+  const firstDay0 = new Date(calIndoorYear, calIndoorMonth, 1).getDay();
+  const firstDay  = firstDay0===0 ? 6 : firstDay0-1;
+  const daysInMonth = new Date(calIndoorYear, calIndoorMonth+1, 0).getDate();
+  const DOWS = ['L','M','M','G','V','S','D'];
+  let html2 = '<div class="cal-dow-row">' + DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('') + '</div><div class="cal-days">';
+  for (let i=0; i<firstDay; i++) html2 += '<div class="cal-day-btn empty"></div>';
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = calIndoorYear+'-'+String(calIndoorMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const classes = ['cal-day-btn', matchDates.has(ds)?'has-match':'', ds===todayStr?'today':'', ds===calIndoorSelected?'selected':''].filter(Boolean).join(' ');
+    html2 += `<button class="${classes}" onclick="selectCalIndoorDay('${ds}')">${d}</button>`;
+  }
+  html2 += '</div>';
+  gridEl.innerHTML = html2;
+}
+function selectCalIndoorDay(ds) {
+  calIndoorSelected = calIndoorSelected===ds ? null : ds;
+  renderCalendarIndoor();
+  renderIndoor();
+}
+
 function renderIndoor() {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','rf','alf'];
