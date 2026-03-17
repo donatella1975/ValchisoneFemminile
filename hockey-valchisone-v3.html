@@ -113,7 +113,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .match-card.cat-card-rfi { border-left-color:#6d28d9; }
 .match-card.cat-card-alfi{ border-left-color:#0e7490; }
 .match-card.valch-match  { background:#fffbf5; }
-.mc-time { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 12px; min-width:58px; background:var(--green); color:white; flex-shrink:0; }
+.mc-time { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 10px; min-width:52px; background:var(--green); color:white; flex-shrink:0; }
 .match-card.cat-card-af  .mc-time { background:linear-gradient(160deg,#9d174d,#ec4899); }
 .match-card.cat-card-rf  .mc-time { background:linear-gradient(160deg,#5b21b6,#7c3aed); }
 .match-card.cat-card-alf .mc-time { background:linear-gradient(160deg,#0c4a6e,#0284c7); }
@@ -121,11 +121,11 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .match-card.cat-card-rfi .mc-time { background:linear-gradient(160deg,#5b21b6,#7c3aed); }
 .match-card.cat-card-alfi{ border-left-color:#0e7490; }
 .match-card.cat-card-alfi .mc-time { background:linear-gradient(160deg,#0c4a6e,#0284c7); }
-.t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; }
+.t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; }
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
-.mc-body { flex:1; padding:10px 12px; min-width:0; }
+.mc-body { flex:1; padding:8px 10px; min-width:0; }
 .mc-teams { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
-.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px; }
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
@@ -155,7 +155,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 /* ─── DAY GROUP ─────────────────────────────── */
 .day-group { margin-bottom:20px; }
-.day-label { font-family:'Bricolage Grotesque',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--green); padding-bottom:6px; border-bottom:2px solid var(--green4); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.day-label { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:var(--green); padding:6px 0 6px 0; border-bottom:2px solid var(--green); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
 .day-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
 
 /* ─── STANDINGS ─────────────────────────────── */
@@ -370,7 +370,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <!-- HERO -->
 <div class="hero">
   <h1>Stagione 2025/2026</h1>
-  <div class="hero-sub"><span>H.P. Valchisone Femminile</span></div>
+  <div class="hero-sub" style="font-size:clamp(16px,4vw,22px);margin-top:6px"><span>H.P. Valchisone Femminile</span></div>
   <div class="hero-btns" style="flex-wrap:nowrap;justify-content:center">
     <button class="hero-subsection active-sport" id="btn-sport-prato" onclick="switchSport('prato')" style="flex:1;max-width:200px">🏑 Prato</button>
     <button class="hero-subsection" id="btn-sport-indoor" onclick="switchSport('indoor')" style="flex:1;max-width:200px">🏑 Indoor</button>
@@ -655,6 +655,11 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <div id="print-preview-overlay" style="display:none;position:fixed;inset:0;background:white;z-index:9999;overflow-y:auto;flex-direction:column">
   <div id="print-preview-toolbar" style="position:sticky;top:0;background:#1a7a2e;padding:10px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:1">
     <span id="print-preview-title" style="color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;margin-right:4px"></span>
+    <div id="pp-layout-btns" style="display:flex;gap:4px">
+      <button onclick="setPPLayout('list')" id="pp-layout-list" style="background:white;color:#1a7a2e;border:none;border-radius:14px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">📋 Elenco</button>
+      <button onclick="setPPLayout('table')" id="pp-layout-table" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:14px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">📊 Tabella A4</button>
+      <button onclick="setPPLayout('pocket')" id="pp-layout-pocket" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:14px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">📎 Tascabile</button>
+    </div>
     <div id="pp-cat-filters" style="display:flex;gap:5px;flex-wrap:wrap"></div>
     <label style="display:flex;align-items:center;gap:5px;color:white;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:16px">
       <input type="checkbox" id="pp-valch" onchange="refreshPrintPreview()" style="accent-color:#e8620a"> 🟠 Solo Valchisone
@@ -1607,6 +1612,18 @@ function cancelEventEdit() {
 }
 
 
+
+let _ppLayout = 'list';
+function setPPLayout(layout) {
+  _ppLayout = layout;
+  ['list','table','pocket'].forEach(l => {
+    const btn = document.getElementById('pp-layout-'+l);
+    if (btn) btn.style.background = l===layout ? 'white' : 'rgba(255,255,255,.2)';
+    if (btn) btn.style.color = l===layout ? '#1a7a2e' : 'white';
+  });
+  refreshPrintPreview();
+}
+
 // ─── QUICK PRINT (usa filtri attivi) ──────────────────
 function refreshPrintPreview() {
   if (_ppSection && _ppMode) quickPrint(_ppSection, _ppMode, true);
@@ -1645,8 +1662,10 @@ function quickPrint(section, mode, isRefresh) {
 
   const ppValchEl = document.getElementById('pp-valch');
   if (ppValchEl) onlyValch = ppValchEl.checked;
-  if (mode === 'list') printList(section, sport, catName, today, ms, evs);
-  else                 printCalView(section, sport, catName, today, ms, evs);
+  if (mode === 'calendar') { printCalView(section, sport, catName, today, ms, evs); return; }
+  if (_ppLayout === 'table')  { printTableView(section, sport, catName, today, ms, evs); return; }
+  if (_ppLayout === 'pocket') { printPocketView(section, sport, catName, today, ms, evs); return; }
+  printList(section, sport, catName, today, ms, evs);
   // Populate cat filter chips in toolbar
   const indoorCats2 = ['a1f','rfi','alfi'];
   const availCats2 = Object.entries(CATS).filter(([k,v]) => isIndoor ? indoorCats2.includes(k) : !indoorCats2.includes(k));
@@ -1752,47 +1771,38 @@ function printList(section,sport,catName,today,ms,evs){
     // Group matches by time for this day
     const dayMatches = groups[date].filter(it=>it.type==='match');
     const dayEvents  = groups[date].filter(it=>it.type==='event');
-    body+=`<div class="day-group"><div class="day-label">${label}</div>`;
     dayMatches.sort((a,b)=>(a.data.time||'').localeCompare(b.data.time||''));
-    // Group by time
-    const byTime={};
-    dayMatches.forEach(it=>{const t=it.data.time||'—';if(!byTime[t])byTime[t]=[];byTime[t].push(it);});
-    Object.keys(byTime).sort().forEach(t=>{
-      body+=`<div class="time-group"><div class="time-label">${t}</div>`;
-      byTime[t].forEach(it=>body+=printMatchRow(it.data));
-      body+='</div>';
-    });
+    // Multiple times? Show first time in header; if all same show once
+    const times=[...new Set(dayMatches.map(m=>m.data.time||''))].filter(Boolean).sort();
+    const timeStr = times.length===1 ? times[0] : '';
+    body+=`<div class="day-group"><div class="day-header"><span class="day-date">${label}</span>${timeStr?`<span class="day-time">${timeStr}</span>`:''}</div>`;
+    dayMatches.forEach(it=>body+=printMatchRow(it.data,times.length===1));
     dayEvents.forEach(it=>body+=printEventRow(it.data));
     body+='</div>';
   });
   if(!body)body='<p style="color:#888;text-align:center;padding:40px">Nessuna partita</p>';
   const CSS=PRINT_BASE_CSS+`
-    .day-group{margin-bottom:20px;break-inside:avoid;}
-    .day-label{font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#1a7a2e;padding-bottom:5px;border-bottom:2.5px solid #1a7a2e;margin-bottom:8px;}
-    .match-row{display:flex;align-items:stretch;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;overflow:hidden;break-inside:avoid;}
-    .match-row.cat-row-af{border-left:4px solid #be185d;}.match-row.cat-row-rf{border-left:4px solid #6d28d9;}.match-row.cat-row-alf{border-left:4px solid #0e7490;}.match-row.cat-row-a1f{border-left:4px solid #c2410c;}.match-row.cat-row-rfi{border-left:4px solid #6d28d9;}.match-row.cat-row-alfi{border-left:4px solid #0e7490;}
-
-    .row-body{flex:1;padding:9px 13px;}
-    .row-header{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
-    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
-    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;flex-shrink:0;}
-    .row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;margin-left:auto;flex-shrink:0;}
-    .row-loc{font-size:10px;color:#aaa;margin-top:2px;}
-    .row-right{padding:9px 10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;min-width:72px;border-left:1px solid #f3f4f6;}
-    .cat-badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;text-transform:uppercase;}
+    .day-group{margin-bottom:22px;break-inside:avoid;}
+    .day-header{display:flex;align-items:baseline;gap:16px;border-bottom:2.5px solid #1a7a2e;padding-bottom:5px;margin-bottom:10px;}
+    .day-date{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#1a7a2e;}
+    .day-time{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a1a1a;}
+    .match-block{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;overflow:hidden;break-inside:avoid;}
+    .match-block.cat-af{border-left:4px solid #be185d;}.match-block.cat-rf{border-left:4px solid #6d28d9;}.match-block.cat-alf{border-left:4px solid #0e7490;}
+    .match-block.cat-a1f{border-left:4px solid #c2410c;}.match-block.cat-rfi{border-left:4px solid #6d28d9;}.match-block.cat-alfi{border-left:4px solid #0e7490;}
+    .match-line1{display:flex;align-items:center;gap:10px;padding:9px 12px 4px 12px;}
+    .match-time{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;color:#1a1a1a;min-width:46px;flex-shrink:0;}
+    .match-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;flex:1;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;}
+    .match-teams .valch{color:#e8620a;}
+    .match-vs{font-size:10px;color:#ccc;font-weight:700;flex-shrink:0;}
+    .match-score{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a7a2e;margin-left:auto;flex-shrink:0;}
+    .match-line2{font-size:10px;color:#9ca3af;padding:0 12px 4px 12px;}
+    .match-line3{display:flex;align-items:center;gap:6px;padding:0 12px 8px 12px;}
+    .cat-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;}
     .cat-af{background:rgba(236,72,153,.12);color:#be185d;}.cat-rf{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alf{background:rgba(6,182,212,.12);color:#0e7490;}.cat-a1f{background:rgba(234,88,12,.12);color:#c2410c;}.cat-rfi{background:rgba(124,58,237,.12);color:#6d28d9;}.cat-alfi{background:rgba(6,182,212,.12);color:#0e7490;}
-    .status-badge{font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;}
+    .status-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;}
     .s-done{background:#dcfce7;color:#166534;}.s-todo{background:#fff7ed;color:#c2410c;}
-    .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:8px;padding:9px 13px;margin-bottom:6px;}
+    .ev-row{background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #e8620a;border-radius:8px;padding:9px 13px;margin-bottom:8px;}
     .ev-row-type{font-size:10px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;}.ev-row-meta{font-size:11px;color:#888;margin-top:3px;}
-    .time-group{margin-bottom:8px;}
-    .time-label{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:#374151;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
-    .time-label::after{content:'';flex:1;height:1px;background:#f3f4f6;}
-    .row-body{flex:1;padding:8px 13px;}
-    .row-header{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-    .row-teams{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
-    .row-teams .valch{color:#e8620a;}.row-vs{font-size:10px;color:#bbb;font-weight:700;flex-shrink:0;}
-    .row-score{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;color:#1a7a2e;flex-shrink:0;}
   `;
   openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
 }
@@ -1823,23 +1833,20 @@ function printStandings() {
   );
 }
 
-function printMatchRow(m){
+function printMatchRow(m, hideTime){
   const cat=CATS[m.cat]||{};
   const isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH);
   const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
-  return`<div class="match-row cat-row-${m.cat}${isV?' valch-row':''}">
-  <div class="row-body">
-    <div class="row-header">
-      <div class="row-teams">
-        <span${isV&&m.home.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.home}</span>
-        <span class="row-vs">vs</span>
-        <span${isV&&m.away.toUpperCase().includes(VALCH)?' class="valch"':''}>${m.away}</span>
-      </div>
-      ${hasSc?`<span class="row-score">${m.scoreHome}–${m.scoreAway}</span>`:''}
-    </div>
-    ${m.location?`<div class="row-loc">📍 ${m.location}</div>`:''}
+  const hV=m.home.toUpperCase().includes(VALCH);
+  const aV=m.away.toUpperCase().includes(VALCH);
+  return`<div class="match-block cat-${m.cat}">
+  <div class="match-line1">
+    ${hideTime?'': `<span class="match-time">${m.time||'—'}</span>`}
+    <span class="match-teams"><span${hV?' class="valch"':''}>${m.home}</span><span class="match-vs">vs</span><span${aV?' class="valch"':''}>${m.away}</span></span>
+    ${hasSc?`<span class="match-score">${m.scoreHome}–${m.scoreAway}</span>`:''}
   </div>
-  <div class="row-right">
+  ${m.location?`<div class="match-line2">📍 ${m.location}</div>`:''}
+  <div class="match-line3">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
   </div>
@@ -1852,7 +1859,31 @@ function printCalView(section,sport,catName,today,ms,evs){
   const byDate={};ms.forEach(m=>{if(!byDate[m.date])byDate[m.date]=[];byDate[m.date].push({type:'match',data:m});});evs.forEach(e=>{const d=e.dateStart||'';if(!d)return;if(!byDate[d])byDate[d]=[];byDate[d].push({type:'event',data:e});});
   const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];let calHTML='';
   months.forEach(mDate=>{const yr=mDate.getFullYear(),mo=mDate.getMonth(),label=MONTHS_IT[mo]+' '+yr;let firstDay=new Date(yr,mo,1).getDay();firstDay=firstDay===0?6:firstDay-1;const dim=new Date(yr,mo+1,0).getDate();calHTML+=`<div class="cal-month-block"><div class="cal-month-title">${label}</div><table class="cal-table"><thead><tr>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;let dc=1,rows=Math.ceil((dim+firstDay)/7);for(let r=0;r<rows;r++){calHTML+='<tr>';for(let c=0;c<7;c++){const ci=r*7+c;if(ci<firstDay||dc>dim){calHTML+='<td class="cal-empty"></td>';}else{const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dc).padStart(2,'0');const items=byDate[ds]||[];calHTML+=`<td class="cal-day${c>=5?' weekend':''}${items.length?' has-events':''}"><div class="cal-day-num">${dc}</div>`;items.forEach(it=>{if(it.type==='match'){const m=it.data,cat=CATS[m.cat]||{},isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH),hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined,tA=m.home.replace('HOCKEY PRATO VALCHISONE FEMMINILE','HP Valchisone').replace('ASD ','').replace('USD ',''),tB=m.away.replace('HOCKEY PRATO VALCHISONE FEMMINILE','HP Valchisone').replace('ASD ','').replace('USD ','');calHTML+=`<div class="cal-event match-ev cat-ev-${m.cat}${isV?' valch-ev':''}"><span class="ev-time">${m.time||''}</span> <span class="ev-teams">${tA} <span class="ev-sep">vs</span> ${tB}${hasSc?' <strong>'+m.scoreHome+'–'+m.scoreAway+'</strong>':''}</span></div>`;}else{const e=it.data;calHTML+=`<div class="cal-event special-ev">🏆 ${e.title||'Evento'}</div>`;}});calHTML+='</td>';dc++;}}calHTML+='</tr>';}calHTML+='</tbody></table></div>';});
-  openPrintWindow('Calendario '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${PRINT_BASE_CSS}.cal-month-block{margin-bottom:28px;break-inside:avoid;}.cal-month-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:800;color:#1a3a22;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}.cal-table{width:100%;border-collapse:collapse;table-layout:fixed;}.cal-table thead th{font-family:'Bricolage Grotesque',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a7a2e;background:#f0faf2;padding:5px 3px;text-align:center;border:1px solid #d1fae5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.cal-day{border:1px solid #e5e7eb;vertical-align:top;padding:4px;min-height:64px;font-size:11px;}.cal-empty{border:1px solid #f3f4f6;background:#fafafa;}.cal-day.weekend{background:#fafafa;}.cal-day-num{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:700;color:#374151;margin-bottom:3px;display:inline-block;}.cal-event{font-size:9px;border-radius:4px;padding:2px 4px;margin-bottom:2px;line-height:1.3;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.match-ev{background:#e8f5e9;color:#1a3a22;border-left:3px solid #1a7a2e;}.match-ev.valch-ev{background:#fff7ed;border-left-color:#e8620a;}.cat-ev-af{border-left-color:#be185d;background:rgba(236,72,153,.08);}.cat-ev-rf{border-left-color:#6d28d9;background:rgba(124,58,237,.08);}.cat-ev-alf{border-left-color:#0e7490;background:rgba(6,182,212,.08);}.cat-ev-a1f{border-left-color:#c2410c;background:rgba(234,88,12,.08);}.cat-ev-rfi{border-left-color:#6d28d9;background:rgba(124,58,237,.08);}.cat-ev-alfi{border-left-color:#0e7490;background:rgba(6,182,212,.08);}.ev-time{font-weight:700;margin-right:3px;}.ev-sep{color:#aaa;font-size:8px;}.special-ev{background:#fff7ed;color:#9a3412;border-left:3px solid #e8620a;}</style>`,buildPrintHeader(sport,catName,today)+calHTML);}
+  openPrintWindow('Calendario '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${PRINT_BASE_CSS}
+  @page{size:A4 landscape;margin:1cm;}
+  .cal-month-block{margin-bottom:24px;break-inside:avoid;}
+  .cal-month-title{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;color:#1a3a22;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;border-left:5px solid #1a7a2e;padding-left:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cal-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #e5e7eb;}
+  .cal-table thead th{font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:white;background:#1a7a2e;padding:7px 4px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cal-table thead th.weekend-h{background:#155e2a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cal-day{border:1px solid #e5e7eb;vertical-align:top;padding:5px 4px;min-height:70px;background:white;}
+  .cal-empty{border:1px solid #f3f4f6;background:#fafafa;}
+  .cal-day.weekend{background:#f8fffe;}
+  .cal-day-num{font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:700;color:#374151;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cal-day.today-day .cal-day-num{background:#1a7a2e;color:white;}
+  .cal-event{font-size:9px;border-radius:4px;padding:2px 5px;margin-bottom:2px;line-height:1.3;break-inside:avoid;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .match-ev{background:#e8f5e9;color:#1a3a22;border-left:3px solid #1a7a2e;font-weight:600;}
+  .match-ev.valch-ev{background:#fff3e8;border-left-color:#e8620a;}
+  .cat-ev-af{border-left-color:#be185d;background:rgba(236,72,153,.1);color:#9d174d;}
+  .cat-ev-rf{border-left-color:#6d28d9;background:rgba(124,58,237,.1);color:#5b21b6;}
+  .cat-ev-alf{border-left-color:#0e7490;background:rgba(6,182,212,.1);color:#0c4a6e;}
+  .cat-ev-a1f{border-left-color:#c2410c;background:rgba(234,88,12,.1);color:#9a3412;}
+  .cat-ev-rfi{border-left-color:#6d28d9;background:rgba(124,58,237,.1);color:#5b21b6;}
+  .cat-ev-alfi{border-left-color:#0e7490;background:rgba(6,182,212,.1);color:#0c4a6e;}
+  .ev-time{font-weight:800;margin-right:3px;}
+  .ev-sep{color:#aaa;font-size:8px;}
+  .special-ev{background:#fff7ed;color:#9a3412;border-left:3px solid #e8620a;font-weight:600;}
+  </style>`,buildPrintHeader(sport,catName,today)+calHTML);}
 </script>
 </body>
 </html>
