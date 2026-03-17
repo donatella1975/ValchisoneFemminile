@@ -391,7 +391,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <div class="filter-bar" id="filter-partite"></div>
     <div class="print-box">
       <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="quickPrint('partite','list')">📋 Elenco</button>
+      <button class="btn-pdf" onclick="quickPrint('partite','list','normal')">📋 Elenco</button>
+      <button class="btn-pdf" onclick="quickPrint('partite','list','a4landscape')">📄 A4 2 colonne</button>
+      <button class="btn-pdf" onclick="quickPrint('partite','list','pocket')">👜 Tascabile</button>
       <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('partite','calendar')">📅 Calendario</button>
     </div>
   </div>
@@ -412,7 +414,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <div class="filter-bar" id="filter-indoor"></div>
     <div class="print-box">
       <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="quickPrint('indoor','list')">📋 Elenco</button>
+      <button class="btn-pdf" onclick="quickPrint('indoor','list','normal')">📋 Elenco</button>
+      <button class="btn-pdf" onclick="quickPrint('indoor','list','a4landscape')">📄 A4 2 colonne</button>
+      <button class="btn-pdf" onclick="quickPrint('indoor','list','pocket')">👜 Tascabile</button>
       <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('indoor','calendar')">📅 Calendario</button>
     </div>
   </div>
@@ -1664,7 +1668,7 @@ function refreshPrintPreview() {
   if (_ppSection && _ppMode) quickPrint(_ppSection, _ppMode, true);
 }
 
-function quickPrint(section, mode, isRefresh) {
+function quickPrint(section, mode, format, isRefresh) {
   _ppSection = section;
   _ppMode = mode;
   const isIndoor  = section === 'indoor';
@@ -1698,8 +1702,8 @@ function quickPrint(section, mode, isRefresh) {
   const ppValchEl = document.getElementById('pp-valch');
   if (ppValchEl) onlyValch = ppValchEl.checked;
   if (mode === 'calendar') { printCalView(section, sport, catName, today, ms, evs); return; }
-  if (_ppLayout === 'table')  { printTableView(section, sport, catName, today, ms, evs); return; }
-  if (_ppLayout === 'pocket') { printPocketView(section, sport, catName, today, ms, evs); return; }
+  if (format === 'a4landscape') { printListA4(section, sport, catName, today, ms, evs); return; }
+  if (format === 'pocket')      { printListPocket(section, sport, catName, today, ms, evs); return; }
   printList(section, sport, catName, today, ms, evs);
   // Populate cat filter chips in toolbar
   const indoorCats2 = ['a1f','rfi','alfi'];
@@ -1774,8 +1778,33 @@ let _printStyles = '';
 let _ppSection = '', _ppMode = '';
 
 function openPrintWindow(title, styles, bodyHTML) {
-  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body><div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:10px 20px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2)"><span style="color:white;font-size:13px;font-weight:600;font-family:sans-serif;flex:1">📄 ' + title + '</span><button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button></div><div style="height:56px"></div>' + bodyHTML + '</body></html>';
-  const blob = new Blob([fullHTML], {type: 'text/html'});
+  // Store for format switching
+  window._lastPrintArgs = {title, styles, bodyHTML};
+  const toolbar = `<div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:8px 16px;display:flex;align-items:center;gap:8px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2);flex-wrap:wrap">
+    <span style="color:white;font-size:12px;font-weight:700;font-family:sans-serif;white-space:nowrap">📄 ${title}</span>
+    <div id="fmt-btns" style="display:flex;gap:4px;flex-wrap:wrap">
+      <span id="fmt-elenco" onclick="switchFmt('elenco')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📋 Elenco</span>
+      <span id="fmt-a4" onclick="switchFmt('a4')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📄 A4 2 colonne</span>
+      <span id="fmt-pocket" onclick="switchFmt('pocket')" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">👜 Tascabile</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
+      <button onclick="window.close()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">✕ Chiudi</button>
+    </div>
+  </div><div style="height:52px"></div>`;
+  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '</body></html>';
+  // Determine current format from title
+  const _fmt = title.includes('A4') ? 'a4' : title.includes('Tascabile') ? 'pocket' : 'elenco';
+  const _activateScript = `<script>document.addEventListener('DOMContentLoaded',function(){
+    var btns={'elenco':'fmt-elenco','a4':'fmt-a4','pocket':'fmt-pocket'};
+    var cur='${_fmt}';
+    Object.keys(btns).forEach(function(k){
+      var el=document.getElementById(btns[k]);
+      if(el){el.style.background=k===cur?'white':'rgba(255,255,255,.2)';el.style.color=k===cur?'#1a7a2e':'white';}
+    });
+  });<\/script>`;
+  const fullHTMLwScript = fullHTML.replace('</head>', _activateScript + '</head>');
+  const blob = new Blob([fullHTMLwScript], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1812,7 +1841,7 @@ function printList(section,sport,catName,today,ms,evs){
     .day-group{margin-bottom:20px;break-inside:avoid;}
     .day-header{display:flex;align-items:center;border-bottom:2px solid #1a7a2e;padding-bottom:5px;margin-bottom:9px;}
     .day-date{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#1a7a2e;}
-    .day-time{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;color:#374151;margin-left:12px;padding-left:12px;border-left:2px solid #e5e7eb;}
+    .day-time{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#1a7a2e;margin-left:10px;padding-left:10px;border-left:2px solid #b9dfc0;}
     .match-block{border:1px solid #d1d5db;border-left:3px solid #9ca3af;border-radius:6px;margin-bottom:7px;break-inside:avoid;}
     .match-block.cat-af{border-left-color:#be185d;}.match-block.cat-rf{border-left-color:#6d28d9;}.match-block.cat-alf{border-left-color:#0e7490;}
     .match-block.cat-a1f{border-left-color:#c2410c;}.match-block.cat-rfi{border-left-color:#6d28d9;}.match-block.cat-alfi{border-left-color:#0e7490;}
