@@ -1431,12 +1431,12 @@ function doLogout() {
   document.getElementById('admin-panel').style.display = 'none';
 }
 function switchFormTab(tab) {
-  ['match','live','event'].forEach(t => {
-    document.getElementById('tab-'+t+'-admin'||'tab-'+t) && null;
+  ['tab-match','tab-live-admin','tab-event','tab-lists'].forEach(id => {
+    const btn = document.getElementById(id); if(btn) btn.classList.remove('active');
   });
-  ['match','live-admin','event','lists'].forEach(t => {
-    const btn = document.getElementById('tab-'+t); if(btn) btn.classList.toggle('active', tab===t);
-  });
+  const activeId = tab==='live' ? 'tab-live-admin' : 'tab-'+tab;
+  const activeBtn = document.getElementById(activeId);
+  if (activeBtn) activeBtn.classList.add('active');
   document.getElementById('form-match').style.display    = tab==='match' ? '' : 'none';
   document.getElementById('form-live').style.display     = tab==='live'  ? '' : 'none';
   document.getElementById('form-event').style.display    = tab==='event' ? '' : 'none';
@@ -1446,6 +1446,7 @@ function switchFormTab(tab) {
   const ael = document.getElementById('event-list-section');
   if (ael) ael.style.display = tab==='event' ? '' : 'none';
   if (tab==='lists') renderListsEditor();
+  if (tab==='live') renderLiveAdminPanel();
 }
 
 function saveMatch() {
