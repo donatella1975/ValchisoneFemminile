@@ -836,7 +836,7 @@ function renderCalendar() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calMonth] + ' ' + calYear;
   const matchDates = new Set(allMatches
-    .filter(m => fPartite==='all'||m.cat===fPartite)
+    .filter(m => fPartite.has('all')||fPartite.has(m.cat))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -896,7 +896,7 @@ function renderCalendarIndoor() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calIndoorMonth] + ' ' + calIndoorYear;
   const matchDates = new Set(allIndoor
-    .filter(m => fIndoor==='all'||m.cat===fIndoor)
+    .filter(m => fIndoor.has('all')||fIndoor.has(m.cat))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const todayStr = new Date().toISOString().slice(0,10);
@@ -1506,9 +1506,11 @@ function switchFormTab(tab) {
   if (ael) ael.style.display = tab==='event' ? '' : 'none';
   if (tab==='lists') renderListsEditor();
   if (tab==='live') renderLiveAdminPanel();
-  // Scroll form into view
-  const formEl = document.getElementById('admin-panel');
-  if (formEl) setTimeout(() => formEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  // Scroll to top of active form
+  const formIds = {match:'admin-list-section', live:'form-live', event:'form-event', lists:'form-lists'};
+  const targetId = formIds[tab] || 'admin-panel';
+  const targetEl = document.getElementById(targetId) || document.getElementById('admin-panel');
+  if (targetEl) setTimeout(() => targetEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
 function saveMatch() {
@@ -1717,13 +1719,14 @@ function quickPrint(section, mode, format, isRefresh) {
   const isIndoor  = section === 'indoor';
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
-  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label || catFilter);
+  const isAll = catFilter instanceof Set ? catFilter.has('all') : catFilter==='all';
+  const catName = isAll ? 'Tutte le categorie' : [...catFilter].map(c=>CATS[c]?.short||c).join('+');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const indoorCats = ['a1f','rfi','alfi'];
   const pratoIds   = ['af','rf','alf'];
 
   let ms = (isIndoor ? allIndoor : allMatches)
-    .filter(m => catFilter === 'all' || m.cat === catFilter)
+    .filter(m => catFilter instanceof Set ? (catFilter.has('all')||catFilter.has(m.cat)) : catFilter==='all'||m.cat===catFilter)
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
 
@@ -1855,7 +1858,7 @@ function printList(section,sport,catName,today,ms,evs){
     // Multiple times? Show first time in header; if all same show once
     const times=[...new Set(dayMatches.map(m=>m.data.time||''))].filter(Boolean).sort();
     const timeStr = times.length===1 ? times[0] : '';
-    body+=`<div class="day-group"><div class="day-header"><span class="day-date">${label}</span>${timeStr?`<span class="day-time">${timeStr}</span>`:''}</div>`;
+    body+=`<div class="day-group"><div class="day-header"><span class="day-date">${label}</span>${timeStr?`<span class="day-time">ore: ${timeStr}</span>`:''}</div>`;
     dayMatches.forEach(it=>body+=printMatchRow(it.data,times.length===1));
     dayEvents.forEach(it=>body+=printEventRow(it.data));
     body+='</div>';
