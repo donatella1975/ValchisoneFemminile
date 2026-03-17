@@ -1671,6 +1671,7 @@ function refreshPrintPreview() {
 function quickPrint(section, mode, isRefresh) {
   _ppSection = section;
   _ppMode = mode;
+  console.log('quickPrint called:', section, mode, 'layout:', _ppLayout);
   const isIndoor  = section === 'indoor';
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
@@ -1778,6 +1779,7 @@ let _printStyles = '';
 let _ppSection = '', _ppMode = '';
 
 function openPrintWindow(title, styles, bodyHTML) {
+  console.log('openPrintWindow:', title, 'bodyHTML length:', bodyHTML?.length);
   _printStyles = styles;
   document.getElementById('print-preview-title').textContent = '📄 ' + title;
 
