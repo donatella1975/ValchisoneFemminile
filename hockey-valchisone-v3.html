@@ -1774,64 +1774,21 @@ let _printStyles = '';
 let _ppSection = '', _ppMode = '';
 
 function openPrintWindow(title, styles, bodyHTML) {
-  _printStyles = styles;
-  document.getElementById('print-preview-title').textContent = '\uD83D\uDCC4 ' + title;
-  const container = document.getElementById('print-preview-body');
-  const oldS = document.getElementById('_pp_scoped_style');
-  if (oldS) oldS.remove();
-  const cssMatch = styles.match(/<style>([\s\S]*?)<\/style>/);
-  const cssText = cssMatch ? cssMatch[1] : '';
-  // Use shadow DOM for complete style isolation
-  container.innerHTML = '<div id="pp-shadow-host"></div>';
-  const host = document.getElementById('pp-shadow-host');
-  host.style.cssText = 'display:block;width:100%;';
-  let shadow;
-  try {
-    shadow = host.attachShadow({mode:'open'});
-    shadow.innerHTML = `<style>:host{display:block;font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1a1a;}${cssText}</style><div style="padding:28px">${bodyHTML}</div>`;
-  } catch(e) {
-    // Fallback: inject with scoped style
-    const styleEl = document.createElement('style');
-    styleEl.id = '_pp_scoped_style';
-    styleEl.textContent = '#pp-print-content{all:initial;display:block;font-family:DM Sans,sans-serif;font-size:13px;color:#1a1a1a;padding:28px}' + cssText.replace(/([^@{}\n][^{}\n]*)\{/g, '#pp-print-content $1{');
-    document.head.appendChild(styleEl);
-    container.innerHTML = '<div id="pp-print-content">' + bodyHTML + '</div>';
-  }
-  document.getElementById('print-preview-overlay').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  document.getElementById('print-preview-overlay').scrollTop = 0;
+  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body><div class="no-print" style="position:fixed;top:0;left:0;right:0;background:#1a7a2e;padding:10px 20px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2)"><span style="color:white;font-size:13px;font-weight:600;font-family:sans-serif;flex:1">📄 ' + title + '</span><button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button></div><div style="height:56px"></div>' + bodyHTML + '</body></html>';
+  const blob = new Blob([fullHTML], {type: 'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
+function doPrint() {}
+function closePrintPreview() {}
 
-function closePrintPreview() {
-  document.getElementById('print-preview-overlay').style.display = 'none';
-  document.body.style.overflow = '';
-  // Remove scoped style
-  const s = document.getElementById('_pp_scoped_style');
-  if (s) s.remove();
-  const ppLayout = document.getElementById('pp-layout-btns');
-  if (ppLayout) ppLayout.style.display = '';
-  const ppCatFilters = document.getElementById('pp-cat-filters');
-  if (ppCatFilters) ppCatFilters.innerHTML = '';
-}
-function doPrint() {
-  // Open real print window - completely isolated
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { alert('Consenti i popup per questo sito e riprova.'); return; }
-  // Get the body content
-  const host = document.getElementById('pp-shadow-host');
-  let bodyHTML = '';
-  if (host && host.shadowRoot) {
-    const divs = host.shadowRoot.querySelectorAll('div');
-    if (divs.length) bodyHTML = divs[divs.length-1].innerHTML;
-  }
-  if (!bodyHTML) {
-    const fc = document.getElementById('pp-print-content');
-    if (fc) bodyHTML = fc.innerHTML;
-  }
-  win.document.write('<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Stampa</title>' + _printStyles + '</head><body style="margin:0;padding:0;background:white"><div style="padding:24px">' + bodyHTML + '</div></body></html>');
-  win.document.close();
-  setTimeout(() => { win.focus(); win.print(); }, 600);
-}
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const groups={};items.forEach(it=>{const d=it.type==='event'?(it.data.dateStart||''):it.date;if(!groups[d])groups[d]=[];groups[d].push(it);});
