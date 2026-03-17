@@ -1780,42 +1780,64 @@ let _ppSection = '', _ppMode = '';
 function openPrintWindow(title, styles, bodyHTML) {
   _printStyles = styles;
   document.getElementById('print-preview-title').textContent = '📄 ' + title;
-  // Use iframe for complete CSS isolation
+
+  // Extract CSS from styles string
+  const cssMatch = styles.match(/<style>([\s\S]*?)<\/style>/);
+  const cssText = cssMatch ? cssMatch[1] : '';
+
+  // Build self-contained preview HTML
   const container = document.getElementById('print-preview-body');
-  container.innerHTML = '<iframe id="print-iframe" style="width:100%;border:none;min-height:600px" scrolling="no"></iframe>';
-  const iframe = document.getElementById('print-iframe');
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">${styles}</head><body style="margin:0;padding:0;background:white">${bodyHTML}</body></html>`);
-  doc.close();
-  // Auto-resize iframe to content height
-  iframe.onload = () => {
-    try { iframe.style.height = (iframe.contentWindow.document.body.scrollHeight + 40) + 'px'; } catch(e){}
-  };
-  setTimeout(() => {
-    try { iframe.style.height = (iframe.contentWindow.document.body.scrollHeight + 40) + 'px'; } catch(e){}
-  }, 300);
+  container.innerHTML = '';
+
+  // Create a scoped style element with unique prefix
+  const uid = 'pp' + Date.now();
+  const scopedCSS = cssText.replace(/([^\{\}]+)\{/g, (match, sel) => {
+    // Skip @-rules
+    if (sel.trim().startsWith('@')) return match;
+    const scoped = sel.split(',').map(s => `#${uid} ${s.trim()}`).join(', ');
+    return scoped + '{';
+  });
+
+  const styleEl = document.createElement('style');
+  styleEl.id = '_pp_scoped_style';
+  styleEl.textContent = scopedCSS;
+  document.head.appendChild(styleEl);
+
+  const wrapper = document.createElement('div');
+  wrapper.id = uid;
+  wrapper.style.cssText = 'font-family:DM Sans,sans-serif;color:#1a1a1a;font-size:13px;padding:24px;';
+  wrapper.innerHTML = bodyHTML;
+  container.appendChild(wrapper);
+
   document.getElementById('print-preview-overlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   document.getElementById('print-preview-overlay').scrollTop = 0;
-  // Remove old injected styles if any
-  const old = document.getElementById('_preview_style');
-  if (old) old.textContent = '';
 }
+
 function closePrintPreview() {
   document.getElementById('print-preview-overlay').style.display = 'none';
   document.body.style.overflow = '';
+  // Remove scoped style
+  const s = document.getElementById('_pp_scoped_style');
+  if (s) s.remove();
   const ppLayout = document.getElementById('pp-layout-btns');
   if (ppLayout) ppLayout.style.display = '';
   const ppCatFilters = document.getElementById('pp-cat-filters');
   if (ppCatFilters) ppCatFilters.innerHTML = '';
 }
 function doPrint() {
-  const iframe = document.getElementById('print-iframe');
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
+  // Remove scoped prefix from styles for actual printing
+  const cssMatch = _printStyles.match(/<style>([\s\S]*?)<\/style>/);
+  const cssText = cssMatch ? cssMatch[1] : '';
+  let styleEl = document.getElementById('_print_style_inject');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = '_print_style_inject';
+    document.head.appendChild(styleEl);
   }
+  styleEl.textContent = `@media print { body > *:not(#print-preview-overlay) { display:none !important; } #print-preview-overlay { position:static !important; overflow:visible !important; background:white !important; } #print-preview-toolbar { display:none !important; } #print-preview-body > div { all:unset; } } ${cssText}`;
+  window.print();
+  setTimeout(() => { if (styleEl) styleEl.textContent = ''; }, 1000);
 }
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
