@@ -677,8 +677,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button onclick="doPrint()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
       <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">✕ Chiudi</button>
     </div>
-  <div style="background:#e5e7eb;min-height:100vh;padding:24px">
-  <div id="print-preview-body" style="background:white;max-width:960px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;overflow:hidden"></div>
+  <div style="background:#e5e7eb;min-height:100vh;padding:24px 16px">
+  <div id="print-preview-body" style="background:white;max-width:1100px;width:100%;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;overflow:hidden"></div>
 </div>
 </div>
 
@@ -1781,11 +1781,22 @@ function openPrintWindow(title, styles, bodyHTML) {
   if (oldS) oldS.remove();
   const cssMatch = styles.match(/<style>([\s\S]*?)<\/style>/);
   const cssText = cssMatch ? cssMatch[1] : '';
-  const styleEl = document.createElement('style');
-  styleEl.id = '_pp_scoped_style';
-  styleEl.textContent = '#pp-print-content { ' + cssText + ' }';
-  document.head.appendChild(styleEl);
-  container.innerHTML = '<div id="pp-print-content" style="font-family:\'DM Sans\',sans-serif;font-size:13px;color:#1a1a1a;padding:0">' + bodyHTML + '</div>';
+  // Use shadow DOM for complete style isolation
+  container.innerHTML = '<div id="pp-shadow-host"></div>';
+  const host = document.getElementById('pp-shadow-host');
+  host.style.cssText = 'display:block;width:100%;';
+  let shadow;
+  try {
+    shadow = host.attachShadow({mode:'open'});
+    shadow.innerHTML = `<style>:host{display:block;font-family:'DM Sans',sans-serif;font-size:13px;color:#1a1a1a;}${cssText}</style><div style="padding:28px">${bodyHTML}</div>`;
+  } catch(e) {
+    // Fallback: inject with scoped style
+    const styleEl = document.createElement('style');
+    styleEl.id = '_pp_scoped_style';
+    styleEl.textContent = '#pp-print-content{all:initial;display:block;font-family:DM Sans,sans-serif;font-size:13px;color:#1a1a1a;padding:28px}' + cssText.replace(/([^@{}\n][^{}\n]*)\{/g, '#pp-print-content $1{');
+    document.head.appendChild(styleEl);
+    container.innerHTML = '<div id="pp-print-content">' + bodyHTML + '</div>';
+  }
   document.getElementById('print-preview-overlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   document.getElementById('print-preview-overlay').scrollTop = 0;
@@ -1803,18 +1814,23 @@ function closePrintPreview() {
   if (ppCatFilters) ppCatFilters.innerHTML = '';
 }
 function doPrint() {
-  // Remove scoped prefix from styles for actual printing
-  const cssMatch = _printStyles.match(/<style>([\s\S]*?)<\/style>/);
-  const cssText = cssMatch ? cssMatch[1] : '';
-  let styleEl = document.getElementById('_print_style_inject');
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.id = '_print_style_inject';
-    document.head.appendChild(styleEl);
+  // Open real print window - completely isolated
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { alert('Consenti i popup per questo sito e riprova.'); return; }
+  // Get the body content
+  const host = document.getElementById('pp-shadow-host');
+  let bodyHTML = '';
+  if (host && host.shadowRoot) {
+    const divs = host.shadowRoot.querySelectorAll('div');
+    if (divs.length) bodyHTML = divs[divs.length-1].innerHTML;
   }
-  styleEl.textContent = `@media print { body > *:not(#print-preview-overlay) { display:none !important; } #print-preview-overlay { position:static !important; overflow:visible !important; background:white !important; } #print-preview-toolbar { display:none !important; } #print-preview-body > div { all:unset; } } ${cssText}`;
-  window.print();
-  setTimeout(() => { if (styleEl) styleEl.textContent = ''; }, 1000);
+  if (!bodyHTML) {
+    const fc = document.getElementById('pp-print-content');
+    if (fc) bodyHTML = fc.innerHTML;
+  }
+  win.document.write('<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Stampa</title>' + _printStyles + '</head><body style="margin:0;padding:0;background:white"><div style="padding:24px">' + bodyHTML + '</div></body></html>');
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 600);
 }
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
