@@ -825,18 +825,8 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   c.innerHTML = html;
 }
 
-function setFPartite(v) {
-  if (v === 'all') { fPartite = new Set(['all']); }
-  else { fPartite.delete('all'); if (fPartite.has(v)) { fPartite.delete(v); if(fPartite.size===0) fPartite.add('all'); } else { fPartite.add(v); } }
-  buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  renderCalendar(); renderMatches();
-}
-function setFIndoor(v) {
-  if (v === 'all') { fIndoor = new Set(['all']); }
-  else { fIndoor.delete('all'); if (fIndoor.has(v)) { fIndoor.delete(v); if(fIndoor.size===0) fIndoor.add('all'); } else { fIndoor.add(v); } }
-  buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  renderCalendarIndoor(); renderIndoor();
-}
+function setFPartite(v) { fPartite = v; renderCalendar(); renderMatches(); }
+function setFIndoor(v)  { fIndoor  = v; renderCalendarIndoor(); renderIndoor(); }
 function toggleValch()   { onlyValch = !onlyValch; renderCalendar(); renderMatches(); renderIndoor(); renderStandings(); }
 
 // ─── CALENDAR ──────────────────────────────────────────
@@ -846,7 +836,7 @@ function renderCalendar() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calMonth] + ' ' + calYear;
   const matchDates = new Set(allMatches
-    .filter(m => fPartite.has('all')||fPartite.has(m.cat))
+    .filter(m => fPartite==='all'||m.cat===fPartite)
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -906,7 +896,7 @@ function renderCalendarIndoor() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calIndoorMonth] + ' ' + calIndoorYear;
   const matchDates = new Set(allIndoor
-    .filter(m => fIndoor.has('all')||fIndoor.has(m.cat))
+    .filter(m => fIndoor==='all'||m.cat===fIndoor)
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const todayStr = new Date().toISOString().slice(0,10);
@@ -1729,14 +1719,13 @@ function quickPrint(section, mode, format, isRefresh) {
   const isIndoor  = section === 'indoor';
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
-  const isAll = catFilter instanceof Set ? catFilter.has('all') : catFilter==='all';
-  const catName = isAll ? 'Tutte le categorie' : [...catFilter].map(c=>CATS[c]?.short||c).join('+');
+  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label || catFilter);
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const indoorCats = ['a1f','rfi','alfi'];
   const pratoIds   = ['af','rf','alf'];
 
   let ms = (isIndoor ? allIndoor : allMatches)
-    .filter(m => catFilter instanceof Set ? (catFilter.has('all')||catFilter.has(m.cat)) : catFilter==='all'||m.cat===catFilter)
+    .filter(m => catFilter === 'all' || m.cat === catFilter)
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
 
