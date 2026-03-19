@@ -750,7 +750,7 @@ const DEFAULT_FIELDS = [
   'C.S. Seveninfinity - Via Toscana, 7, 20064 Gorgonzola MI'
 ];
 let fPartite = 'all', fIndoor = 'all', onlyValch = false;
-let calYear, calMonth, calSelected = null;
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSelected = null;
 let calIndoorYear = new Date().getFullYear();
 let calIndoorMonth = new Date().getMonth();
 let calIndoorSelected = null;
