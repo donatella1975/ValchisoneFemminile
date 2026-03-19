@@ -479,6 +479,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div class="admin-tabs" style="margin-bottom:0">
           <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
           <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
+          <button class="admin-tab" id="tab-edit" onclick="switchFormTab('edit')">✏️ Modifica</button>
         <button class="admin-tab" id="tab-lists" onclick="switchFormTab('lists')">📋 Squadre/Campi</button>
         </div>
         <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
@@ -531,27 +532,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
 
     <!-- EXISTING MATCHES -->
-    <div class="admin-section">
-      <h3 style="margin-bottom:10px">Partite salvate</h3>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
-        <button class="admin-fchip active" data-sport="prato" onclick="setAdminSport(this)">🏑 Prato</button>
-        <button class="admin-fchip" data-sport="indoor" onclick="setAdminSport(this)">🏑 Indoor</button>
-        <button class="admin-fchip" data-sport="all" onclick="setAdminSport(this)">Tutte</button>
-      </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px" id="admin-cat-filters">
-        <button class="admin-fchip active" data-cat="all" onclick="setAdminCat(this)">Tutte</button>
-        <button class="admin-fchip" data-cat="af" onclick="setAdminCat(this)">⚡ A2</button>
-        <button class="admin-fchip" data-cat="rf" onclick="setAdminCat(this)">🟣 Ragazze</button>
-        <button class="admin-fchip" data-cat="alf" onclick="setAdminCat(this)">🩵 Allieve</button>
-      </div>
-      <div style="position:relative;margin-bottom:10px">
-        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
-        <input type="text" id="admin-search" placeholder="Cerca squadra…"
-          oninput="filterAdminList()"
-          style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
-      </div>
-      <div class="admin-match-list" id="admin-match-list"><div class="loading">Caricamento…</div></div>
-    </div>
+
 
     <!-- LIVE ADMIN FORM -->
     <div id="form-live" class="admin-section" style="display:none">
@@ -630,6 +611,27 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           </div>
         </div>
       </div>
+    </div>
+    <div class="admin-section" id="admin-list-section">
+      <h3 style="margin-bottom:10px">Partite salvate</h3>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+        <button class="admin-fchip active" data-sport="prato" onclick="setAdminSport(this)">🏑 Prato</button>
+        <button class="admin-fchip" data-sport="indoor" onclick="setAdminSport(this)">🏑 Indoor</button>
+        <button class="admin-fchip" data-sport="all" onclick="setAdminSport(this)">Tutte</button>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px" id="admin-cat-filters">
+        <button class="admin-fchip active" data-cat="all" onclick="setAdminCat(this)">Tutte</button>
+        <button class="admin-fchip" data-cat="af" onclick="setAdminCat(this)">⚡ A2</button>
+        <button class="admin-fchip" data-cat="rf" onclick="setAdminCat(this)">🟣 Ragazze</button>
+        <button class="admin-fchip" data-cat="alf" onclick="setAdminCat(this)">🩵 Allieve</button>
+      </div>
+      <div style="position:relative;margin-bottom:10px">
+        <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+        <input type="text" id="admin-search" placeholder="Cerca squadra…"
+          oninput="filterAdminList()"
+          style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
+      </div>
+      <div class="admin-match-list" id="admin-match-list"><div class="loading">Caricamento…</div></div>
     </div>
 
     <!-- EVENT LIST -->
@@ -817,8 +819,14 @@ function switchSport(sport) {
 }
 
 function syncHeroBtns(sport) {
-  document.getElementById('btn-sport-prato').classList.toggle('active-sport', sport === 'prato');
-  document.getElementById('btn-sport-indoor').classList.toggle('active-sport', sport === 'indoor');
+  const bp = document.getElementById('btn-sport-prato');
+  const bi = document.getElementById('btn-sport-indoor');
+  if (bp) bp.classList.toggle('active-sport', sport === 'prato');
+  if (bi) bi.classList.toggle('active-sport', sport === 'indoor');
+  // Also sync nav pills
+  const navPills = document.querySelectorAll('.nav-pill');
+  if (navPills[0]) navPills[0].classList.toggle('active', sport === 'prato');
+  if (navPills[1]) navPills[1].classList.toggle('active', sport === 'indoor');
 }
 
 function setClassSport(sport) {
@@ -1572,7 +1580,7 @@ function doLogout() {
   document.getElementById('admin-panel').style.display = 'none';
 }
 function switchFormTab(tab) {
-  ['tab-match','tab-live-admin','tab-event','tab-lists'].forEach(id => {
+  ['tab-match','tab-live-admin','tab-event','tab-edit','tab-lists'].forEach(id => {
     const btn = document.getElementById(id); if(btn) btn.classList.remove('active');
   });
   const activeId = tab==='live' ? 'tab-live-admin' : 'tab-'+tab;
@@ -1583,12 +1591,12 @@ function switchFormTab(tab) {
   document.getElementById('form-event').style.display    = tab==='event' ? '' : 'none';
   document.getElementById('form-lists').style.display    = tab==='lists' ? '' : 'none';
   const aml = document.getElementById('admin-list-section');
-  if (aml) aml.style.display = tab==='match' ? '' : 'none';
+  if (aml) aml.style.display = tab==='edit' ? '' : 'none';
   const ael = document.getElementById('event-list-section');
-  if (ael) ael.style.display = tab==='event' ? '' : 'none';
+  if (ael) ael.style.display = tab==='edit' ? '' : 'none';
   if (tab==='lists') renderListsEditor();
   if (tab==='live') renderLiveAdminPanel();
-  // Always scroll to top of admin panel
+  if (tab==='edit') { renderAdminList(); renderEventList(); }
   const adminTop = document.getElementById('admin-panel');
   if (adminTop) setTimeout(() => adminTop.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
@@ -1700,6 +1708,8 @@ function editMatch(id) {
   const all = [...allMatches,...allIndoor];
   const m = all.find(x=>x.id===id); if(!m) return;
   switchFormTab('match');
+  const aml2 = document.getElementById('admin-list-section'); if(aml2) aml2.style.display='none';
+  const ael2 = document.getElementById('event-list-section'); if(ael2) ael2.style.display='none';
   document.getElementById('form-match').style.display = '';
   document.getElementById('admin-list-section').style.display = 'none';
   document.getElementById('edit-id').value  = m.id;
@@ -1712,6 +1722,7 @@ function editMatch(id) {
   document.getElementById('m-round').value  = m.round||'';
   document.getElementById('m-sh').value     = m.scoreHome!==undefined ? m.scoreHome : '';
   document.getElementById('m-sa').value     = m.scoreAway!==undefined ? m.scoreAway : '';
+  switchFormTab('match');
   document.getElementById('form-match-title').textContent = 'Modifica Partita';
   document.getElementById('btn-cancel-match').style.display = '';
   document.getElementById('form-match').scrollIntoView({behavior:'smooth'});
