@@ -480,7 +480,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
           <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
           <button class="admin-tab" id="tab-edit" onclick="switchFormTab('edit')">✏️ Modifica</button>
-        <button class="admin-tab" id="tab-lists" onclick="switchFormTab('lists')">📋 Squadre/Campi</button>
+        <button class="admin-tab" id="tab-lists" onclick="switchFormTab('lists')" style="display:none">📋 Squadre/Campi</button>
         </div>
         <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
         <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')" style="background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5">🔴 Live</button>
@@ -930,7 +930,10 @@ function renderMatches() {
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
     if (hasCats && e.cats.every(c => indoorIds.includes(c))) return false;
-    if (fPartite !== 'all') { if (!hasCats) return false; return e.cats.includes(fPartite); }
+    if (fPartite !== 'all') {
+      if (!hasCats) return true;
+      return e.cats.includes(fPartite) || (fPartiteExtra && e.cats.includes(fPartiteExtra));
+    }
     if (hasCats && !e.cats.some(c => pratoIds.includes(c))) return false;
     if (calSelected) { const s=e.dateStart||'', en=e.dateEnd||e.dateStart||''; return calSelected>=s && calSelected<=en; }
     return true;
@@ -1150,7 +1153,7 @@ function renderLivePage() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div class="sb-live-dot" style="${l.finished?'animation:none;background:#aaa':''}"></div>
           <span class="sb-live-label" style="${l.finished?'color:#aaa':''}">${l.finished?'FINALE':'Live'}</span>
-          <span class="sb-half-badge" id="live-half-display">Q1</span>
+          <span class="sb-half-badge" id="live-half-display">1° QUARTO</span>
         </div>
         <div class="sb-timer-wrap">
           <div style="display:flex;align-items:baseline;gap:6px">
@@ -1184,11 +1187,25 @@ function renderLivePage() {
 }
 
 // ─── LIVE ADMIN PANEL ───────────────────────────────────
+function generateLivePwd() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let pwd = '';
+  for (let i=0; i<6; i++) pwd += chars[Math.floor(Math.random()*chars.length)];
+  if (!window._fbSetLivePwd) {
+    alert('Firebase non ancora pronto, riprova tra qualche secondo.');
+    return;
+  }
+  window._fbSetLivePwd(pwd).then(() => {
+    alert('Password live generata:\n\n' + pwd + '\n\nCondividila con chi gestira il live.\nSara valida fino a fine partita.');
+  }).catch(e => {
+    alert('Errore salvataggio: ' + e.message);
+  });
+}
+
 function renderLiveAdminPanel() {
   const el = document.getElementById('live-admin-content');
   if (!el) return;
   if (!liveData || !liveData.active) {
-    // Start new match
     const matchOpts = [...allMatches, ...allIndoor]
       .filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; })
       .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
@@ -1204,6 +1221,9 @@ function renderLiveAdminPanel() {
       </div>`;
   } else {
     const l = liveData;
+    const QUARTER_NAMES = ['1° QUARTO','2° QUARTO','3° QUARTO','4° QUARTO'];
+    const quarterLabel = QUARTER_NAMES[Math.min((liveData.half||1)-1,3)] || '1° QUARTO';
+    const isLastQuarter = (liveData.half||1) >= 4;
     const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)) : [];
     const goalsAdmin = goals.map(g => `
       <div class="event-log-item">
@@ -1213,39 +1233,41 @@ function renderLiveAdminPanel() {
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
       </div>`).join('') || '<div class="no-events">Nessun gol</div>';
     el.innerHTML = `
-      <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;font-weight:700;color:#374151">
-        ${l.home} <span style="color:#1a7a2e;font-size:18px;font-weight:800">${l.scoreHome||0}–${l.scoreAway||0}</span> ${l.away}
-      </div>
-      <div style="background:#f9fafb;border-radius:10px;padding:10px 12px;margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280">${['Q1','Q2','Q3','Q4'][Math.min((liveData.half||1)-1,3)]||'Q1'}</span>
-          <div style="text-align:right">
-            <div style="font-size:11px;color:#6b7280">Parziale: <strong id="admin-timer-display">00:00</strong></div>
-            <div style="font-size:11px;color:#6b7280">Totale: <strong id="admin-timer-total">00:00</strong></div>
-          </div>
+      <!-- SCORE -->
+      <div style="background:#f0faf2;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:4px">${quarterLabel}</div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;color:#1a1a1a;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:13px;font-weight:700;color:#374151;max-width:120px;text-align:right">${l.home}</span>
+          <span style="color:#1a7a2e;font-size:28px;min-width:70px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
+          <span style="font-size:13px;font-weight:700;color:#374151;max-width:120px;text-align:left">${l.away}</span>
         </div>
-        <div class="timer-controls">
-          <button class="btn-timer-start" onclick="timerStart()">${liveData.timerRunning?'▶ In corso':'▶ Avvia'}</button>
-          <button class="btn-timer-pause" onclick="timerPause()">⏸ Pausa</button>
-          <button class="btn-timer-half" onclick="timerHalf()">🔄 ${(liveData.half||1)>=4?'Fine':'Quarto succ.'}</button>
-          <button class="btn-timer-reset" onclick="timerReset()">↺ Reset</button>
+        <div style="margin-top:6px;font-size:11px;color:#9ca3af">
+          Parziale: <strong id="admin-timer-display">00:00</strong> &nbsp;|&nbsp; Totale: <strong id="admin-timer-total">00:00</strong>
         </div>
       </div>
+      <!-- TIMER CONTROLS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button class="btn-timer-start" onclick="timerStart()" style="padding:12px;font-size:14px">${liveData.timerRunning?'▶ In corso':'▶ Avvia'}</button>
+        <button class="btn-timer-pause" onclick="timerPause()" style="padding:12px;font-size:14px">⏸ Pausa</button>
+        <button class="btn-timer-half" onclick="timerHalf()" style="padding:12px;font-size:14px">🔄 ${isLastQuarter?'Fine quarti':'Quarto succ.'}</button>
+        <button class="btn-timer-reset" onclick="timerReset()" style="padding:12px;font-size:14px">↺ Reset</button>
+      </div>
+      <!-- ADD GOAL -->
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Aggiungi gol</div>
-      <div class="lap-row">
-        <div class="lap-field"><label>Minuto</label><input type="number" id="goal-minute" class="minute-input" placeholder="es. 23" min="0" max="90"></div>
-        <div class="lap-field"><label>Giocatrice</label><input type="text" id="goal-player" placeholder="es. Rossi"></div>
-        <div class="lap-field"><label>Squadra</label>
-          <select id="goal-team">
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;margin-bottom:8px;align-items:end">
+        <div class="form-field" style="margin:0"><label>Minuto</label><input type="number" id="goal-minute" class="minute-input" placeholder="es. 23" min="0" max="90" style="padding:10px 8px"></div>
+        <div class="form-field" style="margin:0"><label>Giocatrice</label><input type="text" id="goal-player" placeholder="es. Rossi" style="padding:10px 8px"></div>
+        <div class="form-field" style="margin:0"><label>Squadra</label>
+          <select id="goal-team" style="padding:10px 8px">
             <option value="${l.home}">${l.home}</option>
             <option value="${l.away}">${l.away}</option>
           </select>
         </div>
       </div>
-      <div class="lap-row" style="margin-bottom:14px">
-        <button class="btn-add-goal" onclick="addGoal()">🏑 Aggiungi Gol</button>
-        <button class="btn-live-stop" style="background:#dc2626" onclick="finePartita()">🏁 Fine Partita</button>
-        <button class="btn-live-stop" onclick="stopLive()">⏹ Chiudi Live</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:13px">🏑 Gol</button>
+        <button class="btn-live-stop" style="background:#dc2626;padding:12px;font-size:13px" onclick="finePartita()">🏁 Fine</button>
+        <button class="btn-live-stop" style="padding:12px;font-size:13px" onclick="stopLive()">⏹ Chiudi</button>
       </div>
       <div class="events-log"><div class="events-log-title">Gol segnati</div>${goalsAdmin}</div>`;
   }
@@ -1842,11 +1864,17 @@ function quickPrint(section, mode, format, isRefresh) {
       const hasCats = e.cats && e.cats.length > 0;
       if (isIndoor) {
         if (hasCats && e.cats.every(c => pratoIds.includes(c))) return false;
-        if (catFilter !== 'all') { if (!hasCats) return false; return e.cats.includes(catFilter); }
+        if (catFilter !== 'all') {
+          if (!hasCats) return true;
+          return e.cats.includes(catFilter) || (catExtra && e.cats.includes(catExtra));
+        }
         if (hasCats && !e.cats.some(c => indoorCats.includes(c))) return false;
       } else {
         if (hasCats && e.cats.every(c => indoorCats.includes(c))) return false;
-        if (catFilter !== 'all') { if (!hasCats) return false; return e.cats.includes(catFilter); }
+        if (catFilter !== 'all') {
+          if (!hasCats) return true;
+          return e.cats.includes(catFilter) || (catExtra && e.cats.includes(catExtra));
+        }
         if (hasCats && !e.cats.some(c => pratoIds.includes(c))) return false;
       }
       return true;
