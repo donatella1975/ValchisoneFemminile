@@ -13,6 +13,9 @@
   const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
   const db  = getDatabase(app);
   window._fbSaveLists   = (data) => set(ref(db,'lists'), data);
+  window._fbSetLivePwd  = (pwd)  => set(ref(db,'livepwd'), {pwd, ts: Date.now()});
+  window._fbGetLivePwd  = (cb)   => onValue(ref(db,'livepwd'), snap => cb(snap.val()), {onlyOnce:true});
+  window._fbClearLivePwd = ()    => set(ref(db,'livepwd'), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
   window._fbSave        = (data) => set(ref(db,'matches'), data);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
@@ -86,7 +89,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .ftab.valch.active { background:var(--orange); color:white; border-color:var(--orange); }
 .filter-bar-wrap { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
 .filter-bar-wrap .filter-bar { margin-bottom:0; }
-.print-box { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:flex-end; }
+.print-box { position:relative; flex-shrink:0; align-self:flex-end; }
+.print-btn-main { display:flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.print-btn-main:hover { background:var(--green); color:white; }
+.print-dropdown { display:none; position:absolute; right:0; top:calc(100% + 6px); background:white; border:1.5px solid var(--green2); border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,.12); z-index:100; min-width:180px; overflow:hidden; }
+.print-dropdown.open { display:block; }
+.print-dropdown button { display:block; width:100%; text-align:left; padding:10px 16px; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; background:none; border:none; cursor:pointer; color:var(--ink1); border-bottom:1px solid #f3f4f6; }
+.print-dropdown button:last-child { border-bottom:none; }
+.print-dropdown button:hover { background:#f0faf2; color:var(--green); }
 
 /* ─── CALENDAR ─────────────────────────────────── */
 .cal-wrap { background:white; border-radius:var(--radius); box-shadow:0 2px 12px rgba(0,0,0,.06); padding:10px 12px; margin-bottom:12px; }
@@ -178,7 +188,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .ctab.active { background:var(--green); color:white; border-color:var(--green); }
 
 /* ─── PRINT ─────────────────────────────────── */
-.print-box { display:flex; align-items:center; gap:6px; margin-left:auto; flex-shrink:0; }
+.print-box { position:relative; margin-left:auto; flex-shrink:0; }
 .print-label { font-size:11px; font-weight:600; color:var(--ink3); font-family:'DM Sans',sans-serif; white-space:nowrap; }
 .btn-pdf { display:inline-flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; }
 .btn-pdf:hover { background:var(--green); color:white; border-color:var(--green); }
@@ -389,11 +399,13 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-partite"></div>
     <div class="print-box">
-      <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="quickPrint('partite','list','normal')">📋 Elenco</button>
-      <button class="btn-pdf" onclick="quickPrint('partite','list','a4landscape')">📄 A4 2 colonne</button>
-      <button class="btn-pdf" onclick="quickPrint('partite','list','pocket')">👜 Tascabile</button>
-      <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('partite','calendar')">📅 Calendario</button>
+      <button class="print-btn-main" onclick="togglePrintMenu('print-menu-partite')">🖨️ Stampa ▾</button>
+      <div class="print-dropdown" id="print-menu-partite">
+        <button onclick="quickPrint('partite','list','normal');closePrintMenus()">📋 Elenco</button>
+        <button onclick="quickPrint('partite','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
+        <button onclick="quickPrint('partite','list','pocket');closePrintMenus()">👜 Tascabile</button>
+        <button onclick="quickPrint('partite','calendar');closePrintMenus()">📅 Calendario</button>
+      </div>
     </div>
   </div>
   <div class="cal-wrap">
@@ -412,11 +424,13 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-indoor"></div>
     <div class="print-box">
-      <span class="print-label">🖨️ Stampa</span>
-      <button class="btn-pdf" onclick="quickPrint('indoor','list','normal')">📋 Elenco</button>
-      <button class="btn-pdf" onclick="quickPrint('indoor','list','a4landscape')">📄 A4 2 colonne</button>
-      <button class="btn-pdf" onclick="quickPrint('indoor','list','pocket')">👜 Tascabile</button>
-      <button class="btn-pdf btn-pdf-cal" onclick="quickPrint('indoor','calendar')">📅 Calendario</button>
+      <button class="print-btn-main" onclick="togglePrintMenu('print-menu-indoor')">🖨️ Stampa ▾</button>
+      <div class="print-dropdown" id="print-menu-indoor">
+        <button onclick="quickPrint('indoor','list','normal');closePrintMenus()">📋 Elenco</button>
+        <button onclick="quickPrint('indoor','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
+        <button onclick="quickPrint('indoor','list','pocket');closePrintMenus()">👜 Tascabile</button>
+        <button onclick="quickPrint('indoor','calendar');closePrintMenus()">📅 Calendario</button>
+      </div>
     </div>
   </div>
   <div class="cal-wrap">
@@ -469,6 +483,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         </div>
         <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
         <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')" style="background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5">🔴 Live</button>
+        <button class="admin-tab" onclick="generateLivePwd()" style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;font-size:11px">🔑 Genera pwd live</button>
       </div>
       <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px">🚪 Esci</button>
     </div>
@@ -820,13 +835,49 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   if (!c) return;
   const filteredCats = Object.entries(CATS).filter(([k,v]) => indoorOnly ? v.sport==='indoor' : v.sport==='prato');
   const chips = [{ v:'all', l:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.label}` }))];
-  let html = chips.map(ch => `<button class="ftab${active===ch.v?' active':''}" onclick="${setter}('${ch.v}')">${ch.l}</button>`).join('');
+  const extra = containerId==='filter-partite' ? fPartiteExtra : fIndoorExtra;
+  let html = chips.map(ch => {
+    const isActive = active===ch.v || extra===ch.v;
+    return `<button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')">${ch.l}</button>`;
+  }).join('');
   if (includeValch) html += `<button class="ftab valch${onlyValch?' active':''}" onclick="toggleValch()">🟠 Solo Valchisone</button>`;
   c.innerHTML = html;
 }
 
-function setFPartite(v) { fPartite = v; renderCalendar(); renderMatches(); }
-function setFIndoor(v)  { fIndoor  = v; renderCalendarIndoor(); renderIndoor(); }
+function setFPartite(v) {
+  if (v === 'all') {
+    fPartite = 'all'; fPartiteExtra = null;
+  } else if (fPartite === v) {
+    fPartite = 'all'; fPartiteExtra = null;
+  } else if (fPartite === 'all') {
+    fPartite = v; fPartiteExtra = null;
+  } else if (fPartiteExtra === v) {
+    fPartiteExtra = null;
+  } else if (fPartiteExtra === null) {
+    fPartiteExtra = v;
+  } else {
+    fPartite = v; fPartiteExtra = null;
+  }
+  buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
+  renderCalendar(); renderMatches();
+}
+function setFIndoor(v) {
+  if (v === 'all') {
+    fIndoor = 'all'; fIndoorExtra = null;
+  } else if (fIndoor === v) {
+    fIndoor = 'all'; fIndoorExtra = null;
+  } else if (fIndoor === 'all') {
+    fIndoor = v; fIndoorExtra = null;
+  } else if (fIndoorExtra === v) {
+    fIndoorExtra = null;
+  } else if (fIndoorExtra === null) {
+    fIndoorExtra = v;
+  } else {
+    fIndoor = v; fIndoorExtra = null;
+  }
+  buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
+  renderCalendarIndoor(); renderIndoor();
+}
 function toggleValch()   { onlyValch = !onlyValch; renderCalendar(); renderMatches(); renderIndoor(); renderStandings(); }
 
 // ─── CALENDAR ──────────────────────────────────────────
@@ -836,7 +887,7 @@ function renderCalendar() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calMonth] + ' ' + calYear;
   const matchDates = new Set(allMatches
-    .filter(m => fPartite==='all'||m.cat===fPartite)
+    .filter(m => fPartite==='all'||m.cat===fPartite||(fPartiteExtra&&m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -896,22 +947,20 @@ function renderCalendarIndoor() {
   if (!titleEl || !gridEl) return;
   titleEl.textContent = MONTHS_IT[calIndoorMonth] + ' ' + calIndoorYear;
   const matchDates = new Set(allIndoor
-    .filter(m => fIndoor==='all'||m.cat===fIndoor)
+    .filter(m => fIndoor==='all'||m.cat===fIndoor||(fIndoorExtra&&m.cat===fIndoorExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .map(m => m.date));
   const todayStr = new Date().toISOString().slice(0,10);
   const firstDay0 = new Date(calIndoorYear, calIndoorMonth, 1).getDay();
   const firstDay  = firstDay0===0 ? 6 : firstDay0-1;
   const daysInMonth = new Date(calIndoorYear, calIndoorMonth+1, 0).getDate();
-  const DOWS = ['L','M','M','G','V','S','D'];
-  let html2 = '<div class="cal-dow-row">' + DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('') + '</div><div class="cal-days">';
-  for (let i=0; i<firstDay; i++) html2 += '<div class="cal-day-btn empty"></div>';
+  let html2 = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=0; i<firstDay; i++) html2 += '<div></div>';
   for (let d=1; d<=daysInMonth; d++) {
     const ds = calIndoorYear+'-'+String(calIndoorMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const classes = ['cal-day-btn', matchDates.has(ds)?'has-match':'', ds===todayStr?'today':'', ds===calIndoorSelected?'selected':''].filter(Boolean).join(' ');
     html2 += `<button class="${classes}" onclick="selectCalIndoorDay('${ds}')">${d}</button>`;
   }
-  html2 += '</div>';
   gridEl.innerHTML = html2;
 }
 function selectCalIndoorDay(ds) {
@@ -1222,6 +1271,10 @@ function startLive() {
 }
 
 function finePartita() {
+  // Clear live password if used in live-only mode
+  if (_isLiveOnly && window._fbClearLivePwd) {
+    window._fbClearLivePwd();
+  }
   if (!confirm('Terminare definitivamente la partita? Il risultato finale verrà salvato.')) return;
   // Ferma cronometro
   if (liveData.timerRunning) {
@@ -1467,8 +1520,11 @@ function showAdminLogin() {
     setTimeout(() => document.getElementById('pwd-input').focus(), 100);
   }
 }
+let _isLiveOnly = false;
 function doLogin() {
-  if (document.getElementById('pwd-input').value === 'hockey2025') {
+  const pwd = document.getElementById('pwd-input').value;
+  if (pwd === 'hockey2025') {
+    _isLiveOnly = false;
     isAdminOpen = true;
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
@@ -1476,9 +1532,35 @@ function doLogin() {
     renderLiveAdminPanel();
     populateDataLists();
   } else {
-    alert('Password errata');
-    document.getElementById('pwd-input').value = '';
-    document.getElementById('pwd-input').focus();
+    // Check live password from Firebase
+    if (window._fbGetLivePwd) {
+      window._fbGetLivePwd(data => {
+        if (data && data.pwd && pwd === data.pwd) {
+          // Valid live password — live only mode
+          _isLiveOnly = true;
+          isAdminOpen = true;
+          // Password stays valid until end of match
+          document.getElementById('login-wrap').style.display = 'none';
+          document.getElementById('admin-panel').style.display = '';
+          // Show only live tab
+          switchFormTab('live');
+          // Hide non-live tabs
+          ['tab-match','tab-event','tab-lists'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          });
+          renderLiveAdminPanel();
+        } else {
+          alert('Password errata');
+          document.getElementById('pwd-input').value = '';
+          document.getElementById('pwd-input').focus();
+        }
+      });
+    } else {
+      alert('Password errata');
+      document.getElementById('pwd-input').value = '';
+      document.getElementById('pwd-input').focus();
+    }
   }
 }
 
@@ -1506,11 +1588,9 @@ function switchFormTab(tab) {
   if (ael) ael.style.display = tab==='event' ? '' : 'none';
   if (tab==='lists') renderListsEditor();
   if (tab==='live') renderLiveAdminPanel();
-  // Scroll to top of active form
-  const formIds = {match:'admin-list-section', live:'form-live', event:'form-event', lists:'form-lists'};
-  const targetId = formIds[tab] || 'admin-panel';
-  const targetEl = document.getElementById(targetId) || document.getElementById('admin-panel');
-  if (targetEl) setTimeout(() => targetEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  // Always scroll to top of admin panel
+  const adminTop = document.getElementById('admin-panel');
+  if (adminTop) setTimeout(() => adminTop.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
 function saveMatch() {
@@ -1707,6 +1787,21 @@ function setPPLayout(layout) {
   refreshPrintPreview();
 }
 
+
+function togglePrintMenu(id) {
+  const el = document.getElementById(id);
+  const isOpen = el.classList.contains('open');
+  closePrintMenus();
+  if (!isOpen) el.classList.add('open');
+}
+function closePrintMenus() {
+  document.querySelectorAll('.print-dropdown').forEach(d => d.classList.remove('open'));
+}
+// Close on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.print-box')) closePrintMenus();
+});
+
 // ─── QUICK PRINT (usa filtri attivi) ──────────────────
 function refreshPrintPreview() {
   if (_ppSection && _ppMode) quickPrint(_ppSection, _ppMode, true);
@@ -1719,13 +1814,15 @@ function quickPrint(section, mode, format, isRefresh) {
   const isIndoor  = section === 'indoor';
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
-  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label || catFilter);
+  const catExtra2 = isIndoor ? fIndoorExtra : fPartiteExtra;
+  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const indoorCats = ['a1f','rfi','alfi'];
   const pratoIds   = ['af','rf','alf'];
 
+  const catExtra = isIndoor ? fIndoorExtra : fPartiteExtra;
   let ms = (isIndoor ? allIndoor : allMatches)
-    .filter(m => catFilter === 'all' || m.cat === catFilter)
+    .filter(m => catFilter === 'all' || m.cat === catFilter || (catExtra && m.cat === catExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
 
