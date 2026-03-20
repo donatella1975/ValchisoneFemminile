@@ -844,9 +844,17 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   const filteredCats = Object.entries(CATS).filter(([k,v]) => indoorOnly ? v.sport==='indoor' : v.sport==='prato');
   const chips = [{ v:'all', l:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.label}` }))];
   const extra = containerId==='filter-partite' ? fPartiteExtra : fIndoorExtra;
+  const addFn = containerId==='filter-partite' ? 'addFPartiteExtra' : 'addFIndoorExtra';
   let html = chips.map(ch => {
-    const isActive = active===ch.v || extra===ch.v;
-    return `<button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')">${ch.l}</button>`;
+    if (ch.v === 'all') {
+      const isActive = active==='all' && !extra;
+      return `<button class="ftab${isActive?' active':''}" onclick="${setter}('all')">${ch.l}</button>`;
+    }
+    const isPrimary = active===ch.v;
+    const isExtra = extra===ch.v;
+    const isActive = isPrimary || isExtra;
+    const showPlus = active!=='all' && !isPrimary && !isExtra;
+    return `<span style="display:inline-flex;align-items:center;gap:2px"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')">${ch.l}</button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi">+</button>`:''}</span>`;
   }).join('');
   if (includeValch) html += `<button class="ftab valch${onlyValch?' active':''}" onclick="toggleValch()">🟠 Solo Valchisone</button>`;
   c.innerHTML = html;
@@ -887,6 +895,16 @@ function setFIndoor(v) {
   renderCalendarIndoor(); renderIndoor();
 }
 function toggleValch()   { onlyValch = !onlyValch; renderCalendar(); renderMatches(); renderIndoor(); renderStandings(); }
+function addFPartiteExtra(v) {
+  fPartiteExtra = (fPartiteExtra === v) ? null : v;
+  buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
+  renderCalendar(); renderMatches();
+}
+function addFIndoorExtra(v) {
+  fIndoorExtra = (fIndoorExtra === v) ? null : v;
+  buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
+  renderCalendarIndoor(); renderIndoor();
+}
 
 // ─── CALENDAR ──────────────────────────────────────────
 function renderCalendar() {
@@ -1195,11 +1213,17 @@ function generateLivePwd() {
     alert('Firebase non ancora pronto, riprova tra qualche secondo.');
     return;
   }
-  window._fbSetLivePwd(pwd).then(() => {
-    alert('Password live generata:\n\n' + pwd + '\n\nCondividila con chi gestira il live.\nSara valida fino a fine partita.');
-  }).catch(e => {
-    alert('Errore salvataggio: ' + e.message);
-  });
+  const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
+  const msg = 'Password live HP Valchisone: ' + pwd + '\n\nAccedi qui: ' + siteUrl + '\n\nValida solo per questa partita.';
+  window._fbSetLivePwd(pwd).then(function() {
+    if (navigator.share) {
+      navigator.share({ title: 'Password Live HP Valchisone', text: msg }).catch(function(){});
+    } else {
+      navigator.clipboard && navigator.clipboard.writeText(msg).then(function() {
+        alert('Password: ' + pwd + '\n\nTesto copiato negli appunti!');
+      }).catch(function() { alert('Password live: ' + pwd); });
+    }
+  }).catch(function(e) { alert('Errore salvataggio: ' + e.message); });
 }
 
 function renderLiveAdminPanel() {
@@ -1769,6 +1793,20 @@ function editMatch(id) {
   document.getElementById('form-match-title').textContent = 'Modifica Partita';
   document.getElementById('btn-cancel-match').style.display = '';
   document.getElementById('form-match').scrollIntoView({behavior:'smooth'});
+}
+
+function resetResult(id) {
+  if (!confirm('Sei sicuro di voler cancellare il risultato?')) return;
+  const all = [...allMatches, ...allIndoor];
+  const m = all.find(x => x.id === id);
+  if (!m) return;
+  const updated = Object.assign({}, m);
+  delete updated.scoreHome;
+  delete updated.scoreAway;
+  delete updated.goals;
+  window._fbSaveMatch && window._fbSaveMatch(id, updated)
+    .then(() => { alert('Risultato azzerato!'); })
+    .catch(function(e) { alert('Errore: ' + e.message); });
 }
 
 function deleteMatch(id) {
