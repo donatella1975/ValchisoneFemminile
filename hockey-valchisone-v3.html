@@ -1752,18 +1752,20 @@ function filterAdminList() {
   function _rm(m){
     var cat=CATS[m.cat]||{},hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
     var sc=hasSc?' <strong>'+m.scoreHome+'-'+m.scoreAway+'</strong>':'';
-    var rb=hasSc?'<button class="btn btn-sm btn-ghost" onclick="resetResult('+JSON.stringify(m.id)+')" style="color:#e8620a">&#8635;</button>':'';
+    var id=m.id;
+    var rb=hasSc?'<button class="btn btn-sm btn-ghost" onclick="resetResult(\'' +id+ '\')" style="color:#e8620a">&#8635;</button>':'';
     return '<div class="amatch">'
       +'<div class="amatch-info">'
       +'<div class="amatch-teams">'+m.home+' vs '+m.away+'</div>'
       +'<div class="amatch-meta"><span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span> '+fmtDate(m.date)+' '+(m.time||'')+sc+'</div>'
       +'</div>'
-      +'<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal('+JSON.stringify(m.id)+')" title="Risultato">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
+      +'<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal(\'' +id+ '\')" title="Risultato">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
       +rb
-      +'<button class="btn btn-sm btn-ghost" onclick="editMatch('+JSON.stringify(m.id)+')" title="Modifica">&#9999;</button>'
-      +'<button class="btn btn-sm btn-ghost" onclick="deleteMatch('+JSON.stringify(m.id)+')" style="color:#ef4444">&#128465;</button>'
+      +'<button class="btn btn-sm btn-ghost" onclick="editMatch(\'' +id+ '\')" title="Modifica">&#9999;</button>'
+      +'<button class="btn btn-sm btn-ghost" onclick="deleteMatch(\'' +id+ '\')" style="color:#ef4444">&#128465;</button>'
       +'</div>';
   }
+
   function _sep(t){return '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:8px 4px 4px">'+t+'</div>';}
   var rows='';
   if(recentPlayed.length) rows+=_sep('Ultime giocate')+recentPlayed.map(_rm).join('');
