@@ -939,11 +939,13 @@ function selectCalDay(ds) { calSelected = calSelected===ds ? null : ds; renderCa
 function renderMatches() {
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   const pratoIds = ['af','rf','alf'], indoorIds = ['a1f','rfi','alfi'];
-  let ms = allMatches
-    .filter(m => fPartite==='all' || m.cat===fPartite)
+  const _msBase = allMatches
+    .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
-    .filter(m => !calSelected || m.date===calSelected)
-    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+    .filter(m => !calSelected || m.date===calSelected);
+  const _msTodo = _msBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const _msDone = _msBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  let ms = [..._msTodo, ..._msDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1001,10 +1003,12 @@ function selectCalIndoorDay(ds) {
 function renderIndoor() {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','rf','alf'];
-  let ms = allIndoor
-    .filter(m => fIndoor==='all' || m.cat===fIndoor)
-    .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
-    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  const _miBase = allIndoor
+    .filter(m => fIndoor==='all' || m.cat===fIndoor || (fIndoorExtra && m.cat===fIndoorExtra))
+    .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
+  const _miTodo = _miBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const _miDone = _miBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  let ms = [..._miTodo, ..._miDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1081,7 +1085,7 @@ function matchCardHTML(m, showAdmin) {
   </div>
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
-    <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
+    <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
     ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
 </div>`;
@@ -1798,17 +1802,17 @@ function editMatch(id) {
 function resetResult(id) {
   if (!confirm('Sei sicuro di voler cancellare il risultato?')) return;
   const all = [...allMatches, ...allIndoor];
-  const m = all.find(x => x.id === id);
-  if (!m) return;
-  const updated = Object.assign({}, m);
+  const match = all.find(x => x.id === id);
+  if (!match) return;
+  const updated = Object.assign({}, match);
   delete updated.scoreHome;
   delete updated.scoreAway;
   delete updated.goals;
-  window._fbSaveMatch && window._fbSaveMatch(id, updated)
-    .then(() => { alert('Risultato azzerato!'); })
-    .catch(function(e) { alert('Errore: ' + e.message); });
+  const matchesObj = {}, indoorObj = {};
+  allMatches.forEach(m => { matchesObj[m.id] = m.id===id ? updated : m; });
+  allIndoor.forEach(m => { indoorObj[m.id] = m.id===id ? updated : m; });
+  window._fbSave && window._fbSave(Object.assign({}, matchesObj, indoorObj));
 }
-
 function deleteMatch(id) {
   if (!confirm('Eliminare questa partita?')) return;
   const all = [...allMatches,...allIndoor];
