@@ -962,9 +962,15 @@ function renderMatches() {
   const c = document.getElementById('matches-list');
   if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Cambia i filtri o torna più tardi</div></div>'; return; }
   const byDate = {};
-  ms.forEach(m => { (byDate[m.date] = byDate[m.date]||[]).push({type:'match',data:m}); });
-  evs.forEach(e => { const d=e.dateStart||'9999'; (byDate[d]=byDate[d]||[]).push({type:'event',data:e}); });
-  c.innerHTML = Object.keys(byDate).sort().map(date => {
+  const dateOrder = [];
+  ms.forEach(m => {
+    if (!byDate[m.date]) { byDate[m.date] = []; dateOrder.push(m.date); }
+    byDate[m.date].push({type:'match',data:m});
+  });
+  evs.forEach(e => { const d=e.dateStart||'9999'; if(!byDate[d]){byDate[d]=[];dateOrder.push(d);} byDate[d].push({type:'event',data:e}); });
+  // Use dateOrder to preserve todo-first ordering, deduplicated
+  const orderedDates = [...new Set(dateOrder)];
+  c.innerHTML = orderedDates.map(date => {
     const d = new Date(date+'T12:00:00');
     const label = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
     return `<div class="day-group"><div class="day-label"><span class="day-dot"></span>${label}</div>${byDate[date].map(it => it.type==='match' ? matchCardHTML(it.data,true) : eventCardHTML(it.data)).join('')}</div>`;
@@ -1751,18 +1757,22 @@ function filterAdminList() {
   const olderPlayed=withScore.slice(3);
   function _rm(m){
     var cat=CATS[m.cat]||{},hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
-    var sc=hasSc?' <strong>'+m.scoreHome+'-'+m.scoreAway+'</strong>':'';
     var id=m.id;
-    var rb=hasSc?'<button class="btn btn-sm btn-ghost" onclick="resetResult(\'' +id+ '\')" style="color:#e8620a">&#8635;</button>':'';
-    return '<div class="amatch">'
-      +'<div class="amatch-info">'
-      +'<div class="amatch-teams">'+m.home+' vs '+m.away+'</div>'
-      +'<div class="amatch-meta"><span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span> '+fmtDate(m.date)+' '+(m.time||'')+sc+'</div>'
+    var scoreStr=hasSc?' <span style="font-weight:800;color:#1a7a2e">'+m.scoreHome+'-'+m.scoreAway+'</span>':'';
+    var rb=hasSc?'<button onclick="resetResult(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;color:#e8620a;font-size:16px" title="Azzera">&#8635;</button>':'';
+    return '<div style="background:#f9fafb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px">'
+      +'<div style="display:flex;align-items:center;gap:6px;min-width:0">'
+      +'<span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px;flex-shrink:0">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span>'
+      +'<span style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+m.home+' vs '+m.away+'</span>'
+      +scoreStr
       +'</div>'
-      +'<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal(\'' +id+ '\')" title="Risultato">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
+      +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">'
+      +'<span style="font-size:11px;color:#6b7280;flex:1">'+fmtDate(m.date)+(m.time?' '+m.time:'')+'</span>'
+      +'<button onclick="openResultModal(\'' +id+ '\')" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
       +rb
-      +'<button class="btn btn-sm btn-ghost" onclick="editMatch(\'' +id+ '\')" title="Modifica">&#9999;</button>'
-      +'<button class="btn btn-sm btn-ghost" onclick="deleteMatch(\'' +id+ '\')" style="color:#ef4444">&#128465;</button>'
+      +'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica partita">&#9999;</button>'
+      +'<button onclick="deleteMatch(\'' +id+ '\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px">&#128465;</button>'
+      +'</div>'
       +'</div>';
   }
 
