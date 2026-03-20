@@ -1540,9 +1540,17 @@ function populateDataLists() {
 // ─── ADMIN ──────────────────────────────────────────────
 let isAdminOpen = false;
 function showAdminLogin() {
+  // Check sessionStorage for persistent login
+  if (!isAdminOpen && sessionStorage.getItem('adminAuth') === 'ok') {
+    isAdminOpen = true;
+    _isLiveOnly = false;
+  }
   if (isAdminOpen) {
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
+    switchFormTab('match');
+    renderLiveAdminPanel();
+    populateDataLists();
   } else {
     document.getElementById('login-wrap').style.display = '';
     document.getElementById('admin-panel').style.display = 'none';
@@ -1556,9 +1564,10 @@ function doLogin() {
   if (pwd === 'hockey2025') {
     _isLiveOnly = false;
     isAdminOpen = true;
+    sessionStorage.setItem('adminAuth', 'ok');
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
-    renderAdminList();
+    switchFormTab('match');
     renderLiveAdminPanel();
     populateDataLists();
   } else {
@@ -1712,20 +1721,32 @@ function filterAdminList() {
            (m.location && m.location.toLowerCase().includes(q));
   });
   if (!filtered.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
-  el.innerHTML = filtered.map(m => {
-    const cat = CATS[m.cat]||{}; const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined;
-    return `<div class="amatch">
-      <div class="amatch-info">
-        <div class="amatch-teams">${m.home} vs ${m.away}</div>
-        <div class="amatch-meta"><span class="cat-badge cat-${m.cat}" style="font-size:9px;padding:2px 5px">${cat.icon} ${cat.short||cat.label}</span> ${fmtDate(m.date)} ${m.time||''} ${hasSc?`<strong>${m.scoreHome}–${m.scoreAway}</strong>`:''}</div>
-      </div>
-      <button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal('${m.id}')" title="Aggiorna risultato">🏑 ${hasSc?'Modifica':'Risultato'}</button>
-      <button class="btn btn-sm btn-ghost" onclick="editMatch('${m.id}')" title="Modifica partita">✏️</button>
-      <button class="btn btn-sm btn-ghost" onclick="deleteMatch('${m.id}')" style="color:#ef4444">🗑</button>
-    </div>`;
-  }).join('');
+  const withScore=filtered.filter(function(m){return m.scoreHome!==undefined&&m.scoreAway!==undefined;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  const withoutScore=filtered.filter(function(m){return m.scoreHome===undefined||m.scoreAway===undefined;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  const recentPlayed=withScore.slice(0,3);
+  const olderPlayed=withScore.slice(3);
+  function _rm(m){
+    var cat=CATS[m.cat]||{},hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
+    var sc=hasSc?' <strong>'+m.scoreHome+'-'+m.scoreAway+'</strong>':'';
+    var rb=hasSc?'<button class="btn btn-sm btn-ghost" onclick="resetResult('+JSON.stringify(m.id)+')" style="color:#e8620a">&#8635;</button>':'';
+    return '<div class="amatch">'
+      +'<div class="amatch-info">'
+      +'<div class="amatch-teams">'+m.home+' vs '+m.away+'</div>'
+      +'<div class="amatch-meta"><span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span> '+fmtDate(m.date)+' '+(m.time||'')+sc+'</div>'
+      +'</div>'
+      +'<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:none" onclick="openResultModal('+JSON.stringify(m.id)+')" title="Risultato">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
+      +rb
+      +'<button class="btn btn-sm btn-ghost" onclick="editMatch('+JSON.stringify(m.id)+')" title="Modifica">&#9999;</button>'
+      +'<button class="btn btn-sm btn-ghost" onclick="deleteMatch('+JSON.stringify(m.id)+')" style="color:#ef4444">&#128465;</button>'
+      +'</div>';
+  }
+  function _sep(t){return '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:8px 4px 4px">'+t+'</div>';}
+  var rows='';
+  if(recentPlayed.length) rows+=_sep('Ultime giocate')+recentPlayed.map(_rm).join('');
+  if(withoutScore.length) rows+=_sep('Da giocare')+withoutScore.map(_rm).join('');
+  if(olderPlayed.length)  rows+=_sep('Risultati precedenti')+olderPlayed.map(_rm).join('');
+  el.innerHTML=rows;
 }
-
 function editMatch(id) {
   const all = [...allMatches,...allIndoor];
   const m = all.find(x=>x.id===id); if(!m) return;
