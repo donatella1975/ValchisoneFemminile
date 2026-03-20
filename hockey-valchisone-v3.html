@@ -943,10 +943,9 @@ function renderMatches() {
     .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .filter(m => !calSelected || m.date===calSelected);
-  const _today = new Date().toISOString().slice(0,10);
   const _msTodo = _msBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const _msDone = _msBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  let ms = calSelected ? _msBase.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)) : [..._msTodo, ..._msDone];
+  let ms = calSelected ? [..._msTodo, ..._msDone] : [..._msTodo, ..._msDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1009,7 +1008,7 @@ function renderIndoor() {
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
   const _miTodo = _miBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const _miDone = _miBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  let ms = calIndoorSelected ? _miBase.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)) : [..._miTodo, ..._miDone];
+  let ms = [..._miTodo, ..._miDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1571,11 +1570,6 @@ function populateDataLists() {
 // ─── ADMIN ──────────────────────────────────────────────
 let isAdminOpen = false;
 function showAdminLogin() {
-  // Check sessionStorage for persistent login
-  if (!isAdminOpen && sessionStorage.getItem('adminAuth') === 'ok') {
-    isAdminOpen = true;
-    _isLiveOnly = false;
-  }
   if (isAdminOpen) {
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
@@ -1595,7 +1589,6 @@ function doLogin() {
   if (pwd === 'hockey2025') {
     _isLiveOnly = false;
     isAdminOpen = true;
-    sessionStorage.setItem('adminAuth', 'ok');
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
     switchFormTab('match');
@@ -1781,11 +1774,6 @@ function filterAdminList() {
 function editMatch(id) {
   const all = [...allMatches,...allIndoor];
   const m = all.find(x=>x.id===id); if(!m) return;
-  switchFormTab('match');
-  const aml2 = document.getElementById('admin-list-section'); if(aml2) aml2.style.display='none';
-  const ael2 = document.getElementById('event-list-section'); if(ael2) ael2.style.display='none';
-  document.getElementById('form-match').style.display = '';
-  document.getElementById('admin-list-section').style.display = 'none';
   document.getElementById('edit-id').value  = m.id;
   document.getElementById('m-cat').value    = m.cat;
   document.getElementById('m-date').value   = m.date;
@@ -1796,10 +1784,10 @@ function editMatch(id) {
   document.getElementById('m-round').value  = m.round||'';
   document.getElementById('m-sh').value     = m.scoreHome!==undefined ? m.scoreHome : '';
   document.getElementById('m-sa').value     = m.scoreAway!==undefined ? m.scoreAway : '';
-  switchFormTab('match');
   document.getElementById('form-match-title').textContent = 'Modifica Partita';
   document.getElementById('btn-cancel-match').style.display = '';
-  document.getElementById('form-match').scrollIntoView({behavior:'smooth'});
+  switchFormTab('match');
+  setTimeout(function(){ document.getElementById('form-match').scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
 }
 
 function resetResult(id) {
@@ -1814,7 +1802,10 @@ function resetResult(id) {
   const matchesObj = {}, indoorObj = {};
   allMatches.forEach(m => { matchesObj[m.id] = m.id===id ? updated : m; });
   allIndoor.forEach(m => { indoorObj[m.id] = m.id===id ? updated : m; });
-  window._fbSave && window._fbSave(Object.assign({}, matchesObj, indoorObj));
+  if (window._fbSave) {
+    window._fbSave(Object.assign({}, matchesObj, indoorObj));
+    setTimeout(function() { filterAdminList(); }, 800);
+  }
 }
 function deleteMatch(id) {
   if (!confirm('Eliminare questa partita?')) return;
