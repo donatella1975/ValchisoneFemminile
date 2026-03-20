@@ -943,9 +943,10 @@ function renderMatches() {
     .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
     .filter(m => !calSelected || m.date===calSelected);
+  const _today = new Date().toISOString().slice(0,10);
   const _msTodo = _msBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  const _msDone = _msBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  let ms = [..._msTodo, ..._msDone];
+  const _msDone = _msBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  let ms = calSelected ? _msBase.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)) : [..._msTodo, ..._msDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1007,8 +1008,8 @@ function renderIndoor() {
     .filter(m => fIndoor==='all' || m.cat===fIndoor || (fIndoorExtra && m.cat===fIndoorExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
   const _miTodo = _miBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  const _miDone = _miBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  let ms = [..._miTodo, ..._miDone];
+  const _miDone = _miBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  let ms = calIndoorSelected ? _miBase.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)) : [..._miTodo, ..._miDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1219,13 +1220,15 @@ function generateLivePwd() {
   }
   const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
   const msg = 'Password live HP Valchisone: ' + pwd + '\n\nAccedi qui: ' + siteUrl + '\n\nValida solo per questa partita.';
+  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window._fbSetLivePwd(pwd).then(function() {
+    // Open WhatsApp directly
+    window.open(waUrl, '_blank');
+    // Also offer share sheet as fallback on mobile
     if (navigator.share) {
-      navigator.share({ title: 'Password Live HP Valchisone', text: msg }).catch(function(){});
-    } else {
-      navigator.clipboard && navigator.clipboard.writeText(msg).then(function() {
-        alert('Password: ' + pwd + '\n\nTesto copiato negli appunti!');
-      }).catch(function() { alert('Password live: ' + pwd); });
+      setTimeout(function() {
+        navigator.share({ title: 'Password Live HP Valchisone', text: msg }).catch(function(){});
+      }, 500);
     }
   }).catch(function(e) { alert('Errore salvataggio: ' + e.message); });
 }
