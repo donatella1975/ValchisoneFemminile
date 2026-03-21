@@ -413,9 +413,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <!-- PRATO -->
 <div class="page active" id="page-partite">
   <div class="filter-bar-wrap">
-    <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap">
-      <div class="filter-bar" id="filter-partite" style="flex:1;flex-wrap:nowrap;overflow-x:auto;margin-bottom:0"></div>
-      <div class="print-box" style="flex-shrink:0">
+    <div class="filter-bar" id="filter-partite"></div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <button class="ftab valch" id="valch-filter-btn" onclick="toggleValch()" title="Solo Valchisone">🟠 Solo Valchisone</button>
+      <div class="print-box" style="flex-shrink:0;margin-left:auto">
         <button class="print-btn-main" onclick="togglePrintMenu('print-menu-partite')">🖨️ Stampa ▾</button>
         <div class="print-dropdown" id="print-menu-partite">
           <button onclick="quickPrint('partite','list','normal');closePrintMenus()">📋 Elenco</button>
@@ -424,9 +425,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <button onclick="quickPrint('partite','calendar');closePrintMenus()">📅 Calendario</button>
         </div>
       </div>
-    </div>
-    <div>
-      <button class="ftab valch" id="valch-filter-btn" onclick="toggleValch()" title="Solo Valchisone">🟠 Solo Valchisone</button>
     </div>
   </div>
   <div class="cal-wrap">
@@ -1341,7 +1339,8 @@ function generateLivePwd() {
   }
   const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
   const msg = 'Ciao! Ti chiedo di aggiornare il live della partita di hockey 🏑\n\n'
-    + '1. Apri l\'app HP Valchisone\n'
+    + '1. Apri l\'app HP Valchisone:\n'
+    + siteUrl + '\n\n'
     + '2. Clicca su ⚙️ in alto a destra\n'
     + '3. Inserisci questa password:\n\n'
     + '👉 ' + pwd + ' 👈\n\n'
