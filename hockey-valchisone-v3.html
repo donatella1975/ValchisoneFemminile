@@ -843,8 +843,9 @@ window.addEventListener('load', () => {
         const newH  = liveData.scoreHome||0, newA = liveData.scoreAway||0;
         const homeIsV = (liveData.home||'').toUpperCase().includes(VALCH);
         const awayIsV = (liveData.away||'').toUpperCase().includes(VALCH);
-        if (newH > prevH) showGoalEffect(homeIsV ? 'valch' : 'away');
-        if (newA > prevA) showGoalEffect(awayIsV ? 'valch' : 'away');
+        const valchPlaying = homeIsV || awayIsV;
+        if (valchPlaying && newH > prevH) showGoalEffect(homeIsV ? 'valch' : 'away');
+        if (valchPlaying && newA > prevA) showGoalEffect(awayIsV ? 'valch' : 'away');
       }
       renderLiveBadge();
       renderLivePage();
@@ -899,7 +900,7 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   const c = document.getElementById(containerId);
   if (!c) return;
   const filteredCats = Object.entries(CATS).filter(([k,v]) => indoorOnly ? v.sport==='indoor' : v.sport==='prato');
-  const chips = [{ v:'all', l:'Tutte', lf:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.short}`, lf:`${v.icon} ${v.label}` }))];
+  const chips = [{ v:'all', l:'Tutte', lf:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.label.split(' (')[0].split(' Femminile')[0]}`, lf:`${v.icon} ${v.label}` }))];
   const extra = containerId==='filter-partite' ? fPartiteExtra : fIndoorExtra;
   const addFn = containerId==='filter-partite' ? 'addFPartiteExtra' : 'addFIndoorExtra';
   let html = chips.map(ch => {
@@ -1382,7 +1383,7 @@ function renderLiveAdminPanel() {
         <div class="eli-icon">🏑</div>
         <div class="eli-text">
           <div class="eli-player" style="display:flex;align-items:center;gap:4px">
-            <span>${g.player||'<span style="color:#9ca3af;font-style:italic">nome non inserito</span>'}</span>
+            ${g.player?'<span>'+g.player+'</span>':''}
             <button onclick="editGoalPlayer('${g.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#6b7280;padding:0">✏️</button>
           </div>
           <div class="eli-team">${g.team||''}</div>
