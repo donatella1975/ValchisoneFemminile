@@ -1335,15 +1335,21 @@ function generateLivePwd() {
     + '5. Quando finisce clicca Fine Partita\n\n'
     + 'Grazie! 🙏';
   const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
+
   window._fbSetLivePwd(pwd).then(function() {
-    // Open WhatsApp directly
-    window.open(waUrl, '_blank');
-    // Also offer share sheet as fallback on mobile
-    if (navigator.share) {
-      setTimeout(function() {
-        navigator.share({ title: 'Password Live HP Valchisone', text: msg }).catch(function(){});
-      }, 500);
-    }
+    // Show overlay with big password and copy button
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    overlay.innerHTML = '<div style="background:white;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;font-family:\'DM Sans\',sans-serif">'
+      + '<div style="font-size:13px;color:#6b7280;margin-bottom:8px">Password Live generata</div>'
+      + '<div id="pwd-display" style="font-family:\'Bricolage Grotesque\',sans-serif;font-size:48px;font-weight:800;color:#1a3a22;letter-spacing:8px;margin:12px 0;cursor:pointer;user-select:all" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent.trim());this.style.color=\'#1a7a2e\';setTimeout(()=>this.style.color=\'#1a3a22\',500)">' + pwd + '</div>'
+      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:16px">Tocca la password per copiarla</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px">'
+      + '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+pwd+'\');this.textContent=\'✓ Copiata!\';setTimeout(()=>this.textContent=\'📋 Copia Password\',1500)" style="background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">📋 Copia Password</button>'
+      + '<a href="'+waUrl+'" target="_blank" style="background:#25d366;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block" onclick="setTimeout(()=>document.body.removeChild(overlay),500)">📱 Invia su WhatsApp</a>'
+      + '<button onclick="document.body.removeChild(this.closest(\'[style*=fixed]\'))" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">Chiudi</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
   }).catch(function(e) { alert('Errore salvataggio: ' + e.message); });
 }
 
