@@ -494,19 +494,45 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <button class="btn btn-green" onclick="doLogin()">Accedi</button>
   </div>
   <div id="admin-panel" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <div class="admin-tabs" style="margin-bottom:0">
-          <button class="admin-tab active" id="tab-match" onclick="switchFormTab('match')">🏑 Partita</button>
-          <button class="admin-tab" id="tab-event" onclick="switchFormTab('event')">🏆 Evento</button>
-          <button class="admin-tab" id="tab-edit" onclick="switchFormTab('edit')">✏️ Modifica</button>
-        <button class="admin-tab" id="tab-lists" onclick="switchFormTab('lists')" style="display:none">📋 Squadre/Campi</button>
-        </div>
-        <div style="width:1px;height:28px;background:#e5e7eb;margin:0 2px"></div>
-        <button class="admin-tab" id="tab-live-admin" onclick="switchFormTab('live')" style="background:#fff0f0;color:#dc2626;border:1.5px solid #fca5a5">🔴 Live</button>
-        <button class="admin-tab" onclick="generateLivePwd()" style="background:#fff7ed;color:#c2410c;border:1.5px solid #fdba74;font-size:11px">🔑 Genera pwd live</button>
+    <!-- ADMIN DASHBOARD -->
+    <div id="admin-dashboard" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22">⚙️ Amministrazione</div>
+        <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:'DM Sans',sans-serif">🚪 Esci</button>
       </div>
-      <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px">🚪 Esci</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button id="tab-match" onclick="switchFormTab('match')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">🏑</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuova Partita</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiungi al calendario</div>
+        </button>
+        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">🏆</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
+        </button>
+        <button id="tab-edit" onclick="switchFormTab('edit')" style="background:white;border:2px solid #e0e7ff;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">✏️</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Modifica / Risultati</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiorna partite</div>
+        </button>
+        <button id="tab-live-admin" onclick="switchFormTab('live')" style="background:white;border:2px solid #fecaca;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">🔴</div>
+          <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
+        </button>
+      </div>
+      <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+        <span style="font-size:20px">🔑</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:#c2410c">Genera password Live</div>
+          <div style="font-size:11px;color:#9a3412">Condividi con chi aggiorna il live</div>
+        </div>
+      </button>
+    </div>
+    <!-- HIDDEN TABS (for compatibility) -->
+    <div style="display:none">
+      <button id="tab-lists"></button>
     </div>
 
     <!-- MATCH FORM -->
@@ -1301,7 +1327,13 @@ function generateLivePwd() {
     return;
   }
   const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
-  const msg = 'Password live HP Valchisone: ' + pwd + '\n\nAccedi qui: ' + siteUrl + '\n\nValida solo per questa partita.';
+  const msg = 'Ciao! Ti chiedo di aggiornare il live della partita di hockey 🏑\n\n'
+    + '1. Apri questo link: ' + siteUrl + '\n'
+    + '2. Clicca su ⚙️ in alto a destra\n'
+    + '3. Inserisci questa password: ' + pwd + '\n'
+    + '4. Seleziona la partita e clicca Avvia Live\n'
+    + '5. Quando finisce clicca Fine Partita\n\n'
+    + 'Grazie! 🙏';
   const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window._fbSetLivePwd(pwd).then(function() {
     // Open WhatsApp directly
@@ -1722,11 +1754,29 @@ function showMissingResultsAlert() {
   banner.appendChild(div);
 }
 
+function showAdminDashboard() {
+  const dash = document.getElementById('admin-dashboard');
+  if (dash) dash.style.display = '';
+  const backBtn = document.getElementById('admin-back-btn');
+  if (backBtn) backBtn.style.display = 'none';
+  // Hide all forms
+  ['form-match','form-event','form-live','form-lists'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const aml = document.getElementById('admin-list-section');
+  if (aml) aml.style.display = 'none';
+  const ael = document.getElementById('event-list-section');
+  if (ael) ael.style.display = 'none';
+  // Show missing results alert if any
+  showMissingResultsAlert();
+}
+
 function showAdminLogin() {
   if (isAdminOpen) {
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
-    switchFormTab('match');
+    showAdminDashboard(); // Always show dashboard when navigating to admin
     renderLiveAdminPanel();
     populateDataLists();
     setTimeout(showMissingResultsAlert, 300);
@@ -1745,7 +1795,7 @@ function doLogin() {
     isAdminOpen = true;
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
-    switchFormTab('match');
+    showAdminDashboard();
     renderLiveAdminPanel();
     populateDataLists();
     setTimeout(showMissingResultsAlert, 300);
@@ -1790,6 +1840,20 @@ function doLogout() {
   document.getElementById('admin-panel').style.display = 'none';
 }
 function switchFormTab(tab) {
+  // Hide dashboard, show back button
+  const dash = document.getElementById('admin-dashboard');
+  if (dash) dash.style.display = 'none';
+  // Show back button if not already there
+  let backBtn = document.getElementById('admin-back-btn');
+  if (!backBtn) {
+    backBtn = document.createElement('div');
+    backBtn.id = 'admin-back-btn';
+    backBtn.style.cssText = 'margin-bottom:12px';
+    backBtn.innerHTML = '<button onclick="showAdminDashboard()" style="background:none;border:none;color:#1a7a2e;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0">← Torna al menu</button>';
+    const panel = document.getElementById('admin-panel');
+    if (panel && dash) panel.insertBefore(backBtn, dash.nextSibling);
+  }
+  backBtn.style.display = '';
   ['tab-match','tab-live-admin','tab-event','tab-edit','tab-lists'].forEach(id => {
     const btn = document.getElementById(id); if(btn) btn.classList.remove('active');
   });
