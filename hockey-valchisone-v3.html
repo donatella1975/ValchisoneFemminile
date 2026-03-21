@@ -328,7 +328,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .cal-day-btn { max-height:26px; font-size:10px; }
   .cal-wrap { padding:6px 8px; margin-bottom:6px; }
   .filter-bar-wrap { margin-bottom:8px; }
-  .ftab { padding:3px 9px; font-size:11px; }
+  .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
   .mc-team { max-width:100px; }
   .hero h1 { font-size:20px; }
@@ -386,7 +386,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('indoor',this)">🏑 Indoor</button>
       <button class="nav-pill" id="nav-live-btn" onclick="showPage('live',this)">🔴 Live</button>
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
-      <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin">⚙️</button>
+      <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
     </nav>
   </div>
 </header>
@@ -796,6 +796,7 @@ window.addEventListener('load', () => {
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
       renderCalendar(); renderCalendarIndoor(); renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
+      checkMissingResults();
     });
     window._fbListenEvents(data => {
       allEvents = data ? Object.values(data) : [];
@@ -872,21 +873,21 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   const c = document.getElementById(containerId);
   if (!c) return;
   const filteredCats = Object.entries(CATS).filter(([k,v]) => indoorOnly ? v.sport==='indoor' : v.sport==='prato');
-  const chips = [{ v:'all', l:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.label}` }))];
+  const chips = [{ v:'all', l:'Tutte', lf:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.short}`, lf:`${v.icon} ${v.label}` }))];
   const extra = containerId==='filter-partite' ? fPartiteExtra : fIndoorExtra;
   const addFn = containerId==='filter-partite' ? 'addFPartiteExtra' : 'addFIndoorExtra';
   let html = chips.map(ch => {
     if (ch.v === 'all') {
       const isActive = active==='all' && !extra;
-      return `<button class="ftab${isActive?' active':''}" onclick="${setter}('all')">${ch.l}</button>`;
+      return `<button class="ftab${isActive?' active':''}" onclick="${setter}('all')" title="${ch.lf||ch.l}">${ch.l}</button>`;
     }
     const isPrimary = active===ch.v;
     const isExtra = extra===ch.v;
     const isActive = isPrimary || isExtra;
     const showPlus = active!=='all' && !isPrimary && !isExtra;
-    return `<span style="display:inline-flex;align-items:center;gap:2px"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')">${ch.l}</button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi">+</button>`:''}</span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:2px"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')" title="${ch.lf||ch.l}">${ch.l}</button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi ${ch.lf||ch.l}">+</button>`:''}</span>`;
   }).join('');
-  if (includeValch) html += `<button class="ftab valch${onlyValch?' active':''}" onclick="toggleValch()">🟠 Solo Valchisone</button>`;
+  if (includeValch) html += `<button class="ftab valch${onlyValch?' active':''}" onclick="toggleValch()" title="Solo Valchisone">🟠 Valchisone</button>`;
   c.innerHTML = html;
 }
 
@@ -958,6 +959,16 @@ function renderCalendar() {
     html += `<button class="${classes}" onclick="selectCalDay('${ds}')">${d}</button>`;
   }
   gridEl.innerHTML = html;
+  // Show/hide clear button
+  let clearBtn = document.getElementById('cal-clear-btn');
+  if (!clearBtn) {
+    clearBtn = document.createElement('div');
+    clearBtn.id = 'cal-clear-btn';
+    clearBtn.style.cssText = 'text-align:center;margin-top:6px';
+    clearBtn.innerHTML = '<button onclick="selectCalDay(calSelected)" style="background:none;border:1px solid #e5e7eb;border-radius:12px;padding:3px 12px;font-size:11px;color:#6b7280;cursor:pointer">✕ Tutte le date</button>';
+    gridEl.parentNode.appendChild(clearBtn);
+  }
+  clearBtn.style.display = calSelected ? '' : 'none';
 }
 function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
 function goToToday() {
@@ -1043,6 +1054,15 @@ function renderCalendarIndoor() {
     html2 += `<button class="${classes}" onclick="selectCalIndoorDay('${ds}')">${d}</button>`;
   }
   gridEl.innerHTML = html2;
+  let clearBtnI = document.getElementById('cal-indoor-clear-btn');
+  if (!clearBtnI) {
+    clearBtnI = document.createElement('div');
+    clearBtnI.id = 'cal-indoor-clear-btn';
+    clearBtnI.style.cssText = 'text-align:center;margin-top:6px';
+    clearBtnI.innerHTML = '<button onclick="selectCalIndoorDay(calIndoorSelected)" style="background:none;border:1px solid #e5e7eb;border-radius:12px;padding:3px 12px;font-size:11px;color:#6b7280;cursor:pointer">✕ Tutte le date</button>';
+    gridEl.parentNode.appendChild(clearBtnI);
+  }
+  clearBtnI.style.display = calIndoorSelected ? '' : 'none';
 }
 function selectCalIndoorDay(ds) {
   calIndoorSelected = calIndoorSelected===ds ? null : ds;
@@ -1652,6 +1672,56 @@ function populateDataLists() {
 }
 // ─── ADMIN ──────────────────────────────────────────────
 let isAdminOpen = false;
+function checkMissingResults() {
+  const today = new Date().toISOString().slice(0,10);
+  const missing = [...allMatches, ...allIndoor].filter(m =>
+    m.date < today && (m.scoreHome===undefined || m.scoreAway===undefined)
+  );
+  const badge = document.getElementById('admin-badge');
+  if (badge) badge.style.display = missing.length ? '' : 'none';
+  return missing;
+}
+
+function showMissingResultsAlert() {
+  const today = new Date().toISOString().slice(0,10);
+  const missing = [...allMatches, ...allIndoor].filter(function(m){
+    return m.date < today && (m.scoreHome===undefined || m.scoreAway===undefined);
+  }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+  const panel = document.getElementById('admin-panel');
+  let banner = document.getElementById('missing-results-banner');
+  if (!panel) return;
+  if (!missing.length) {
+    if (banner) banner.style.display = 'none';
+    return;
+  }
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'missing-results-banner';
+    panel.insertBefore(banner, panel.firstChild);
+  }
+  banner.style.display = '';
+  var rows = missing.slice(0,5).map(function(m) {
+    var d = new Date(m.date+'T12:00:00').toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
+    return '<div style="font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.15)">' + d + ' — ' + m.home + ' vs ' + m.away + '</div>';
+  }).join('');
+  var more = missing.length > 5 ? '<div style="font-size:11px;margin-top:4px;opacity:.8">+ altre ' + (missing.length-5) + ' partite</div>' : '';
+  var div = document.createElement('div');
+  div.style.cssText = 'background:#dc2626;color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px';
+  div.innerHTML = '<div style="font-weight:700;font-size:13px;margin-bottom:6px">&#9888;&#65039; ' + missing.length + ' partite senza risultato</div>' + rows + more;
+  var links = document.createElement('div');
+  links.style.cssText = 'margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+  links.innerHTML = '<a href="https://www.federhockey.it/" target="_blank" style="background:white;color:#dc2626;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;text-decoration:none">&#127760; FIH</a>'
+    + '<a href="https://www.hockeyitalia.it" target="_blank" style="background:white;color:#dc2626;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;text-decoration:none">&#127955; Hockey Italia</a>';
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕ Chiudi';
+  closeBtn.style.cssText = 'background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-left:auto';
+  closeBtn.onclick = function(){ banner.style.display='none'; };
+  links.appendChild(closeBtn);
+  div.appendChild(links);
+  banner.innerHTML = '';
+  banner.appendChild(div);
+}
+
 function showAdminLogin() {
   if (isAdminOpen) {
     document.getElementById('login-wrap').style.display = 'none';
@@ -1659,6 +1729,7 @@ function showAdminLogin() {
     switchFormTab('match');
     renderLiveAdminPanel();
     populateDataLists();
+    setTimeout(showMissingResultsAlert, 300);
   } else {
     document.getElementById('login-wrap').style.display = '';
     document.getElementById('admin-panel').style.display = 'none';
@@ -1677,6 +1748,7 @@ function doLogin() {
     switchFormTab('match');
     renderLiveAdminPanel();
     populateDataLists();
+    setTimeout(showMissingResultsAlert, 300);
   } else {
     // Check live password from Firebase
     if (window._fbGetLivePwd) {
