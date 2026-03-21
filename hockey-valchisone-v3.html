@@ -82,6 +82,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 /* ─── FILTER BAR ─────────────────────────────── */
 .filter-bar { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+.filter-bar.nowrap { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
+.filter-bar.nowrap::-webkit-scrollbar { display:none; }
 
 .ftab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; flex-shrink:0; }
 .ftab.active { background:var(--green); color:white; border-color:var(--green); }
@@ -411,15 +413,20 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <!-- PRATO -->
 <div class="page active" id="page-partite">
   <div class="filter-bar-wrap">
-    <div class="filter-bar" id="filter-partite"></div>
-    <div class="print-box">
-      <button class="print-btn-main" onclick="togglePrintMenu('print-menu-partite')">🖨️ Stampa ▾</button>
-      <div class="print-dropdown" id="print-menu-partite">
-        <button onclick="quickPrint('partite','list','normal');closePrintMenus()">📋 Elenco</button>
-        <button onclick="quickPrint('partite','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
-        <button onclick="quickPrint('partite','list','pocket');closePrintMenus()">👜 Tascabile</button>
-        <button onclick="quickPrint('partite','calendar');closePrintMenus()">📅 Calendario</button>
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap">
+      <div class="filter-bar" id="filter-partite" style="flex:1;flex-wrap:nowrap;overflow-x:auto;margin-bottom:0"></div>
+      <div class="print-box" style="flex-shrink:0">
+        <button class="print-btn-main" onclick="togglePrintMenu('print-menu-partite')">🖨️ Stampa ▾</button>
+        <div class="print-dropdown" id="print-menu-partite">
+          <button onclick="quickPrint('partite','list','normal');closePrintMenus()">📋 Elenco</button>
+          <button onclick="quickPrint('partite','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
+          <button onclick="quickPrint('partite','list','pocket');closePrintMenus()">👜 Tascabile</button>
+          <button onclick="quickPrint('partite','calendar');closePrintMenus()">📅 Calendario</button>
+        </div>
       </div>
+    </div>
+    <div>
+      <button class="ftab valch" id="valch-filter-btn" onclick="toggleValch()" title="Solo Valchisone">🟠 Solo Valchisone</button>
     </div>
   </div>
   <div class="cal-wrap">
@@ -914,7 +921,7 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
     const showPlus = active!=='all' && !isPrimary && !isExtra;
     return `<span style="display:inline-flex;align-items:center;gap:2px"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')" title="${ch.lf||ch.l}">${ch.l}</button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi ${ch.lf||ch.l}">+</button>`:''}</span>`;
   }).join('');
-  if (includeValch) html += `<button class="ftab valch${onlyValch?' active':''}" onclick="toggleValch()" title="Solo Valchisone">🟠 Valchisone</button>`;
+  // Valchisone button is rendered separately in HTML
   c.innerHTML = html;
 }
 
@@ -952,7 +959,12 @@ function setFIndoor(v) {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   renderCalendarIndoor(); renderIndoor();
 }
-function toggleValch()   { onlyValch = !onlyValch; renderCalendar(); renderMatches(); renderIndoor(); renderStandings(); }
+function toggleValch() {
+  onlyValch = !onlyValch;
+  const btn = document.getElementById('valch-filter-btn');
+  if (btn) btn.className = 'ftab valch' + (onlyValch ? ' active' : '');
+  renderCalendar(); renderMatches(); renderIndoor(); renderStandings();
+}
 function addFPartiteExtra(v) {
   fPartiteExtra = (fPartiteExtra === v) ? null : v;
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
@@ -1274,7 +1286,7 @@ function renderLivePage() {
       <div class="eli-minute">${g.minute||"?"}'</div>
       <div class="eli-icon">🏑</div>
       <div class="eli-text">
-        <div class="eli-player">${g.player||'—'}</div>
+        <div class="eli-player">${g.player||''}</div>
         <div class="eli-team">${g.team||''}</div>
       </div>
     </div>`).join('') : '<div class="no-events">Nessun gol segnato</div>';
@@ -1329,9 +1341,10 @@ function generateLivePwd() {
   }
   const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
   const msg = 'Ciao! Ti chiedo di aggiornare il live della partita di hockey 🏑\n\n'
-    + '1. Apri questo link: ' + siteUrl + '\n'
+    + '1. Apri l\'app HP Valchisone\n'
     + '2. Clicca su ⚙️ in alto a destra\n'
-    + '3. Inserisci questa password: ' + pwd + '\n'
+    + '3. Inserisci questa password:\n\n'
+    + '👉 ' + pwd + ' 👈\n\n'
     + '4. Seleziona la partita e clicca Avvia Live\n'
     + '5. Quando finisce clicca Fine Partita\n\n'
     + 'Grazie! 🙏';
