@@ -879,6 +879,7 @@ function switchSport(sport) {
   if (sport === 'prato')  showPage('partite', document.querySelector('.nav-pill'));
   if (sport === 'indoor') showPage('indoor',  document.querySelectorAll('.nav-pill')[1]);
   syncHeroBtns(sport);
+  setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 50);
 }
 
 function syncHeroBtns(sport) {
@@ -1411,15 +1412,16 @@ function renderLiveAdminPanel() {
           <span style="color:#1a7a2e;font-size:28px;min-width:70px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:13px;font-weight:700;color:#374151;max-width:120px;text-align:left">${l.away}</span>
         </div>
-        <div style="margin-top:6px;font-size:11px;color:#9ca3af">
+        <div style="margin-top:4px;font-size:11px;color:#9ca3af">
           Parziale: <strong id="admin-timer-display">00:00</strong> &nbsp;|&nbsp; Totale: <strong id="admin-timer-total">00:00</strong>
         </div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px">${(()=>{const h=liveData.half||1;const ints={1:'Int. 2\' → 2° Q',2:'Int. 5\' → 3° Q',3:'Int. 2\' → 4° Q',4:''};return ints[h]||'';})()}</div>
       </div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <button class="btn-timer-start" onclick="timerStart()" style="padding:12px;font-size:14px">${liveData.timerRunning?'▶ In corso':'▶ Avvia'}</button>
         <button class="btn-timer-pause" onclick="timerPause()" style="padding:12px;font-size:14px">⏸ Pausa</button>
-        <button class="btn-timer-half" onclick="timerHalf()" style="padding:12px;font-size:14px">🔄 ${isLastQuarter?'Fine quarti':'Quarto succ.'}</button>
+        <button class="btn-timer-half" onclick="timerHalf()" style="padding:12px;font-size:13px">${isLastQuarter?'🏁 Fine 4° Quarto':('🔄 Fine '+(['1°','2°','3°','4°'][(liveData.half||1)-1])+' · '+({1:2,2:5,3:2}[(liveData.half||1)]||2)+'\' int.')}</button>
         <button class="btn-timer-reset" onclick="timerReset()" style="padding:12px;font-size:14px">↺ Reset</button>
       </div>
       <!-- ADD GOAL -->
@@ -1448,6 +1450,31 @@ function renderLiveAdminPanel() {
 }
 
 // ─── LIVE ACTIONS ───────────────────────────────────────
+function playWhistle(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const blasts = type === 'triple' ? 3 : 1;
+    const gap = type === 'triple' ? 0.4 : 0;
+    for (let i = 0; i < blasts; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2800, ctx.currentTime + i * gap);
+      osc.frequency.linearRampToValueAtTime(3200, ctx.currentTime + i * gap + 0.05);
+      osc.frequency.linearRampToValueAtTime(2900, ctx.currentTime + i * gap + 0.25);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * gap);
+      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + i * gap + 0.02);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + i * gap + 0.2);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i * gap + 0.3);
+      osc.start(ctx.currentTime + i * gap);
+      osc.stop(ctx.currentTime + i * gap + 0.3);
+    }
+    setTimeout(() => ctx.close(), (blasts * gap + 0.5) * 1000);
+  } catch(e) {}
+}
+
 function startLive() {
   const sel = document.getElementById('live-match-select');
   if (!sel || !sel.value) { alert('Seleziona una partita!'); return; }
@@ -1472,6 +1499,7 @@ function startLive() {
     goals: {}
   };
   window._fbSaveLive(live);
+  playWhistle('single');
 }
 
 function finePartita() {
@@ -1485,8 +1513,10 @@ function finePartita() {
     const partial = getPartialMs(liveData);
     const newTotal = (liveData.totalElapsed||0) + partial;
     window._fbSaveLive({...liveData, timerRunning: false, timerStart: null, timerElapsed: partial, totalElapsed: newTotal, finished: true});
+    playWhistle('triple');
   } else {
     window._fbSaveLive({...liveData, finished: true, timerRunning: false});
+  playWhistle('triple');
   }
 }
 
@@ -1549,11 +1579,13 @@ function timerPause() {
 function timerHalf() {
   if (!liveData) return;
   const cur = liveData.half || 1;
-  const QUARTERS = ['1 Quarto','2 Quarto','3 Quarto','4 Quarto'];
+  const QUARTER_NAMES = ['1° Quarto','2° Quarto','3° Quarto','4° Quarto'];
+  const INTERVALS = {1:2, 2:5, 3:2}; // minutes between quarters (FIH max 10', in practice 5')
   const isLast = cur >= 4;
+  const intervalMin = INTERVALS[cur] || 2;
   const label = isLast
-    ? 'Terminare la partita (fine 4 Quarto)?'
-    : `Terminare ${QUARTERS[cur-1]} e iniziare ${QUARTERS[cur]}?`;
+    ? 'Terminare il 4° Quarto e la partita?'
+    : `Fine ${QUARTER_NAMES[cur-1]}\nIntervallo: ${intervalMin} minuti\nConfermi inizio ${QUARTER_NAMES[cur]}?`;
   if (!confirm(label)) return;
   const partial = getPartialMs(liveData);
   const newTotal = (liveData.totalElapsed||0) + partial;
@@ -1566,6 +1598,7 @@ function timerHalf() {
     totalElapsed: newTotal
   };
   window._fbSaveLive(updated);
+  playWhistle('single');
 }
 
 function timerReset() {
