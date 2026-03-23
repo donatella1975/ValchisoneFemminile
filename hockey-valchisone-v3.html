@@ -2152,9 +2152,18 @@ function filterAdminList() {
   function _rm(m){
     var cat=CATS[m.cat]||{},hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
     var id=m.id;
+    var isValch=(m.home||'').toUpperCase().includes(VALCH)||(m.away||'').toUpperCase().includes(VALCH);
     var scoreStr=hasSc?' <span style="font-weight:800;color:#1a7a2e">'+m.scoreHome+'-'+m.scoreAway+'</span>':'';
     var rb=hasSc?'<button onclick="resetResult(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;color:#e8620a;font-size:16px" title="Azzera">&#8635;</button>':'';
-    return '<div style="background:#f9fafb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px">'
+    // Pulsante marcatrici: solo per partite Valchisone già giocate
+    var goalsBtn=hasSc&&isValch?'<button onclick="editMatch(\'' +id+ '\')" style="background:#fff7ed;color:#e8620a;border:1px solid #fed7aa;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13px;font-weight:600" title="Marcatrici">⚽ Gol</button>':'';
+    // Pulsante vai direttamente a inserire risultato: per partite passate senza risultato
+    var today=new Date().toISOString().slice(0,10);
+    var needsResult=!hasSc&&m.date<today;
+    var resultBtn=needsResult
+      ?'<button onclick="openResultModal(\'' +id+ '\')" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">&#9888; Inserisci risultato</button>'
+      :'<button onclick="openResultModal(\'' +id+ '\')" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>';
+    return '<div style="background:'+(needsResult?'#fff5f5':'#f9fafb')+';border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;'+(needsResult?'border:1px solid #fecaca':'')+'">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0">'
       +'<span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px;flex-shrink:0">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span>'
       +'<span style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+m.home+' vs '+m.away+'</span>'
@@ -2162,8 +2171,9 @@ function filterAdminList() {
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">'
       +'<span style="font-size:11px;color:#6b7280;flex:1">'+fmtDate(m.date)+(m.time?' '+m.time:'')+'</span>'
-      +'<button onclick="openResultModal(\'' +id+ '\')" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>'
+      +resultBtn
       +rb
+      +goalsBtn
       +'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica partita">&#9999;</button>'
       +'<button onclick="deleteMatch(\'' +id+ '\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px">&#128465;</button>'
       +'</div>'
