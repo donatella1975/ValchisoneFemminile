@@ -1592,6 +1592,34 @@ function sendLiveNotification(home, away) {
     });
   } catch(e) {}
 }
+function startLive() {
+  const sel = document.getElementById('live-match-select');
+  if (!sel || !sel.value) { alert('Seleziona una partita!'); return; }
+  const matchId = sel.value;
+  const all = [...allMatches, ...allIndoor];
+  const m = all.find(x => x.id === matchId);
+  if (!m) return;
+  alert('⏱️ Nota: i tempi ufficiali sono quelli dettati dall\'arbitro in campo. Il cronometro dell\'app è indicativo.');
+  const live = {
+    active: true,
+    id: matchId,
+    cat: m.cat,
+    home: m.home,
+    away: m.away,
+    location: m.location||'',
+    scoreHome: 0,
+    scoreAway: 0,
+    half: 1,
+    timerStart: null,
+    timerRunning: false,
+    timerElapsed: 0,
+    totalElapsed: 0,
+    goals: {}
+  };
+  window._fbSaveLive(live);
+  sendLiveNotification(live.home, live.away);
+}
+
 function finePartita() {
   // Clear live password if used in live-only mode
   if (_isLiveOnly && window._fbClearLivePwd) {
