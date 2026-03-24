@@ -1155,6 +1155,9 @@ const MAP_ADDRESSES = {
   'Corso Tazzoli': 'Corso Enrico Tazzoli, 78, 10135 Torino TO',
   'MICHELLONET': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
   'Villar Perosa': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'VILLAR': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'campo da hockey villar': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
+  'campo hockey villar': 'Via Dante Alighieri, 9, 10069 Villar Perosa TO',
   'Lorenzoni': 'Viale Madonna dei Fiori, 49, 12042 Bra CN',
   'MADONNA DEI FIORI': 'Viale Madonna dei Fiori, 49, 12042 Bra CN',
   'Bra': 'Viale Risorgimento, 31/A, 12042 Bra CN',
@@ -1523,10 +1526,10 @@ function playWhistle(type) {
       const osc = ctx.createOscillator();
       const gainOsc = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(2600, t);
-      osc.frequency.linearRampToValueAtTime(2800, t + 0.04);
-      osc.frequency.setValueAtTime(2700, t + dur * 0.3);
-      osc.frequency.linearRampToValueAtTime(2650, t + dur);
+      osc.frequency.setValueAtTime(1800, t);
+      osc.frequency.linearRampToValueAtTime(2000, t + 0.04);
+      osc.frequency.setValueAtTime(1900, t + dur * 0.3);
+      osc.frequency.linearRampToValueAtTime(1850, t + dur);
       gainOsc.gain.setValueAtTime(0, t);
       gainOsc.gain.linearRampToValueAtTime(vol * 0.5, t + 0.02);
       gainOsc.gain.setValueAtTime(vol * 0.5, t + dur - 0.05);
@@ -1538,8 +1541,8 @@ function playWhistle(type) {
       const osc2 = ctx.createOscillator();
       const gainOsc2 = ctx.createGain();
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(2200, t);
-      osc2.frequency.linearRampToValueAtTime(2400, t + dur);
+      osc2.frequency.setValueAtTime(1500, t);
+      osc2.frequency.linearRampToValueAtTime(1700, t + dur);
       gainOsc2.gain.setValueAtTime(0, t);
       gainOsc2.gain.linearRampToValueAtTime(vol * 0.3, t + 0.03);
       gainOsc2.gain.setValueAtTime(vol * 0.3, t + dur - 0.05);
@@ -1556,7 +1559,7 @@ function playWhistle(type) {
       noise.buffer = buffer;
       const noiseFilter = ctx.createBiquadFilter();
       noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.value = 2700;
+      noiseFilter.frequency.value = 1900;
       noiseFilter.Q.value = 8;
       const gainNoise = ctx.createGain();
       gainNoise.gain.setValueAtTime(0, t);
@@ -1586,6 +1589,7 @@ function startLive() {
   const all = [...allMatches, ...allIndoor];
   const m = all.find(x => x.id === matchId);
   if (!m) return;
+  alert('⏱️ Nota: i tempi ufficiali sono quelli dettati dall\'arbitro in campo. Il cronometro dell\'app è indicativo.');
   const live = {
     active: true,
     id: matchId,
@@ -1684,6 +1688,7 @@ function timerStart() {
   const now = Date.now();
   const updated = {...liveData, timerRunning: true, timerStart: now - (liveData.timerElapsed||0)};
   window._fbSaveLive(updated);
+  playWhistle('start');
 }
 
 function timerPause() {
@@ -2156,12 +2161,13 @@ function filterAdminList() {
     var scoreStr=hasSc?' <span style="font-weight:800;color:#1a7a2e">'+m.scoreHome+'-'+m.scoreAway+'</span>':'';
     var rb=hasSc?'<button onclick="resetResult(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;color:#e8620a;font-size:16px" title="Azzera">&#8635;</button>':'';
     // Pulsante marcatrici: solo per partite Valchisone già giocate
-    var goalsBtn=hasSc&&isValch?'<button onclick="editMatch(\'' +id+ '\')" style="background:#fff7ed;color:#e8620a;border:1px solid #fed7aa;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13px;font-weight:600" title="Marcatrici">⚽ Gol</button>':'';
+    var goalsBtn=hasSc&&isValch?'<button onclick="openResultModal(\'' +id+ '\')" style="background:#fff7ed;color:#e8620a;border:1px solid #fed7aa;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700" title="Modifica risultato e marcatrici">&#x26BD; Risultato/Gol</button>':'';
     // Pulsante vai direttamente a inserire risultato: per partite passate senza risultato
     var today=new Date().toISOString().slice(0,10);
     var needsResult=!hasSc&&m.date<today;
     var resultBtn=needsResult
       ?'<button onclick="openResultModal(\'' +id+ '\')" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">&#9888; Inserisci risultato</button>'
+      :hasSc&&isValch?''  // Valchisone giocata: usa solo pulsante Gol
       :'<button onclick="openResultModal(\'' +id+ '\')" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>';
     return '<div style="background:'+(needsResult?'#fff5f5':'#f9fafb')+';border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;'+(needsResult?'border:1px solid #fecaca':'')+'">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0">'
@@ -2174,7 +2180,7 @@ function filterAdminList() {
       +resultBtn
       +rb
       +goalsBtn
-      +'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica partita">&#9999;</button>'
+      +(hasSc&&isValch?'':'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica">&#9999;</button>')
       +'<button onclick="deleteMatch(\'' +id+ '\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px">&#128465;</button>'
       +'</div>'
       +'</div>';
