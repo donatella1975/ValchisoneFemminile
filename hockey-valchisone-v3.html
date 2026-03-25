@@ -706,7 +706,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
     <!-- Marcatrici Valchisone -->
     <div id="scorers-section" style="display:none;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:6px">⚽ Marcatrici Valchisone</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:6px">🏑 Marcatrici Valchisone</div>
       <div id="scorers-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       <button onclick="addScorerRow()" style="background:#f0faf2;color:#1a7a2e;border:1.5px solid #d1fae5;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%">+ Aggiungi marcatrice</button>
     </div>
@@ -855,13 +855,13 @@ window.addEventListener('load', () => {
         const homeIsV = (liveData.home||'').toUpperCase().includes(VALCH);
         const awayIsV = (liveData.away||'').toUpperCase().includes(VALCH);
         const valchPlaying = homeIsV || awayIsV;
-        if (valchPlaying && newH > prevH) {
-          const newGoal = liveData.goals ? Object.values(liveData.goals).sort((a,b)=>(b.minute||0)-(a.minute||0))[0] : null;
-          showGoalEffect(homeIsV ? 'valch' : 'away', newGoal);
-        }
-        if (valchPlaying && newA > prevA) {
-          const newGoal = liveData.goals ? Object.values(liveData.goals).sort((a,b)=>(b.minute||0)-(a.minute||0))[0] : null;
-          showGoalEffect(awayIsV ? 'valch' : 'away', newGoal);
+        if (valchPlaying && (newH > prevH || newA > prevA)) {
+          // Find the NEW goal by comparing keys
+          const prevGoalIds = prev.goals ? Object.keys(prev.goals) : [];
+          const newGoals = liveData.goals ? Object.values(liveData.goals) : [];
+          const newGoal = newGoals.find(g => !prevGoalIds.includes(g.id)) || (newGoals.length ? newGoals[newGoals.length-1] : null);
+          if (newH > prevH) showGoalEffect(homeIsV ? 'valch' : 'away', newGoal);
+          if (newA > prevA) showGoalEffect(awayIsV ? 'valch' : 'away', newGoal);
         }
       }
       renderLiveBadge();
@@ -2278,26 +2278,32 @@ function saveResult() {
   const sa = document.getElementById('result-away').value;
   if (sh===''||sa==='') { alert('Inserisci entrambi i punteggi!'); return; }
   const all = [...allMatches,...allIndoor];
-  const obj = {}; all.forEach(m => { obj[m.id]=m; });
-  if (obj[id]) {
-    obj[id].scoreHome = parseInt(sh);
-    obj[id].scoreAway = parseInt(sa);
-    // Save scorers if section is visible
-    const sec = document.getElementById('scorers-section');
-    if (sec.style.display !== 'none') {
-      const goals = {};
-      document.querySelectorAll('#scorers-list > div').forEach(row => {
-        const name = row.querySelector('.scorer-name').value.trim();
-        const min = row.querySelector('.scorer-min').value;
-        const gid = row.dataset.gid;
-        if (name || min) {
-          goals[gid] = { id: gid, player: name, minute: min!=='' ? parseInt(min) : undefined };
-        }
-      });
-      obj[id].goals = goals;
-    }
+  const match = all.find(x => x.id === id);
+  if (!match) { alert('Partita non trovata!'); return; }
+  match.scoreHome = parseInt(sh);
+  match.scoreAway = parseInt(sa);
+  // Save scorers if section is visible
+  const sec = document.getElementById('scorers-section');
+  if (sec && sec.style.display !== 'none') {
+    const goals = {};
+    document.querySelectorAll('#scorers-list > div[data-gid]').forEach(row => {
+      const nameEl = row.querySelector('.scorer-name');
+      const minEl = row.querySelector('.scorer-min');
+      if (!nameEl || !minEl) return;
+      const name = nameEl.value.trim();
+      const min = minEl.value;
+      const gid = row.dataset.gid;
+      if (name || min) {
+        goals[gid] = { id: gid, player: name, minute: min!=='' ? parseInt(min) : undefined };
+      }
+    });
+    match.goals = goals;
   }
-  window._fbSave(obj);
+  // Rebuild and save
+  const matchesObj = {}, indoorObj = {};
+  allMatches.forEach(m => { matchesObj[m.id] = m; });
+  allIndoor.forEach(m => { indoorObj[m.id] = m; });
+  window._fbSave(Object.assign({}, matchesObj, indoorObj));
   document.getElementById('result-modal').classList.remove('open');
 }
 
