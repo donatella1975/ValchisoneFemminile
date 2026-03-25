@@ -2163,7 +2163,7 @@ function filterAdminList() {
     var scoreStr=hasSc?' <span style="font-weight:800;color:#1a7a2e">'+m.scoreHome+'-'+m.scoreAway+'</span>':'';
     var rb=hasSc?'<button onclick="resetResult(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;color:#e8620a;font-size:16px" title="Azzera">&#8635;</button>':'';
     // Pulsante marcatrici: solo per partite Valchisone già giocate
-    var goalsBtn=hasSc&&isValch?'<button onclick="openResultModal(\'' +id+ '\')" style="background:#fff7ed;color:#e8620a;border:1px solid #fed7aa;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700" title="Modifica risultato e marcatrici">&#x26BD; Risultato/Gol</button>':'';
+    var goalsBtn=hasSc&&isValch?'<button onclick="openResultModal(\'' +id+ '\')" style="background:#fff7ed;color:#e8620a;border:1px solid #fed7aa;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700" title="Modifica risultato e marcatrici">&#x1F3D1; Risultato/Gol</button>':'';
     // Pulsante vai direttamente a inserire risultato: per partite passate senza risultato
     var today=new Date().toISOString().slice(0,10);
     var needsResult=!hasSc&&m.date<today;
