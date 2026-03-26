@@ -1140,7 +1140,7 @@ function renderMatches() {
   });
 
   const c = document.getElementById('matches-list');
-  if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div><br><button onclick="resetFilters('partite')" style="background:var(--green);color:white;border:none;border-radius:20px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;margin-top:6px">Mostra tutte le partite</button></div>'; return; }
+  if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div></div>'; return; }
   const byDate = {};
   const dateOrder = [];
   ms.forEach(m => {
