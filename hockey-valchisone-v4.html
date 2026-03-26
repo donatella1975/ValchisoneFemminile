@@ -36,7 +36,7 @@
   --radius: 14px;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; }
+body { font-family:DM Sans,sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; }
 
 
 /* ─── HEADER ─────────────────────────────────── */
@@ -47,7 +47,7 @@ header { background:var(--green); position:sticky; top:0; z-index:100; box-shado
 .logo-text { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:700; color:white; line-height:1.15; }
 .logo-text span { display:block; font-size:10px; font-weight:400; opacity:.8; }
 nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wrap; max-width:100%; }
-.nav-pill { background:transparent; border:1.5px solid rgba(255,255,255,.3); color:white; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; min-height:44px; }
+.nav-pill { background:transparent; border:1.5px solid rgba(255,255,255,.3); color:white; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:DM Sans,sans-serif; white-space:nowrap; min-height:44px; }
 .nav-pill.active,.nav-pill:hover { background:white; color:var(--green); border-color:white; }
 .nav-live { border-color:#ff4444; color:#ff4444; animation:pulse-border 1.5s infinite; }
 .nav-live.active,.nav-live:hover { background:#ff4444; color:white; border-color:#ff4444; }
@@ -63,7 +63,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .hero-sub { font-size:clamp(13px,3vw,16px); color:rgba(255,255,255,.85); margin-top:4px; }
 .hero-sub span { color:var(--orange2); font-weight:700; }
 .hero-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px; }
-.hero-subsection { background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:white; border-radius:24px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.hero-subsection { background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:white; border-radius:24px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .hero-subsection.active-sport { background:var(--orange); border-color:var(--orange); color:white; }
 
 /* ─── LIVE BADGE in hero ─────────────────────── */
@@ -88,18 +88,18 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .filter-bar.nowrap { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
 .filter-bar.nowrap::-webkit-scrollbar { display:none; }
 
-.ftab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; flex-shrink:0; }
+.ftab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; font-family:DM Sans,sans-serif; white-space:nowrap; flex-shrink:0; }
 .ftab.active { background:var(--green); color:white; border-color:var(--green); }
 .ftab.valch { color:var(--orange); border-color:#fed7aa; }
 .ftab.valch.active { background:var(--orange); color:white; border-color:var(--orange); }
 .filter-bar-wrap { display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
 .filter-bar-wrap .filter-bar { margin-bottom:0; }
 .print-box { position:relative; flex-shrink:0; align-self:flex-end; }
-.print-btn-main { display:flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.print-btn-main { display:flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:DM Sans,sans-serif; white-space:nowrap; }
 .print-btn-main:hover { background:var(--green); color:white; }
 .print-dropdown { display:none; position:absolute; right:0; top:calc(100% + 6px); background:white; border:1.5px solid var(--green2); border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,.12); z-index:100; min-width:180px; overflow:hidden; }
 .print-dropdown.open { display:block; }
-.print-dropdown button { display:block; width:100%; text-align:left; padding:10px 16px; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; background:none; border:none; cursor:pointer; color:var(--ink1); border-bottom:1px solid #f3f4f6; }
+.print-dropdown button { display:block; width:100%; text-align:left; padding:10px 16px; font-size:13px; font-weight:600; font-family:DM Sans,sans-serif; background:none; border:none; cursor:pointer; color:var(--ink1); border-bottom:1px solid #f3f4f6; }
 .print-dropdown button:last-child { border-bottom:none; }
 .print-dropdown button:hover { background:#f0faf2; color:var(--green); }
 
@@ -156,7 +156,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .status-badge { font-size:10px; font-weight:600; padding:2px 7px; border-radius:6px; white-space:nowrap; }
 .s-done { background:#dcfce7; color:#166534; }
 .s-todo { background:#fff7ed; color:#c2410c; }
-.btn-map { display:inline-flex; align-items:center; gap:4px; color:var(--green); border:1.5px solid var(--green4); border-radius:12px; padding:3px 10px; font-size:11px; font-weight:600; text-decoration:none; background:white; transition:all .15s; font-family:'DM Sans',sans-serif; }
+.btn-map { display:inline-flex; align-items:center; gap:4px; color:var(--green); border:1.5px solid var(--green4); border-radius:12px; padding:3px 10px; font-size:11px; font-weight:600; text-decoration:none; background:white; transition:all .15s; font-family:DM Sans,sans-serif; }
 .btn-map:hover { background:var(--green); color:white; }
 
 
@@ -194,7 +194,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .dr-pos { color:#16a34a; font-weight:700; }
 .dr-neg { color:#dc2626; font-weight:700; }
 .class-tabs { display:flex; gap:8px; margin-bottom:16px; }
-.ctab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:7px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.ctab { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:20px; padding:7px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .ctab.active { background:var(--green); color:white; border-color:var(--green); }
 
 
@@ -209,12 +209,12 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .zone-item { display:flex; align-items:center; color:var(--ink3); font-weight:600; }
 /* ─── PRINT ─────────────────────────────────── */
 .print-box { position:relative; margin-left:auto; flex-shrink:0; }
-.print-label { font-size:11px; font-weight:600; color:var(--ink3); font-family:'DM Sans',sans-serif; white-space:nowrap; }
-.btn-pdf { display:inline-flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:'DM Sans',sans-serif; white-space:nowrap; }
+.print-label { font-size:11px; font-weight:600; color:var(--ink3); font-family:DM Sans,sans-serif; white-space:nowrap; }
+.btn-pdf { display:inline-flex; align-items:center; gap:5px; background:white; color:var(--green); border:1.5px solid var(--green2); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; font-family:DM Sans,sans-serif; white-space:nowrap; }
 .btn-pdf:hover { background:var(--green); color:white; border-color:var(--green); }
 .btn-pdf-cal { color:#7c3aed; border-color:#c4b5fd; }
 .btn-pdf-cal:hover { background:#7c3aed; color:white; border-color:#7c3aed; }
-.pd-chip { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid #d1d5db; background:white; color:#374151; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.pd-chip { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid #d1d5db; background:white; color:#374151; font-family:DM Sans,sans-serif; transition:all .15s; }
 .pd-chip:hover { border-color:var(--green); color:var(--green); }
 .pd-chip.active { background:var(--green); color:white; border-color:var(--green); }
 
@@ -274,14 +274,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .lap-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-bottom:10px; }
 .lap-field { display:flex; flex-direction:column; gap:4px; flex:1; min-width:120px; }
 .lap-field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--ink3); }
-.lap-field input, .lap-field select { border:1.5px solid #e5e7eb; border-radius:8px; padding:8px 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--ink); background:white; }
+.lap-field input, .lap-field select { border:1.5px solid #e5e7eb; border-radius:8px; padding:8px 10px; font-size:13px; font-family:DM Sans,sans-serif; color:var(--ink); background:white; }
 .lap-field input:focus, .lap-field select:focus { outline:none; border-color:var(--green); }
-.btn-live-start { background:#ff4444; color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.btn-live-start { background:#ff4444; color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .btn-live-start:hover { background:#dc2626; }
-.btn-live-stop { background:#6b7280; color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
-.btn-add-goal { background:var(--green); color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.btn-live-stop { background:#6b7280; color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
+.btn-add-goal { background:var(--green); color:white; border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .btn-add-goal:hover { background:#15622a; }
-.btn-update-min { background:var(--orange); color:white; border:none; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.btn-update-min { background:var(--orange); color:white; border:none; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
 .minute-input { width:70px; }
 .sb-timer-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
 .sb-timer { font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(22px,6vw,32px); font-weight:800; color:white; letter-spacing:1px; line-height:1; }
@@ -289,30 +289,30 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .sb-timer-total { font-size:13px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.5px; }
 .sb-half-badge { font-size:10px; font-weight:800; background:#ea580c; color:white; padding:3px 10px; border-radius:10px; text-transform:uppercase; margin-left:6px; }
 .timer-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-.btn-timer-start { background:#22c55e; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
-.btn-timer-pause { background:#f59e0b; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
-.btn-timer-half { background:#7c3aed; color:white; border:none; border-radius:10px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
-.btn-timer-reset { background:#6b7280; color:white; border:none; border-radius:10px; padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.btn-timer-start { background:#22c55e; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
+.btn-timer-pause { background:#f59e0b; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
+.btn-timer-half { background:#7c3aed; color:white; border:none; border-radius:10px; padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
+.btn-timer-reset { background:#6b7280; color:white; border:none; border-radius:10px; padding:9px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
 
 /* ─── ADMIN ─────────────────────────────────── */
 .form-field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
 .form-field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--ink3); }
-.form-field input, .form-field select, .form-field textarea { border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--ink); }
+.form-field input, .form-field select, .form-field textarea { border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-size:14px; font-family:DM Sans,sans-serif; color:var(--ink); }
 .form-field input:focus, .form-field select:focus { outline:none; border-color:var(--green2); }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .btn-row { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
-.btn { border:none; border-radius:10px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.btn { border:none; border-radius:10px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .btn-green  { background:var(--green); color:white; }
 .btn-orange { background:var(--orange); color:white; }
 .btn-ghost  { background:white; color:var(--ink2); border:1.5px solid #e5e7eb; }
 .btn-sm     { padding:7px 14px; font-size:12px; }
 .admin-tabs { display:flex; gap:6px; margin-bottom:18px; }
-.admin-tab  { background:#f3f4f6; border:none; border-radius:10px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; color:var(--ink2); transition:all .15s; }
+.admin-tab  { background:#f3f4f6; border:none; border-radius:10px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:DM Sans,sans-serif; color:var(--ink2); transition:all .15s; }
 .admin-tab.active { background:var(--green); color:white; }
 .admin-section { background:white; border-radius:var(--radius); box-shadow:0 2px 10px rgba(0,0,0,.06); padding:18px; margin-bottom:16px; }
 .admin-section h3 { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; margin-bottom:14px; color:var(--ink); }
 .admin-match-list { display:flex; flex-direction:column; gap:3px; max-height:500px; overflow-y:auto; }
-.admin-fchip { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:16px; padding:4px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.admin-fchip { background:white; border:1.5px solid #e5e7eb; color:var(--ink2); border-radius:16px; padding:4px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; }
 .admin-fchip.active { background:var(--green); color:white; border-color:var(--green); }
 .amatch { background:#f9fafb; border-radius:8px; padding:6px 10px; display:flex; align-items:center; gap:6px; font-size:13px; }
 .amatch-info { flex:1; min-width:0; }
@@ -401,7 +401,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mobile-nav-overlay.open { display:block; }
 .mobile-nav-drawer { display:none; position:fixed; top:0; right:0; bottom:0; width:240px; background:white; z-index:100; padding:20px 16px; box-shadow:-4px 0 20px rgba(0,0,0,.15); flex-direction:column; gap:8px; overflow-y:auto; }
 .mobile-nav-drawer.open { display:flex; }
-.mnav-pill { display:flex; align-items:center; gap:10px; background:transparent; border:none; padding:12px 14px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; color:var(--ink2); font-family:'DM Sans',sans-serif; text-align:left; width:100%; transition:all .15s; }
+.mnav-pill { display:flex; align-items:center; gap:10px; background:transparent; border:none; padding:12px 14px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; color:var(--ink2); font-family:DM Sans,sans-serif; text-align:left; width:100%; transition:all .15s; }
 .mnav-pill:hover, .mnav-pill.active { background:var(--green4); color:var(--green); }
 .mnav-pill-live { color:#ff4444 !important; }
 .mnav-pill-live.active, .mnav-pill-live:hover { background:#fff0f0; color:#dc2626 !important; }
@@ -503,7 +503,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="cal-nav" onclick="calNext()">▶</button>
     </div>
     <div style="text-align:center;margin-bottom:8px">
-      <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Oggi</button>
+      <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
   </div>
@@ -531,7 +531,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="cal-nav" onclick="calIndoorNext()">▶</button>
     </div>
     <div style="text-align:center;margin-bottom:8px">
-      <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📅 Oggi</button>
+      <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
     </div>
     <div class="cal-grid" id="cal-indoor-grid"></div>
   </div>
@@ -572,31 +572,31 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     <div id="admin-dashboard" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22">⚙️ Amministrazione</div>
-        <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:'DM Sans',sans-serif">🚪 Esci</button>
+        <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:DM Sans,sans-serif">🚪 Esci</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button id="tab-match" onclick="switchFormTab('match')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+        <button id="tab-match" onclick="switchFormTab('match')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">🏑</div>
           <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuova Partita</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiungi al calendario</div>
         </button>
-        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">🏆</div>
           <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
         </button>
-        <button id="tab-edit" onclick="switchFormTab('edit')" style="background:white;border:2px solid #e0e7ff;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+        <button id="tab-edit" onclick="switchFormTab('edit')" style="background:white;border:2px solid #e0e7ff;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">✏️</div>
           <div style="font-weight:700;font-size:14px;color:#1a3a22">Modifica / Risultati</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiorna partite</div>
         </button>
-        <button id="tab-live-admin" onclick="switchFormTab('live')" style="background:white;border:2px solid #fecaca;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s">
+        <button id="tab-live-admin" onclick="switchFormTab('live')" style="background:white;border:2px solid #fecaca;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">🔴</div>
           <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
         </button>
       </div>
-      <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+      <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
         <span style="font-size:20px">🔑</span>
         <div>
           <div style="font-weight:700;font-size:13px;color:#c2410c">Genera password Live</div>
@@ -712,13 +712,13 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">🏑 Squadre Prato</div>
           <div id="teams-prato-editor" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
           <div style="display:flex;gap:6px;margin-bottom:12px">
-            <input type="text" id="new-team-prato" placeholder="Nuova squadra prato..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <input type="text" id="new-team-prato" placeholder="Nuova squadra prato..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
             <button class="btn btn-green btn-sm" onclick="addTeam('prato')">+</button>
           </div>
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#c2410c;margin-bottom:6px">🏑 Squadre Indoor</div>
           <div id="teams-indoor-editor" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
           <div style="display:flex;gap:6px">
-            <input type="text" id="new-team-indoor" placeholder="Nuova squadra indoor..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <input type="text" id="new-team-indoor" placeholder="Nuova squadra indoor..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
             <button class="btn btn-green btn-sm" onclick="addTeam('indoor')">+</button>
           </div>
         </div>
@@ -726,7 +726,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Campi di gioco</div>
           <div id="fields-editor" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;margin-bottom:8px"></div>
           <div style="display:flex;gap:6px">
-            <input type="text" id="new-field-input" placeholder="Nuovo campo..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif">
+            <input type="text" id="new-field-input" placeholder="Nuovo campo..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
             <button class="btn btn-green btn-sm" onclick="addField()">+ Aggiungi</button>
           </div>
         </div>
@@ -749,7 +749,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
         <input type="text" id="admin-search" placeholder="Cerca squadra…"
           oninput="filterAdminList()"
-          style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;">
+          style="width:100%;padding:7px 10px 7px 32px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:DM Sans,sans-serif;color:#374151;">
       </div>
       <div class="admin-match-list" id="admin-match-list"><div class="loading">Caricamento…</div></div>
     </div>
@@ -787,7 +787,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 </div>
 
 <div id="print-dialog-overlay" onclick="if(event.target===this)closePrintDialog()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center">
-  <div style="background:white;border-radius:16px;padding:28px 28px 24px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif">
+  <div style="background:white;border-radius:16px;padding:28px 28px 24px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:DM Sans,sans-serif">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;color:#1a3a22" id="pd-title">🖨️ Opzioni di stampa</div>
       <button onclick="closePrintDialog()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;padding:0 4px">✕</button>
@@ -816,20 +816,20 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <!-- PRINT PREVIEW OVERLAY -->
 <div id="print-preview-overlay" style="display:none;position:fixed;inset:0;background:#e5e7eb;z-index:9999;overflow-y:auto;flex-direction:column">
   <div id="print-preview-toolbar" style="position:sticky;top:0;background:#1a7a2e;padding:8px 16px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:1;overflow-x:auto">
-    <span id="print-preview-title" style="color:white;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0"></span>
+    <span id="print-preview-title" style="color:white;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;white-space:nowrap;flex-shrink:0"></span>
     <div id="pp-layout-btns" style="display:flex;gap:3px;flex-shrink:0">
-      <button onclick="setPPLayout('list')" id="pp-layout-list" style="background:white;color:#1a7a2e;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">📋 Elenco</button>
-      <button onclick="setPPLayout('table')" id="pp-layout-table" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">📊 Tabella</button>
-      <button onclick="setPPLayout('pocket')" id="pp-layout-pocket" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">📎 Tascabile</button>
+      <button onclick="setPPLayout('list')" id="pp-layout-list" style="background:white;color:#1a7a2e;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">📋 Elenco</button>
+      <button onclick="setPPLayout('table')" id="pp-layout-table" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">📊 Tabella</button>
+      <button onclick="setPPLayout('pocket')" id="pp-layout-pocket" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:12px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">📎 Tascabile</button>
     </div>
     <div style="width:1px;height:20px;background:rgba(255,255,255,.3);flex-shrink:0;margin:0 2px"></div>
     <div id="pp-cat-filters" style="display:flex;gap:3px;flex-shrink:0"></div>
-    <label style="display:flex;align-items:center;gap:4px;color:white;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:rgba(255,255,255,.15);padding:4px 9px;border-radius:12px;white-space:nowrap;flex-shrink:0">
+    <label style="display:flex;align-items:center;gap:4px;color:white;font-size:11px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;background:rgba(255,255,255,.15);padding:4px 9px;border-radius:12px;white-space:nowrap;flex-shrink:0">
       <input type="checkbox" id="pp-valch" onchange="refreshPrintPreview()" style="accent-color:#e8620a"> 🟠 Solo Valchisone
     </label>
     <div style="margin-left:auto;display:flex;gap:5px;flex-shrink:0">
-      <button onclick="doPrint()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
-      <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">✕ Chiudi</button>
+      <button onclick="doPrint()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
+      <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">✕ Chiudi</button>
     </div>
   <div style="background:#e5e7eb;min-height:100vh;padding:24px 16px">
   <div id="print-preview-body" style="background:white;max-width:1100px;width:100%;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;overflow:hidden"></div>
@@ -1140,7 +1140,7 @@ function renderMatches() {
   });
 
   const c = document.getElementById('matches-list');
-  if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un'altra categoria o scegli una data diversa nel calendario</div><br><button onclick="resetFilters('partite')" style="background:var(--green);color:white;border:none;border-radius:20px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px">Mostra tutte le partite</button></div>'; return; }
+  if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div><br><button onclick="resetFilters('partite')" style="background:var(--green);color:white;border:none;border-radius:20px;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;margin-top:6px">Mostra tutte le partite</button></div>'; return; }
   const byDate = {};
   const dateOrder = [];
   ms.forEach(m => {
@@ -2557,7 +2557,7 @@ const LOGO_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxI
 function buildPrintHeader(sport,catName,today){return`<div style="display:flex;align-items:center;gap:14px;border-bottom:3px solid #1a7a2e;padding-bottom:14px;margin-bottom:20px;"><img src="${LOGO_B64}" alt="HP Valchisone" style="width:44px;height:44px;border-radius:50%;border:2px solid #1a7a2e;flex-shrink:0"><div style="flex:1"><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:#1a3a22">H.P. Valchisone Femminile</div><div style="font-size:12px;color:#6b7280;margin-top:2px">${sport} &nbsp;·&nbsp; ${catName} &nbsp;·&nbsp; Stagione 2025/26</div></div><div style="text-align:right;font-size:10px;color:#9ca3af;line-height:1.6">${today}</div></div>`;}
 function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'-'+m+'-'+y;}
 
-const PRINT_BASE_CSS=`*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;background:white;color:#1a1a1a;padding:20px 24px;font-size:13px;}@page{margin:1.2cm 1cm;}`;
+const PRINT_BASE_CSS=`*{box-sizing:border-box;margin:0;padding:0;}body{font-family:DM Sans,sans-serif;background:white;color:#1a1a1a;padding:20px 24px;font-size:13px;}@page{margin:1.2cm 1cm;}`;
 let _printStyles = '';
 let _ppSection = '', _ppMode = '';
 
