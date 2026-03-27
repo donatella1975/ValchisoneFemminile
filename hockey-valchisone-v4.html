@@ -177,6 +177,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── DAY GROUP ─────────────────────────────── */
 .day-group { margin-bottom:20px; }
 .day-label { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:var(--green); padding:6px 0 6px 0; border-bottom:2px solid var(--green); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.cal-selected-banner { display:flex; align-items:center; justify-content:space-between; background:var(--green4); border:1.5px solid var(--green3); border-radius:12px; padding:8px 14px; margin-bottom:12px; }
+.cal-selected-label { font-family:'Bricolage Grotesque',sans-serif; font-size:13px; font-weight:800; color:var(--green); }
+.cal-selected-clear { background:none; border:1.5px solid var(--green2); border-radius:20px; padding:3px 12px; font-size:11px; font-weight:700; color:var(--green); cursor:pointer; font-family:DM Sans,sans-serif; }
+.cal-selected-clear:hover { background:var(--green); color:white; }
 .day-dot { width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0; }
 
 /* ─── STANDINGS ─────────────────────────────── */
@@ -186,6 +190,12 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .standings-table th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--ink3); padding:8px 6px; text-align:center; background:#f9fafb; border-bottom:1px solid #f3f4f6; }
 .standings-table th:first-child { text-align:left; padding-left:12px; }
 .standings-table td { padding:9px 6px; text-align:center; border-bottom:1px solid #f9fafb; }
+.standings-toggle { display:none; background:white; border:1.5px solid #e5e7eb; border-radius:20px; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2); font-family:DM Sans,sans-serif; margin-bottom:10px; }
+@media (max-width:600px) {
+  .standings-table .col-sec { display:none; }
+  .standings-table.expanded .col-sec { display:table-cell; }
+  .standings-toggle { display:inline-block; }
+}
 .standings-table td:first-child { text-align:left; padding-left:12px; font-weight:600; }
 .standings-table tr:last-child td { border-bottom:none; }
 .standings-table tr.valch-row td { background:#fffbf5; }
@@ -222,6 +232,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 /* ─── SCOREBOARD ─────────────────────────────── */
 .scoreboard { background:linear-gradient(135deg,#14532d 0%,#166534 50%,#15803d 100%); border-radius:0; padding:20px 16px; margin-bottom:0; position:relative; overflow:hidden; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+.scoreboard.sb-finished { background:linear-gradient(135deg,#1a1a2e 0%,#162032 60%,#1e2d3f 100%); }
 .goal-overlay { position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
 .goal-overlay.valch { background:rgba(26,58,34,.85); }
 .goal-overlay.away  { background:rgba(30,30,60,.82); }
@@ -346,6 +357,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .form-row { grid-template-columns:1fr; }
   .mc-team { max-width:38vw; }
   .hero h1 { font-size:20px; }
+  .hero { padding:14px 12px 14px; }
+  #hero-stats { gap:8px; margin-top:8px; }
+  .hero-btns { margin-top:10px; }
   .standings-table { font-size:11px; }
   .standings-table th, .standings-table td { padding:7px 3px; }
 }
@@ -430,6 +444,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('indoor',this)">🏑 Indoor</button>
       <button class="nav-pill" id="nav-live-btn" onclick="showPage('live',this)">🔴 Live</button>
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
+      <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
     </nav>
     <!-- MOBILE LIVE INDICATOR -->
@@ -550,6 +565,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
     <button class="btn-pdf" onclick="printStandings()">🖨️ Stampa Classifica</button>
   </div>
+  <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
   <div id="standings-content"><div class="loading">Caricamento…</div></div>
 </div>
 
@@ -1132,7 +1148,14 @@ function renderMatches() {
   });
 
   const c = document.getElementById('matches-list');
-  if (!ms.length && !evs.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div></div>'; return; }
+  let _bannerHtml = '';
+  if (calSelected) {
+    const _selD = new Date(calSelected+'T12:00:00');
+    const _selLabel = _selD.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+    _bannerHtml = '<div class="cal-selected-banner"><span class="cal-selected-label">📅 ' + _selLabel.charAt(0).toUpperCase()+_selLabel.slice(1) + '</span><button class="cal-selected-clear" onclick="selectCalDay(calSelected)">✕ Tutte le date</button></div>';
+    setTimeout(function(){ var el=document.getElementById('matches-list'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },80);
+  }
+  if (!ms.length && !evs.length) { c.innerHTML = _bannerHtml+'<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div></div>'; return; }
   const byDate = {};
   const dateOrder = [];
   ms.forEach(m => {
@@ -1142,7 +1165,7 @@ function renderMatches() {
   evs.forEach(e => { const d=e.dateStart||'9999'; if(!byDate[d]){byDate[d]=[];dateOrder.push(d);} byDate[d].push({type:'event',data:e}); });
   // Use dateOrder to preserve todo-first ordering, deduplicated
   const orderedDates = [...new Set(dateOrder)];
-  c.innerHTML = orderedDates.map(date => {
+  c.innerHTML = _bannerHtml + orderedDates.map(date => {
     const d = new Date(date+'T12:00:00');
     const label = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
     return `<div class="day-group"><div class="day-label"><span class="day-dot"></span>${label}</div>${byDate[date].map(it => it.type==='match' ? matchCardHTML(it.data,true) : eventCardHTML(it.data)).join('')}</div>`;
@@ -1267,9 +1290,9 @@ function matchCardHTML(m, showAdmin) {
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
-      <span class="mc-team${homeClass}" title="${m.home}">${m.home}</span>
+      <span class="mc-team${homeClass}" title="${m.home}">${abbrevTeam(m.home,22)}</span>
       <span class="mc-vs">VS</span>
-      <span class="mc-team${awayClass}" title="${m.away}">${m.away}</span>
+      <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
       ${hasSc ? `<span class="mc-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}
     </div>
     <div class="mc-meta">
@@ -1427,17 +1450,18 @@ function renderLivePage() {
   const awayIsValch = (l.away||'').toUpperCase().includes(VALCH);
   const goals = l.goals ? Object.values(l.goals).sort((a,b) => (a.minute||0)-(b.minute||0)) : [];
   const goalsHtml = goals.length ? goals.map(g => `
-    <div class="event-log-item">
-      <div class="eli-minute">${g.quarter ? g.minuteQuarter+"' "+g.quarter+"°Q" : (g.minute!==undefined ? g.minute+"'" : "—")}</div>
-      <div class="eli-icon">🏑</div>
+        <div class="event-log-item" style="${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'background:rgba(26,122,48,.1);border-left:3px solid #1a7a30;border-radius:0 8px 8px 0':'background:rgba(220,38,38,.05);border-left:3px solid #dc2626;border-radius:0 8px 8px 0'}">
+      <div class="eli-minute" style="${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'color:var(--green)':'color:#dc2626'}">${g.quarter ? g.minuteQuarter+"'  "+g.quarter+"°Q" : (g.minute!==undefined ? g.minute+"'" : "—")}</div>
+      <div class="eli-icon">${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'🟢':'🔴'}</div>
       <div class="eli-text">
-        <div class="eli-player">${g.player||''}</div>
+        <div class="eli-player">${g.player||'—'}</div>
         <div class="eli-team">${g.team||''}</div>
       </div>
+    </div>
     </div>`).join('') : '<div class="no-events">Nessun gol segnato</div>';
 
   el.innerHTML = `
-    <div class="scoreboard">
+    <div class="scoreboard${l.finished?" sb-finished":""}">
       <div class="sb-live-badge" style="justify-content:space-between;width:100%;align-items:center">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <div class="sb-live-dot" style="${l.finished?'animation:none;background:#aaa':''}"></div>
@@ -1445,12 +1469,9 @@ function renderLivePage() {
           <span class="sb-half-badge" id="live-half-display">1° QUARTO</span>
         </div>
         <div class="sb-timer-wrap">
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span class="sb-timer-label">Parziale</span>
-            <span class="sb-timer" id="live-timer-display">00:00</span>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span class="sb-timer-label">Totale</span>
+          <span class="sb-timer" id="live-timer-display">00:00</span>
+          <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+            <span class="sb-timer-label">Tot.</span>
             <span class="sb-timer-total" id="live-timer-total">00:00</span>
           </div>
         </div>
@@ -1589,10 +1610,12 @@ function renderLiveAdminPanel() {
         </div>
       </div>
       <div style="margin-bottom:4px;font-size:11px;color:#9ca3af" id="goal-min-info">⏱ Minuto: verrà registrato automaticamente</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:13px">🏑 Gol</button>
-        <button class="btn-live-stop" style="background:#dc2626;padding:12px;font-size:13px" onclick="finePartita()">🏁 Fine</button>
-        <button class="btn-live-stop" style="padding:12px;font-size:13px" onclick="stopLive()">⏹ Chiudi</button>
+      <div style="margin-bottom:8px">
+        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%">🏑 Registra Gol</button>
+      </div>
+      <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
+        <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
+        <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
       </div>
       <div class="events-log"><div class="events-log-title">Gol segnati</div>${goalsAdmin}</div>`;
   }
@@ -1945,10 +1968,11 @@ function renderStandings() {
       return b.gf-a.gf;
     });
     html += `<div class="standings-wrap"><div class="standings-title">${cat.icon} ${cat.label}</div>
-    <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Squadra</th><th>Pt</th><th>G</th><th>V</th><th>Pe</th><th>Pa</th><th>N</th><th>DR</th><th>GF</th><th>GS</th></tr></thead><tbody>`;
+    <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Squadra</th><th>Pt</th><th>G</th><th class="col-sec">V</th><th class="col-sec">Pe</th><th class="col-sec">Pa</th><th class="col-sec">N</th><th>DR</th><th class="col-sec">GF</th><th class="col-sec">GS</th></tr></thead><tbody>`;
     rows.forEach((r,i) => {
       const dr=r.gf-r.gs, isV=r.name.toUpperCase().includes(VALCH);
-      html += `<tr${isV?' class="valch-row"':''}><td class="st-pos">${i+1}</td><td>${r.name}</td><td class="st-pts">${r.pts}</td><td>${r.g}</td><td>${r.v}</td><td>${r.pe}</td><td>${r.pa}</td><td>${r.n}</td><td class="${dr>=0?'dr-pos':'dr-neg'}">${dr>0?'+':''}${dr}</td><td>${r.gf}</td><td>${r.gs}</td></tr>`;
+      const _isV=r.name.toUpperCase().includes(VALCH);
+      html += `<tr${_isV?' class="valch-row"':''}><td class="st-pos">${_isV?'<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:9px;background:var(--orange);color:white;border-radius:4px;padding:1px 4px;font-weight:800">HP</span>'+(i+1)+'</span>':i+1}</td><td>${r.name}</td><td class="st-pts">${r.pts}</td><td>${r.g}</td><td class="col-sec">${r.v}</td><td class="col-sec">${r.pe}</td><td class="col-sec">${r.pa}</td><td class="col-sec">${r.n}</td><td class="${dr>=0?'dr-pos':'dr-neg'}">${dr>0?'+':''  }${dr}</td><td class="col-sec">${r.gf}</td><td class="col-sec">${r.gs}</td></tr>`;
     });
     html += '</tbody></table></div>';
   });
@@ -2872,6 +2896,14 @@ function resetFilters(section) {
 }
 
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
+
+function toggleStandingsCols() {
+  const tables = document.querySelectorAll('.standings-table');
+  const btn = document.getElementById('standings-toggle-btn');
+  const expanded = tables[0] && tables[0].classList.contains('expanded');
+  tables.forEach(function(t){ t.classList.toggle('expanded', !expanded); });
+  if (btn) btn.textContent = expanded ? '+ Dettagli' : '- Meno';
+}
 function toggleMobileNav(){
   const btn=document.getElementById('hamburger-btn');
   const drawer=document.getElementById('mobile-nav-drawer');
