@@ -1924,6 +1924,32 @@ function deleteGoal(goalId) {
   window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
 }
 
+// ─── RENDER EVENTI PAGE ─────────────────────────────────
+function renderEventiPage() {
+  const el = document.getElementById('eventi-list');
+  if (!el) return;
+  if (!allEvents.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><div class="empty-text">Nessun evento</div><div class="empty-sub">Gli eventi speciali (finali, tornei, concentramenti) appariranno qui</div></div>';
+    return;
+  }
+  // Ordina per data
+  const sorted = [...allEvents].sort((a,b) => (a.dateStart||'').localeCompare(b.dateStart||''));
+  const today = new Date().toISOString().slice(0,10);
+  const futuri = sorted.filter(e => (e.dateEnd||e.dateStart||'') >= today);
+  const passati = sorted.filter(e => (e.dateEnd||e.dateStart||'') < today).reverse();
+
+  let html = '';
+  if (futuri.length) {
+    html += '<div class="day-label" style="margin-bottom:12px"><span class="day-dot"></span>Prossimi eventi</div>';
+    html += futuri.map(e => eventCardHTML(e)).join('');
+  }
+  if (passati.length) {
+    html += '<div class="day-label" style="margin-top:24px;margin-bottom:12px;opacity:.6"><span class="day-dot" style="background:var(--ink3)"></span>Eventi passati</div>';
+    html += passati.map(e => eventCardHTML(e)).join('');
+  }
+  el.innerHTML = html;
+}
+
 // ─── STANDINGS ──────────────────────────────────────────
 function renderStandings() {
   const el = document.getElementById('standings-content');
