@@ -163,6 +163,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .status-badge { font-size:10px; font-weight:600; padding:2px 7px; border-radius:6px; white-space:nowrap; }
 .s-done { background:#dcfce7; color:#166534; }
 .s-todo { background:#fff7ed; color:#c2410c; }
+.btn-share { display:inline-flex; align-items:center; gap:4px; background:#25d366; color:white; border:none; border-radius:12px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; transition:all .15s; text-decoration:none; }
+.btn-share:hover { background:#1ebe5d; }
 .btn-map { display:inline-flex; align-items:center; gap:4px; color:var(--green); border:1.5px solid var(--green4); border-radius:12px; padding:3px 10px; font-size:11px; font-weight:600; text-decoration:none; background:white; transition:all .15s; font-family:DM Sans,sans-serif; }
 .btn-map:hover { background:var(--green); color:white; }
 
@@ -196,11 +198,25 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .standings-table th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--ink3); padding:8px 6px; text-align:center; background:#f9fafb; border-bottom:1px solid #f3f4f6; }
 .standings-table th:first-child { text-align:left; padding-left:12px; }
 .standings-table td { padding:9px 6px; text-align:center; border-bottom:1px solid #f9fafb; }
+.standings-info-btn { background:none; border:1.5px solid var(--green2); border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:800; color:var(--green); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-family:DM Sans,sans-serif; flex-shrink:0; margin-left:6px; }
+.standings-legend { display:none; background:#f0faf2; border:1.5px solid var(--green3); border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:12px; }
+.standings-legend.open { display:block; }
+.standings-legend-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:4px 16px; margin-top:6px; }
+.sl-row { display:flex; gap:6px; align-items:baseline; }
+.sl-key { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:13px; color:var(--green); min-width:28px; }
+.sl-val { font-size:12px; color:var(--ink2); }
 .standings-toggle { display:none; background:white; border:1.5px solid #e5e7eb; border-radius:20px; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2); font-family:DM Sans,sans-serif; margin-bottom:10px; }
 @media (max-width:640px) {
   .standings-table .col-sec { display:none; }
   .standings-table.expanded .col-sec { display:table-cell; }
-  .standings-toggle { display:inline-block; }
+  .standings-info-btn { background:none; border:1.5px solid var(--green2); border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:800; color:var(--green); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-family:DM Sans,sans-serif; flex-shrink:0; margin-left:6px; }
+.standings-legend { display:none; background:#f0faf2; border:1.5px solid var(--green3); border-radius:12px; padding:12px 16px; margin-bottom:14px; font-size:12px; }
+.standings-legend.open { display:block; }
+.standings-legend-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:4px 16px; margin-top:6px; }
+.sl-row { display:flex; gap:6px; align-items:baseline; }
+.sl-key { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:13px; color:var(--green); min-width:28px; }
+.sl-val { font-size:12px; color:var(--ink2); }
+.standings-toggle { display:inline-block; }
 }
 .standings-table td:first-child { text-align:left; padding-left:12px; font-weight:600; }
 .standings-table tr:last-child td { border-bottom:none; }
@@ -354,7 +370,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── RESPONSIVE ─────────────────────────────── */
 @media (max-width:640px) {
   .logo-text span { display:none; }
-  .nav-pill { padding:4px 9px; font-size:11px; }
+  .nav-pill { display:none; }
+  header nav { display:none; }
+  .hamburger { display:block; }
   .header-inner { padding:6px 10px; gap:5px; }
   .cal-day-btn { min-height:30px; font-size:10px; }
   .cal-wrap { padding:6px 8px; margin-bottom:6px; }
@@ -572,7 +590,24 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
     <button class="btn-pdf" onclick="printStandings()">🖨️ Stampa Classifica</button>
   </div>
-  <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
+    <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
+  </div>
+  <div class="standings-legend" id="standings-legend">
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
+    <div class="standings-legend-grid">
+      <div class="sl-row"><span class="sl-key">PT</span><span class="sl-val">Punti</span></div>
+      <div class="sl-row"><span class="sl-key">G</span><span class="sl-val">Partite giocate</span></div>
+      <div class="sl-row"><span class="sl-key">V</span><span class="sl-val">Vittorie</span></div>
+      <div class="sl-row"><span class="sl-key">Pe</span><span class="sl-val">Pareggi</span></div>
+      <div class="sl-row"><span class="sl-key">Pa</span><span class="sl-val">Sconfitte</span></div>
+      <div class="sl-row"><span class="sl-key">N</span><span class="sl-val">Non disputate</span></div>
+      <div class="sl-row"><span class="sl-key">DR</span><span class="sl-val">Differenza reti</span></div>
+      <div class="sl-row"><span class="sl-key">GF</span><span class="sl-val">Gol fatti</span></div>
+      <div class="sl-row"><span class="sl-key">GS</span><span class="sl-val">Gol subiti</span></div>
+    </div>
+  </div>
   <div id="standings-content"><div class="loading">Caricamento…</div></div>
 </div>
 
@@ -1330,6 +1365,7 @@ function matchCardHTML(m, showAdmin) {
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
+      <button class="btn-share" onclick="shareMatch(${JSON.stringify(m).replace(/'/g,'&#39;')})" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
   </div>
   <div class="mc-right">
@@ -1510,14 +1546,14 @@ function renderLivePage() {
       </div>
       <div class="sb-teams">
         <div class="sb-team sb-team-home">
-          <div class="sb-team-name${homeIsValch?' valch':''}">${l.home||'—'}</div>
+          <div class="sb-team-name${homeIsValch?' valch':''}">${abbrevTeam(l.home||'—',18)}</div>
         </div>
         <div class="sb-score-wrap">
           <div class="sb-score" aria-live="polite" aria-label="Risultato">${l.scoreHome||0}<span class="sb-score-dash">–</span>${l.scoreAway||0}</div>
           <div class="sb-cat-badge">${cat.icon||''} ${cat.label||''}</div>
         </div>
         <div class="sb-team sb-team-away">
-          <div class="sb-team-name${awayIsValch?' valch':''}">${l.away||'—'}</div>
+          <div class="sb-team-name${awayIsValch?' valch':''}">${abbrevTeam(l.away||'—',18)}</div>
         </div>
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
@@ -2897,6 +2933,25 @@ function printCalView(section,sport,catName,today,ms,evs){
 
 
 // ─── TEAM NAME ABBREVIATION ─────────────────────────────────────────────────
+function shareMatch(m) {
+  const d = new Date(m.date+'T12:00:00');
+  const dateStr = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  const home = abbrevTeam(m.home, 25);
+  const away = abbrevTeam(m.away, 25);
+  const score = (m.scoreHome !== undefined) ? ' — Risultato: '+m.scoreHome+'–'+m.scoreAway : '';
+  const loc = m.location ? '\n📍 '+m.location : '';
+  const cat = CATS[m.cat] ? ' ('+CATS[m.cat].label+')' : '';
+  const time = m.time ? ' ore '+m.time : '';
+  const appUrl = window.location.href.split('?')[0];
+  const text = '🏑 '+home+' vs '+away+score
+    + '\n📅 '+dateStr+time
+    + loc
+    + cat
+    + '\n\n'+appUrl;
+  const waUrl = 'https://wa.me/?text='+encodeURIComponent(text);
+  window.open(waUrl, '_blank');
+}
+
 function abbrevTeam(name, maxLen) {
   if (!name) return name;
   if (name.length <= maxLen) return name;
@@ -2954,6 +3009,15 @@ function resetFilters(section) {
 }
 
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
+
+function toggleStandingsLegend() {
+  const el = document.getElementById('standings-legend');
+  const btn = document.querySelector('.standings-info-btn');
+  if (!el) return;
+  const open = el.classList.toggle('open');
+  if (btn) btn.style.background = open ? 'var(--green)' : '';
+  if (btn) btn.style.color = open ? 'white' : '';
+}
 
 function toggleStandingsCols() {
   const tables = document.querySelectorAll('.standings-table');
