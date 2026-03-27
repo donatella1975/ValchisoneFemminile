@@ -1384,11 +1384,15 @@ function showGoalEffect(type, goal) {
   if (type === 'valch') {
     const minute = goal && goal.minute !== undefined ? goal.minute + "'" : '';
     const player = goal && goal.player ? goal.player : '';
-    const scorerLine = (minute || player)
-      ? '<div style="font-size:clamp(16px,4vw,24px);color:white;margin-top:14px;font-weight:600;opacity:.95;text-align:center;line-height:1.3">'
-        + (minute && player ? 'Al ' + minute + ' minuto<br>gol di <strong>' + player + '</strong> 💚' : '')
-        + (minute && !player ? 'Gol al ' + minute + ' minuto!' : '')
-        + (!minute && player ? 'Gol di <strong>' + player + '</strong> 💚' : '')
+    const qNum = goal && goal.quarter ? goal.quarter : '';
+    const mQ   = goal && goal.minuteQuarter !== undefined ? goal.minuteQuarter : '';
+    const mTot = goal && goal.minuteTotal  !== undefined ? goal.minuteTotal  : minute;
+    const quarterStr = qNum ? qNum + '° Q' : '';
+    const timeStr = (mQ !== '' && quarterStr) ? mQ + "' " + quarterStr + " (min. " + mTot + "' tot.)" : (mTot !== '' ? "min. " + mTot + "'" : '');
+    const scorerLine = (timeStr || player)
+      ? '<div style="font-size:clamp(15px,3.5vw,22px);color:white;margin-top:14px;font-weight:600;opacity:.95;text-align:center;line-height:1.5">'
+        + (player ? 'Gol di <strong>' + player + '</strong> 💚' : 'GOL!')
+        + (timeStr ? '<br><span style="font-size:.8em;opacity:.8">' + timeStr + '</span>' : '')
         + '</div>'
       : '';
     el.innerHTML = '<div class="goal-text">GOL!</div>'
@@ -1396,9 +1400,10 @@ function showGoalEffect(type, goal) {
       + scorerLine;
     playVictorySound();
   } else {
-    el.innerHTML = '<div class="goal-text" style="font-size:clamp(60px,16vw,110px);animation:goalPop .4s cubic-bezier(.17,.67,.35,1.3) both">🤷</div>'
-      + '<div class="goal-text" style="font-size:clamp(28px,7vw,52px);margin-top:6px">Capita!</div>'
-      + '<div style="font-size:clamp(20px,5vw,36px);margin-top:8px;animation:heartFloat 2s ease-out both">🤷🤷🤷</div>';
+    const awayMsgs = ['Ci pensiamo noi! 💪','Forza Valchisone! 🏑','Niente paura! 💪','Su ragazze! 🔥','Reagiamo! 🏑'];
+    const awayMsg = awayMsgs[Math.floor(Math.random() * awayMsgs.length)];
+    el.innerHTML = '<div class="goal-text" style="font-size:clamp(50px,14vw,90px);animation:goalPop .4s cubic-bezier(.17,.67,.35,1.3) both">😤</div>'
+      + '<div class="goal-text" style="font-size:clamp(24px,6vw,44px);margin-top:6px">' + awayMsg + '</div>';
     playReactionSound();
   }
   document.body.appendChild(el);
@@ -1423,7 +1428,7 @@ function renderLivePage() {
   const goals = l.goals ? Object.values(l.goals).sort((a,b) => (a.minute||0)-(b.minute||0)) : [];
   const goalsHtml = goals.length ? goals.map(g => `
     <div class="event-log-item">
-      <div class="eli-minute">${g.minute||"?"}'</div>
+      <div class="eli-minute">${g.quarter ? g.minuteQuarter+"' "+g.quarter+"°Q" : (g.minute!==undefined ? g.minute+"'" : "—")}</div>
       <div class="eli-icon">🏑</div>
       <div class="eli-text">
         <div class="eli-player">${g.player||''}</div>
@@ -1533,7 +1538,7 @@ function renderLiveAdminPanel() {
     const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)) : [];
     const goalsAdmin = goals.map(g => `
       <div class="event-log-item">
-        <div class="eli-minute">${g.minute||"?"}'</div>
+        <div class="eli-minute">${g.quarter ? g.minuteQuarter+"' "+g.quarter+"°Q" : (g.minute!==undefined ? g.minute+"'" : "—")}</div>
         <div class="eli-icon">🏑</div>
         <div class="eli-text">
           <div class="eli-player" style="display:flex;align-items:center;gap:4px">
@@ -1556,7 +1561,7 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
-        <div style="font-size:10px;opacity:.6;margin-top:2px">${(()=>{const h=liveData.half||1;const ints={1:'Int. 2\' → 2° Q',2:'Int. 5\' → 3° Q',3:'Int. 2\' → 4° Q',4:''};return ints[h]||'';})()}</div>
+        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -1705,7 +1710,7 @@ function showFinalResult() {
   const today = new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
   el.innerHTML = '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:clamp(32px,9vw,58px);font-weight:800;color:#fb923c;animation:goalPop .5s both">FINALE</div>'
     + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:clamp(13px,3.5vw,20px);font-weight:700;color:rgba(255,255,255,.75);margin:6px 0 16px;animation:goalPop .5s .1s both">' + h + ' vs ' + a + '</div>'
-    + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:clamp(72px,22vw,120px);font-weight:800;color:white;line-height:1;letter-spacing:-4px;animation:goalPop .5s .2s both">' + sh + '<span style="color:rgba(255,255,255,.25);font-size:.55em">–</span>' + sa + '</div>'
+    + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:clamp(72px,22vw,120px);font-weight:800;color:white;line-height:1;letter-spacing:-4px;animation:goalPop .5s .2s both">' + sh + '<span style="color:rgba(255,255,255,.5);font-size:.65em;margin:0 6px">–</span>' + sa + '</div>'
     + '<div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:10px;animation:goalPop .5s .3s both">' + (cat.icon||'') + ' ' + (cat.label||'') + ' · ' + today + '</div>';
   document.body.appendChild(el);
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 8500);
@@ -1771,7 +1776,15 @@ function timerHalf() {
   // End current quarter — stop timer, signal interval
   if (!liveData) return;
   const cur = liveData.half || 1;
-  if (cur >= 4) { finePartita(); return; }
+  if (cur >= 4) {
+    if (!confirm('Fine 4° Quarto — terminare la partita?')) return;
+    const partial = getPartialMs(liveData);
+    const newTotal = (liveData.totalElapsed||0) + partial;
+    window._fbSaveLive({...liveData, timerRunning: false, timerStart: null, timerElapsed: partial, totalElapsed: newTotal, finished: true});
+    playWhistle('triple');
+    showFinalResult();
+    return;
+  }
   if (!confirm('Fine ' + ['1°','2°','3°','4°'][cur-1] + ' Quarto?')) return;
   const partial = getPartialMs(liveData);
   const newTotal = (liveData.totalElapsed||0) + partial;
@@ -1789,15 +1802,16 @@ function timerHalf() {
 }
 
 function startNextQuarter() {
-  // Start next quarter — called when referee whistles
+  // Start next quarter — auto-starts timer immediately
   if (!liveData) return;
   const cur = liveData.half || 1;
+  const now = Date.now();
   const updated = {
     ...liveData,
     half: cur + 1,
     quarterEnded: false,
-    timerRunning: false,
-    timerStart: null,
+    timerRunning: true,
+    timerStart: now,
     timerElapsed: 0
   };
   window._fbSaveLive(updated);
@@ -1841,13 +1855,18 @@ function startTimerTick() {
 
 function addGoal() {
   // Minuto automatico dal cronometro
-  const minute = Math.floor(getTotalMs(liveData)/60000);
+  const totalMs = getTotalMs(liveData);
+  const quarterMs = getPartialMs(liveData);
+  const minuteTotal = Math.floor(totalMs / 60000);
+  const minuteQuarter = Math.floor(quarterMs / 60000);
+  const minute = minuteTotal; // compatibilità con display esistente
+  const quarter = liveData.half || 1;
   const player = document.getElementById('goal-player').value.trim();
   const team   = document.getElementById('goal-team').value;
   // Giocatrice opzionale - non bloccare
   const goalId = 'g' + Date.now();
   const goals = liveData.goals || {};
-  goals[goalId] = { id: goalId, minute, player, team };
+  goals[goalId] = { id: goalId, minute, minuteTotal, minuteQuarter, quarter, player, team };
   let sh = liveData.scoreHome||0;
   let sa = liveData.scoreAway||0;
   if (team === liveData.home) sh++;
