@@ -440,8 +440,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <div class="logo-text">H.P. Valchisone<span>Femminile — 2025/26</span></div>
     </div>
     <nav>
-      <button class="nav-pill active" onclick="showPage('partite',this)">🏑 Prato</button>
-      <button class="nav-pill" onclick="showPage('indoor',this)">🏑 Indoor</button>
+      <button class="nav-pill active" id="nav-pill-prato" onclick="switchSport('prato')">🏑 Prato</button>
+      <button class="nav-pill" id="nav-pill-indoor" onclick="switchSport('indoor')">🏑 Indoor</button>
       <button class="nav-pill" id="nav-live-btn" onclick="showPage('live',this)">🔴 Live</button>
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
       <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
@@ -957,42 +957,67 @@ window.addEventListener('load', () => {
 
 // ─── NAVIGATION ────────────────────────────────────────
 function showPage(name, btn) {
+  // Per prato/indoor delega a switchSport (unico punto di controllo)
+  if (name === 'partite') { switchSport('prato'); return; }
+  if (name === 'indoor')  { switchSport('indoor'); return; }
+  // Per le altre sezioni
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
   currentPage = name;
-  if (name === 'partite')    { renderCalendar(); renderMatches(); syncHeroBtns('prato'); }
-  if (name === 'indoor')     { renderCalendarIndoor(); renderIndoor(); syncHeroBtns('indoor'); }
-  if (name === 'classifica') renderStandings();
-  if (name === 'live')       { renderLivePage(); setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 50); }
+  // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
+  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
+  if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
 }
 
 function switchSport(sport) {
-  if (sport === 'prato')  showPage('partite', document.querySelector('.nav-pill'));
-  if (sport === 'indoor') showPage('indoor',  document.querySelectorAll('.nav-pill')[1]);
-  syncHeroBtns(sport);
-  setTimeout(() => { window.scrollTo({top:0, behavior:'smooth'}); updateHeroStats(); }, 80);
+  // Unico punto di controllo per cambio sport
+  const pageName = sport === 'indoor' ? 'indoor' : 'partite';
+  // Mostra la pagina giusta
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageName).classList.add('active');
+  currentPage = pageName;
+  // Render contenuto
+  if (sport === 'prato') { renderCalendar(); renderMatches(); }
+  else { renderCalendarIndoor(); renderIndoor(); }
+  // Sync tutti i controlli sport
+  syncAllSportControls(sport);
+  setTimeout(function() { window.scrollTo({top:0, behavior:'smooth'}); updateHeroStats(); }, 80);
 }
 
-function syncHeroBtns(sport) {
+function syncAllSportControls(sport) {
+  // Hero buttons
   const bp = document.getElementById('btn-sport-prato');
   const bi = document.getElementById('btn-sport-indoor');
   if (bp) bp.classList.toggle('active-sport', sport === 'prato');
   if (bi) bi.classList.toggle('active-sport', sport === 'indoor');
-  // Also sync nav pills
-  const navPills = document.querySelectorAll('.nav-pill');
-  if (navPills[0]) navPills[0].classList.toggle('active', sport === 'prato');
-  if (navPills[1]) navPills[1].classList.toggle('active', sport === 'indoor');
+  // Nav desktop pills Prato/Indoor
+  const np = document.getElementById('nav-pill-prato');
+  const ni = document.getElementById('nav-pill-indoor');
+  if (np) np.classList.toggle('active', sport === 'prato');
+  if (ni) ni.classList.toggle('active', sport === 'indoor');
+  // Classifica tabs
+  const cp = document.getElementById('ctab-prato');
+  const ci = document.getElementById('ctab-indoor');
+  if (cp) cp.classList.toggle('active', sport === 'prato');
+  if (ci) ci.classList.toggle('active', sport === 'indoor');
+  // All other nav pills: remove active from prato/indoor, keep others
+  document.querySelectorAll('.nav-pill').forEach(function(p) {
+    if (p !== np && p !== ni) p.classList.remove('active');
+  });
+  if (sport === 'prato' && np) np.classList.add('active');
+  if (sport === 'indoor' && ni) ni.classList.add('active');
+  // Aggiorna classSport per coerenza classifica
+  classSport = sport;
 }
+function syncHeroBtns(sport) { syncAllSportControls(sport); }
 
 function setClassSport(sport) {
   classSport = sport;
-  document.getElementById('ctab-prato').classList.toggle('active', sport === 'prato');
-  document.getElementById('ctab-indoor').classList.toggle('active', sport === 'indoor');
-  syncHeroBtns(sport);
+  syncAllSportControls(sport);
   renderStandings();
 }
 
@@ -2944,19 +2969,11 @@ function closeMobileNav(){
   document.getElementById('mobile-nav-overlay').classList.remove('open');
 }
 function mobileNav(page){
-  // update desktop nav pills too
-  const pill = document.querySelector('.nav-pill.active');
-  if(pill) pill.classList.remove('active');
-  // find desktop equivalent
-  document.querySelectorAll('.nav-pill').forEach(p=>{
-    if(p.getAttribute('onclick') && p.getAttribute('onclick').includes("'"+page+"'")){
-      p.classList.add('active');
-    }
-  });
-  // update mobile drawer active state
+  // Aggiorna stato drawer mobile
   document.querySelectorAll('.mnav-pill').forEach(p=>p.classList.remove('active'));
   const mpill = document.getElementById('mnav-'+page);
   if(mpill) mpill.classList.add('active');
+  // Delega a showPage (che a sua volta usa switchSport per prato/indoor)
   showPage(page, null);
   closeMobileNav();
 }
