@@ -432,13 +432,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
     </nav>
-
-<!-- MOBILE LIVE INDICATOR -->
-<div class="nav-live-indicator hidden" id="nav-live-indicator-mobile"><div class="nav-live-dot"></div><span style="font-size:11px;color:#ff4444;font-weight:700">LIVE</span></div>
-<!-- HAMBURGER BUTTON -->
-<button class="hamburger" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">
-  <span></span><span></span><span></span>
-</button>
+    <!-- MOBILE LIVE INDICATOR -->
+    <div class="nav-live-indicator hidden" id="nav-live-indicator-mobile"><div class="nav-live-dot"></div><span style="font-size:11px;color:#ff4444;font-weight:700">LIVE</span></div>
+    <!-- HAMBURGER BUTTON -->
+    <button class="hamburger" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
 <!-- MOBILE OVERLAY -->
 <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()"></div>
 <!-- MOBILE DRAWER -->
@@ -452,8 +453,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <button class="mnav-pill" id="mnav-eventi" onclick="mobileNav('eventi')">📅 Eventi</button>
   <button class="mnav-pill" id="mnav-admin" onclick="mobileNav('admin')" style="margin-top:auto">⚙️ Admin</button>
 </div>
-  </div>
-</header>
 
 <!-- HERO -->
 <div class="hero">
@@ -2837,7 +2836,6 @@ function updateHeroStats() {
     + '<span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
-  if (valchPlayed > 0) html += chip('Vittorie HP', valchWins + '/' + valchPlayed);
   statsEl.innerHTML = html;
 }
 
