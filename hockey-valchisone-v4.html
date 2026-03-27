@@ -199,15 +199,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .ctab.active { background:var(--green); color:white; border-color:var(--green); }
 
 
-/* ─── STANDINGS ZONE COLORS ───────────────────────── */
-.standings-table tr.zone-promotion td { background:rgba(22,163,74,.08); border-left:3px solid #16a34a; }
-.standings-table tr.zone-playoff td { background:rgba(234,179,8,.07); border-left:3px solid #ca8a04; }
-.standings-table tr.zone-relegation td { background:rgba(220,38,38,.07); border-left:3px solid #dc2626; }
-.standings-table tr.zone-promotion.valch-row td { background:rgba(255,247,237,.7); border-left:3px solid #16a34a; }
-.standings-table tr.zone-relegation.valch-row td { background:rgba(255,247,237,.7); border-left:3px solid #dc2626; }
-.zone-legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; font-size:11px; }
-.zone-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:4px; flex-shrink:0; }
-.zone-item { display:flex; align-items:center; color:var(--ink3); font-weight:600; }
+
+
 /* ─── PRINT ─────────────────────────────────── */
 .print-box { position:relative; margin-left:auto; flex-shrink:0; }
 .print-label { font-size:11px; font-weight:600; color:var(--ink3); font-family:DM Sans,sans-serif; white-space:nowrap; }
@@ -901,8 +894,7 @@ window.addEventListener('load', () => {
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
-      renderCalendar(); renderCalendarIndoor(); const allMs = Object.values(allMatches||{});
-  updateHeroStats(allMs);
+      renderCalendar(); renderCalendarIndoor(); updateHeroStats();
   renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
       checkMissingResults();
@@ -967,7 +959,7 @@ function switchSport(sport) {
   if (sport === 'prato')  showPage('partite', document.querySelector('.nav-pill'));
   if (sport === 'indoor') showPage('indoor',  document.querySelectorAll('.nav-pill')[1]);
   syncHeroBtns(sport);
-  setTimeout(() => window.scrollTo({top:0, behavior:'smooth'}), 50);
+  setTimeout(() => { window.scrollTo({top:0, behavior:'smooth'}); updateHeroStats(); }, 80);
 }
 
 function syncHeroBtns(sport) {
@@ -1027,7 +1019,7 @@ function setFPartite(v) {
     fPartite = v; fPartiteExtra = null;
   }
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  renderCalendar(); renderMatches();
+  renderCalendar(); renderMatches(); updateHeroStats();
 }
 function setFIndoor(v) {
   if (v === 'all') {
@@ -1044,23 +1036,23 @@ function setFIndoor(v) {
     fIndoor = v; fIndoorExtra = null;
   }
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  renderCalendarIndoor(); renderIndoor();
+  renderCalendarIndoor(); renderIndoor(); updateHeroStats();
 }
 function toggleValch() {
   onlyValch = !onlyValch;
   const btn = document.getElementById('valch-filter-btn');
   if (btn) btn.className = 'ftab valch' + (onlyValch ? ' active' : '');
-  renderCalendar(); renderMatches(); renderIndoor(); renderStandings();
+  renderCalendar(); renderMatches(); updateHeroStats(); renderIndoor(); renderStandings();
 }
 function addFPartiteExtra(v) {
   fPartiteExtra = (fPartiteExtra === v) ? null : v;
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  renderCalendar(); renderMatches();
+  renderCalendar(); renderMatches(); updateHeroStats();
 }
 function addFIndoorExtra(v) {
   fIndoorExtra = (fIndoorExtra === v) ? null : v;
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  renderCalendarIndoor(); renderIndoor();
+  renderCalendarIndoor(); renderIndoor(); updateHeroStats();
 }
 
 // ─── CALENDAR ──────────────────────────────────────────
@@ -1934,8 +1926,7 @@ function renderStandings() {
       if (drA!==drB) return drB-drA;
       return b.gf-a.gf;
     });
-    html += `<div class="standings-wrap"><div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-size:11px;" class="zone-legend"><span class="zone-item"><span class="zone-dot" style="background:#16a34a"></span>Promozione</span><span class="zone-item"><span class="zone-dot" style="background:#ca8a04"></span>Playoff/Playout</span><span class="zone-item"><span class="zone-dot" style="background:#dc2626"></span>Retrocessione</span></div>
-<div class="standings-title">${cat.icon} ${cat.label}</div>
+    html += `<div class="standings-wrap"><div class="standings-title">${cat.icon} ${cat.label}</div>
     <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Squadra</th><th>Pt</th><th>G</th><th>V</th><th>Pe</th><th>Pa</th><th>N</th><th>DR</th><th>GF</th><th>GS</th></tr></thead><tbody>`;
     rows.forEach((r,i) => {
       const dr=r.gf-r.gs, isV=r.name.toUpperCase().includes(VALCH);
@@ -2723,9 +2714,7 @@ function printStandings() {
     const sorted = [...teams].sort((a,b)=>stats[b].pt-stats[a].pt||stats[b].dr-stats[a].dr||stats[b].gf-stats[a].gf);
     const rows = sorted.map((t,i)=>{
       const s=stats[t];const isV=t.toUpperCase().includes(VALCH);
-      const total = sorted.length;
-      const zoneClass = i===0 ? 'zone-promotion' : (i < Math.ceil(total*0.4) ? 'zone-playoff' : (i >= total-1 && total>3 ? 'zone-relegation' : ''));
-      return `<tr class="${[isV?'valch-row':'', zoneClass].filter(Boolean).join(' ')}"><td class="st-pos">${i+1}</td><td>${t}</td><td class="st-pts">${s.pt}</td><td>${s.g}</td><td>${s.v}</td><td>${s.pe}</td><td>${s.pa}</td><td>${s.n}</td><td class="${s.dr>0?'dr-pos':s.dr<0?'dr-neg':''}">${s.dr>0?'+':''}${s.dr}</td><td>${s.gf}</td><td>${s.gs}</td></tr>`;
+      return `<tr class="${isV?'valch-row':''}"><td class="st-pos">${i+1}</td><td>${t}</td><td class="st-pts">${s.pt}</td><td>${s.g}</td><td>${s.v}</td><td>${s.pe}</td><td>${s.pa}</td><td>${s.n}</td><td class="${s.dr>0?'dr-pos':s.dr<0?'dr-neg':''}">${s.dr>0?'+':''}${s.dr}</td><td>${s.gf}</td><td>${s.gs}</td></tr>`;
     }).join('');
     content += `<div class="standings-wrap"><div class="standings-title">${catLabel}</div><table><thead><tr><th>#</th><th>Squadra</th><th>PT</th><th>G</th><th>V</th><th>PE</th><th>PA</th><th>N</th><th>DR</th><th>GF</th><th>GS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   });
@@ -2826,20 +2815,30 @@ function abbrevTeam(name, maxLen) {
 
 
 
-function updateHeroStats(matches) {
+function updateHeroStats() {
   const statsEl = document.getElementById('hero-stats');
   if (!statsEl) return;
-  const total = matches.length;
-  const played = matches.filter(m => m.scoreHome !== undefined).length;
-  const upcoming = total - played;
-  const valchMatches = matches.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
-  const valchWins = valchMatches.filter(m => {
-    if (m.scoreHome === undefined) return false;
-    const isHome = m.home.toUpperCase().includes(VALCH);
-    return isHome ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome;
-  }).length;
-  const chip = (label, val, color) => `<div style="background:rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;color:white;line-height:1">${val}</span><span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">${label}</span></div>`;
-  statsEl.innerHTML = chip('Partite', total, '') + chip('Giocate', played, '') + (upcoming>0 ? chip('Prossime', upcoming, '') : '') + (valchWins>0 ? chip('Vittorie HP', valchWins, '') : '');
+  const pratoBtn = document.getElementById('btn-sport-prato');
+  const sport = (pratoBtn && pratoBtn.classList.contains('active-sport')) ? 'prato' : 'indoor';
+  const base  = sport === 'prato' ? allMatches : allIndoor;
+  const cat   = sport === 'prato' ? fPartite   : fIndoor;
+  const catEx = sport === 'prato' ? fPartiteExtra : fIndoorExtra;
+  const ms = base
+    .filter(m => cat === 'all' || m.cat === cat || (catEx && m.cat === catEx))
+    .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
+  const total     = ms.length;
+  const played    = ms.filter(m => m.scoreHome !== undefined).length;
+  const upcoming  = total - played;
+  const valchMs   = ms.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
+  const valchPlayed = valchMs.filter(m => m.scoreHome !== undefined).length;
+  const valchWins   = valchMs.filter(m => m.scoreHome !== undefined && (m.home.toUpperCase().includes(VALCH) ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome)).length;
+  const chip = (label, val) => '<div style="background:rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
+    + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1">' + val + '</span>'
+    + '<span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
+  let html = chip('Totali', total) + chip('Giocate', played);
+  if (upcoming > 0) html += chip('Prossime', upcoming);
+  if (valchPlayed > 0) html += chip('Vittorie HP', valchWins + '/' + valchPlayed);
+  statsEl.innerHTML = html;
 }
 
 function resetFilters(section) {
