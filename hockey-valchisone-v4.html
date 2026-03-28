@@ -440,40 +440,17 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .cal-day-btn { font-size:14px; min-height:44px; }
 }
 
-/* ─── BOTTOM NAV (mobile) ───────────────────────────── */
-.bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
-  background:white; border-top:1px solid #e5e7eb;
-  box-shadow:0 -2px 12px rgba(0,0,0,.08);
-  padding-bottom:env(safe-area-inset-bottom); }
-.bottom-nav-inner { display:flex; align-items:stretch; height:58px; }
-.bnav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:2px; background:none; border:none; cursor:pointer; padding:6px 2px;
-  font-family:DM Sans,sans-serif; color:var(--ink3); transition:color .15s; min-width:0; }
-.bnav-btn.active { color:var(--green); }
-.bnav-btn.bnav-live { color:#dc2626; }
-.bnav-btn.bnav-live.active { color:#dc2626; }
-.bnav-icon { font-size:20px; line-height:1; }
-.bnav-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56px; }
-.bnav-live-dot { width:6px; height:6px; border-radius:50%; background:#dc2626;
-  animation:blink 1s infinite; position:absolute; top:6px; right:calc(50% - 14px); }
-.bnav-btn { position:relative; }
-/* Spazio in fondo al contenuto per non coprire l'ultima card */
-@media (max-width:640px) {
-  .bottom-nav { display:block; }
-  .hamburger { display:none !important; }
-  header nav { display:none; }
-  .container { padding-bottom:72px; }
-  #page-live { padding-bottom:58px; }
-}
+/* ─── NAV MOBILE (scrollabile in alto) ──────────────── */
 @media (max-width:640px) {
   .hamburger { display:none !important; }
-  header nav { display:none; }
+  header nav { display:flex; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+    flex-wrap:nowrap; gap:4px; margin-left:auto; }
+  header nav::-webkit-scrollbar { display:none; }
+  .nav-pill { padding:4px 9px; font-size:11px; min-height:36px; white-space:nowrap; flex-shrink:0; }
   .nav-live-indicator { display:none; }
 }
 @media (min-width:641px) {
   .nav-live-indicator { display:none; }
-  .bottom-nav { display:none !important; }
 }
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
@@ -500,31 +477,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </nav>
   </div>
 </header>
-<!-- BOTTOM NAV (mobile) -->
-<nav class="bottom-nav" role="navigation" aria-label="Navigazione principale mobile">
-  <div class="bottom-nav-inner">
-    <button class="bnav-btn active" id="bnav-partite" onclick="mobileNav('partite')" aria-label="Prato">
-      <span class="bnav-icon">🏑</span>
-      <span class="bnav-label">Prato</span>
-    </button>
-    <button class="bnav-btn" id="bnav-indoor" onclick="mobileNav('indoor')" aria-label="Indoor">
-      <span class="bnav-icon">🏒</span>
-      <span class="bnav-label">Indoor</span>
-    </button>
-    <button class="bnav-btn bnav-live" id="bnav-live" onclick="mobileNav('live')" aria-label="Live">
-      <span class="bnav-icon">🔴</span>
-      <span class="bnav-label">Live</span>
-    </button>
-    <button class="bnav-btn" id="bnav-classifica" onclick="mobileNav('classifica')" aria-label="Classifica">
-      <span class="bnav-icon">🏆</span>
-      <span class="bnav-label">Classifica</span>
-    </button>
-    <button class="bnav-btn" id="bnav-eventi" onclick="mobileNav('eventi')" aria-label="Eventi">
-      <span class="bnav-icon">📅</span>
-      <span class="bnav-label">Eventi</span>
-    </button>
-  </div>
-</nav>
 
 <!-- HERO -->
 <div class="hero">
@@ -1042,10 +994,6 @@ function showPage(name, btn) {
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  // Aggiorna bottom nav
-  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
-  const _bb = document.getElementById('bnav-'+name);
-  if(_bb) _bb.classList.add('active');
   if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
@@ -1089,10 +1037,6 @@ function syncAllSportControls(sport) {
   });
   if (sport === 'prato' && np) np.classList.add('active');
   if (sport === 'indoor' && ni) ni.classList.add('active');
-  // Aggiorna bottom nav
-  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
-  const bb = document.getElementById(sport === 'indoor' ? 'bnav-indoor' : 'bnav-partite');
-  if(bb) bb.classList.add('active');
   // Aggiorna classSport per coerenza classifica
   classSport = sport;
 }
@@ -3142,11 +3086,6 @@ function closeMobileNav(){
   document.getElementById('mobile-nav-overlay').classList.remove('open');
 }
 function mobileNav(page){
-  // Aggiorna stato bottom nav
-  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
-  const bb = document.getElementById('bnav-'+page);
-  if(bb) bb.classList.add('active');
-  // Delega a showPage
   showPage(page, null);
 }
 function toggleMobileNav(){}
