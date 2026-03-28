@@ -1347,7 +1347,7 @@ function matchCardHTML(m, showAdmin) {
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
-      <button class="btn-share" onclick="shareMatch(${JSON.stringify(m).replace(/'/g,'&#39;')})" title="Condividi su WhatsApp">📤 Condividi</button>
+      <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
   </div>
   <div class="mc-right">
@@ -2976,6 +2976,12 @@ function printCalView(section,sport,catName,today,ms,evs){
 
 
 // ─── TEAM NAME ABBREVIATION ─────────────────────────────────────────────────
+function shareMatchById(id) {
+  const all = [...allMatches, ...allIndoor];
+  const m = all.find(function(x){ return x.id === id; });
+  if (!m) return;
+  shareMatch(m);
+}
 function shareMatch(m) {
   const d = new Date(m.date+'T12:00:00');
   const dateStr = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
