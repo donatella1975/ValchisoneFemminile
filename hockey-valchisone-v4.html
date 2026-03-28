@@ -185,6 +185,23 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── DAY GROUP ─────────────────────────────── */
 .day-group { margin-bottom:20px; }
 .day-label { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:var(--green); padding:6px 0 6px 0; border-bottom:2px solid var(--green); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.next-match-banner { background:linear-gradient(135deg,#1a3a22,#1a7a30); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px; cursor:pointer; box-shadow:0 2px 12px rgba(26,122,48,.2); }
+.nmb-left { flex:1; min-width:0; }
+.nmb-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.7); margin-bottom:4px; }
+.nmb-teams { font-family:'Bricolage Grotesque',sans-serif; font-size:15px; font-weight:800; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nmb-teams .valch { color:#fb923c; }
+.nmb-meta { font-size:11px; color:rgba(255,255,255,.75); margin-top:4px; }
+.nmb-countdown { font-family:'Bricolage Grotesque',sans-serif; font-size:22px; font-weight:800; color:white; text-align:right; flex-shrink:0; line-height:1; }
+.nmb-countdown small { display:block; font-size:10px; font-weight:400; opacity:.7; text-align:center; margin-top:2px; }
+.nmb-today { background:#e8620a; }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skeleton { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+.sk-card { background:white; border-radius:var(--radius); box-shadow:0 2px 10px rgba(0,0,0,.06); padding:12px; margin-bottom:10px; display:flex; gap:10px; overflow:hidden; }
+.sk-time { width:52px; height:52px; border-radius:8px; flex-shrink:0; }
+.sk-body { flex:1; display:flex; flex-direction:column; gap:8px; justify-content:center; }
+.sk-line { height:12px; border-radius:4px; }
+.sk-line-lg { height:16px; width:70%; }
+.sk-line-sm { height:10px; width:45%; }
 .cal-selected-banner { display:flex; align-items:center; justify-content:space-between; background:var(--green4); border:1.5px solid var(--green3); border-radius:12px; padding:8px 14px; margin-bottom:12px; }
 .cal-selected-label { font-family:'Bricolage Grotesque',sans-serif; font-size:13px; font-weight:800; color:var(--green); }
 .cal-selected-clear { background:none; border:1.5px solid var(--green2); border-radius:20px; padding:3px 12px; font-size:11px; font-weight:700; color:var(--green); cursor:pointer; font-family:DM Sans,sans-serif; }
@@ -314,7 +331,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .sb-timer { font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(22px,6vw,32px); font-weight:800; color:white; letter-spacing:1px; line-height:1; }
 .sb-timer-label { font-size:10px; color:rgba(255,255,255,.5); text-align:right; text-transform:uppercase; letter-spacing:.8px; }
 .sb-timer-total { font-size:13px; font-weight:700; color:rgba(255,255,255,.6); letter-spacing:.5px; }
-.sb-half-badge { font-size:10px; font-weight:800; background:#ea580c; color:white; padding:3px 10px; border-radius:10px; text-transform:uppercase; margin-left:6px; }
+.sb-half-badge { font-size:13px; font-weight:800; background:#ea580c; color:white; padding:5px 14px; border-radius:12px; text-transform:uppercase; margin-left:6px; letter-spacing:.5px; box-shadow:0 2px 8px rgba(234,88,12,.35); }
 .timer-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
 .btn-timer-start { background:#22c55e; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
 .btn-timer-pause { background:#f59e0b; color:white; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; }
@@ -423,31 +440,40 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .cal-day-btn { font-size:14px; min-height:44px; }
 }
 
-/* ─── HAMBURGER MOBILE ─────────────────────────────── */
-.hamburger { display:none; background:none; border:none; cursor:pointer; padding:6px; flex-shrink:0; }
-.hamburger span { display:block; width:22px; height:2px; background:white; margin:4px 0; border-radius:2px; transition:all .2s; }
-.hamburger.open span:nth-child(1) { transform:rotate(45deg) translate(4px,4px); }
-.hamburger.open span:nth-child(2) { opacity:0; }
-.hamburger.open span:nth-child(3) { transform:rotate(-45deg) translate(4px,-4px); }
-.mobile-nav-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:99; }
-.mobile-nav-overlay.open { display:block; }
-.mobile-nav-drawer { display:none; position:fixed; top:0; right:0; bottom:0; width:240px; background:white; z-index:100; padding:20px 16px; box-shadow:-4px 0 20px rgba(0,0,0,.15); flex-direction:column; gap:8px; overflow-y:auto; }
-.mobile-nav-drawer.open { display:flex; }
-.mnav-pill { display:flex; align-items:center; gap:10px; background:transparent; border:none; padding:12px 14px; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; color:var(--ink2); font-family:DM Sans,sans-serif; text-align:left; width:100%; transition:all .15s; }
-.mnav-pill:hover, .mnav-pill.active { background:var(--green4); color:var(--green); }
-.mnav-pill-live { color:#ff4444 !important; }
-.mnav-pill-live.active, .mnav-pill-live:hover { background:#fff0f0; color:#dc2626 !important; }
-.mnav-close { align-self:flex-end; background:none; border:none; font-size:22px; cursor:pointer; color:var(--ink3); padding:4px 8px; margin-bottom:8px; }
-.mnav-title { font-family:'Bricolage Grotesque',sans-serif; font-size:13px; font-weight:800; color:var(--ink3); text-transform:uppercase; letter-spacing:1px; padding:8px 14px 4px; }
+/* ─── BOTTOM NAV (mobile) ───────────────────────────── */
+.bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
+  background:white; border-top:1px solid #e5e7eb;
+  box-shadow:0 -2px 12px rgba(0,0,0,.08);
+  padding-bottom:env(safe-area-inset-bottom); }
+.bottom-nav-inner { display:flex; align-items:stretch; height:58px; }
+.bnav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; background:none; border:none; cursor:pointer; padding:6px 2px;
+  font-family:DM Sans,sans-serif; color:var(--ink3); transition:color .15s; min-width:0; }
+.bnav-btn.active { color:var(--green); }
+.bnav-btn.bnav-live { color:#dc2626; }
+.bnav-btn.bnav-live.active { color:#dc2626; }
+.bnav-icon { font-size:20px; line-height:1; }
+.bnav-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56px; }
+.bnav-live-dot { width:6px; height:6px; border-radius:50%; background:#dc2626;
+  animation:blink 1s infinite; position:absolute; top:6px; right:calc(50% - 14px); }
+.bnav-btn { position:relative; }
+/* Spazio in fondo al contenuto per non coprire l'ultima card */
 @media (max-width:640px) {
-  .hamburger { display:block; }
+  .bottom-nav { display:block; }
+  .hamburger { display:none !important; }
   header nav { display:none; }
-  .nav-live-indicator { display:flex; align-items:center; gap:5px; margin-left:auto; margin-right:6px; }
-  .nav-live-dot { width:7px; height:7px; border-radius:50%; background:#ff4444; animation:blink 1s infinite; }
-  .nav-live-indicator.hidden { display:none; }
+  .container { padding-bottom:72px; }
+  #page-live { padding-bottom:58px; }
+}
+@media (max-width:640px) {
+  .hamburger { display:none !important; }
+  header nav { display:none; }
+  .nav-live-indicator { display:none; }
 }
 @media (min-width:641px) {
   .nav-live-indicator { display:none; }
+  .bottom-nav { display:none !important; }
 }
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
@@ -472,27 +498,33 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
     </nav>
-    <!-- MOBILE LIVE INDICATOR -->
-    <div class="nav-live-indicator hidden" id="nav-live-indicator-mobile"><div class="nav-live-dot"></div><span style="font-size:11px;color:#ff4444;font-weight:700">LIVE</span></div>
-    <!-- HAMBURGER BUTTON -->
-    <button class="hamburger" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
   </div>
 </header>
-<!-- MOBILE OVERLAY -->
-<div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()"></div>
-<!-- MOBILE DRAWER -->
-<div class="mobile-nav-drawer" id="mobile-nav-drawer">
-  <button class="mnav-close" onclick="closeMobileNav()" aria-label="Chiudi menu">✕</button>
-  <div class="mnav-title">Menu</div>
-  <button class="mnav-pill active" id="mnav-partite" onclick="mobileNav('partite')">🏑 Prato</button>
-  <button class="mnav-pill" id="mnav-indoor" onclick="mobileNav('indoor')">🏑 Indoor</button>
-  <button class="mnav-pill mnav-pill-live" id="mnav-live" onclick="mobileNav('live')">🔴 Live</button>
-  <button class="mnav-pill" id="mnav-classifica" onclick="mobileNav('classifica')">🏆 Classifica</button>
-  <button class="mnav-pill" id="mnav-eventi" onclick="mobileNav('eventi')">📅 Eventi</button>
-  <button class="mnav-pill" id="mnav-admin" onclick="mobileNav('admin')" style="margin-top:auto">⚙️ Admin</button>
-</div>
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav" role="navigation" aria-label="Navigazione principale mobile">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-partite" onclick="mobileNav('partite')" aria-label="Prato">
+      <span class="bnav-icon">🏑</span>
+      <span class="bnav-label">Prato</span>
+    </button>
+    <button class="bnav-btn" id="bnav-indoor" onclick="mobileNav('indoor')" aria-label="Indoor">
+      <span class="bnav-icon">🏒</span>
+      <span class="bnav-label">Indoor</span>
+    </button>
+    <button class="bnav-btn bnav-live" id="bnav-live" onclick="mobileNav('live')" aria-label="Live">
+      <span class="bnav-icon">🔴</span>
+      <span class="bnav-label">Live</span>
+    </button>
+    <button class="bnav-btn" id="bnav-classifica" onclick="mobileNav('classifica')" aria-label="Classifica">
+      <span class="bnav-icon">🏆</span>
+      <span class="bnav-label">Classifica</span>
+    </button>
+    <button class="bnav-btn" id="bnav-eventi" onclick="mobileNav('eventi')" aria-label="Eventi">
+      <span class="bnav-icon">📅</span>
+      <span class="bnav-label">Eventi</span>
+    </button>
+  </div>
+</nav>
 
 <!-- HERO -->
 <div class="hero">
@@ -540,7 +572,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
     <div class="cal-grid" id="cal-grid"></div>
   </div>
-  <div id="matches-list"><div class="loading">Caricamento…</div></div>
+  <div id="next-match-banner-wrap"></div>
+  <div id="matches-list"><div id="skeleton-partite"></div></div>
 </div>
 
 <!-- INDOOR -->
@@ -568,7 +601,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
     <div class="cal-grid" id="cal-indoor-grid"></div>
   </div>
-  <div id="indoor-list"><div class="loading">Caricamento…</div></div>
+  <div id="indoor-list"><div id="skeleton-indoor"></div></div>
 </div>
 
 <!-- EVENTI -->
@@ -608,7 +641,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <div class="sl-row"><span class="sl-key">GS</span><span class="sl-val">Gol subiti</span></div>
     </div>
   </div>
-  <div id="standings-content"><div class="loading">Caricamento…</div></div>
+  <div id="standings-content"><div id="skeleton-standings"></div></div>
 </div>
 
 <!-- ADMIN -->
@@ -951,7 +984,7 @@ window.addEventListener('load', () => {
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
-      renderCalendar(); renderCalendarIndoor(); updateHeroStats();
+      renderCalendar(); renderCalendarIndoor(); updateHeroStats(); renderNextMatchBanner();
   renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
       checkMissingResults();
@@ -1009,6 +1042,10 @@ function showPage(name, btn) {
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  // Aggiorna bottom nav
+  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  const _bb = document.getElementById('bnav-'+name);
+  if(_bb) _bb.classList.add('active');
   if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
@@ -1052,6 +1089,10 @@ function syncAllSportControls(sport) {
   });
   if (sport === 'prato' && np) np.classList.add('active');
   if (sport === 'indoor' && ni) ni.classList.add('active');
+  // Aggiorna bottom nav
+  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  const bb = document.getElementById(sport === 'indoor' ? 'bnav-indoor' : 'bnav-partite');
+  if(bb) bb.classList.add('active');
   // Aggiorna classSport per coerenza classifica
   classSport = sport;
 }
@@ -1573,7 +1614,7 @@ function generateLivePwd() {
     alert('Firebase non ancora pronto, riprova tra qualche secondo.');
     return;
   }
-  const siteUrl = 'https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v3.html';
+  const siteUrl = window.location.href.split('?')[0];
   const msg = 'Ciao! Ti chiedo di aggiornare il live della partita di hockey 🏑\n\n'
     + '1. Apri l\'app HP Valchisone:\n'
     + siteUrl + '\n\n'
@@ -1993,6 +2034,67 @@ function deleteGoal(goalId) {
 }
 
 // ─── RENDER EVENTI PAGE ─────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  var sp = document.getElementById('skeleton-partite');
+  if(sp) sp.innerHTML = skeletonCards(4);
+  var si = document.getElementById('skeleton-indoor');
+  if(si) si.innerHTML = skeletonCards(3);
+  var ss = document.getElementById('skeleton-standings');
+  if(ss) ss.innerHTML = '<div class="sk-card" style="height:120px"><div class="skeleton" style="width:100%;height:100%;border-radius:10px"></div></div>';
+});
+
+function skeletonCards(n) {
+  n = n || 3;
+  let h = '';
+  for (let i=0; i<n; i++) {
+    h += '<div class="sk-card">'
+      + '<div class="skeleton sk-time"></div>'
+      + '<div class="sk-body">'
+      + '<div class="skeleton sk-line sk-line-lg"></div>'
+      + '<div class="skeleton sk-line sk-line-sm"></div>'
+      + '</div></div>';
+  }
+  return h;
+}
+
+function renderNextMatchBanner() {
+  const container = document.getElementById('next-match-banner-wrap');
+  if (!container) return;
+  const today = new Date().toISOString().slice(0,10);
+  const allMs = [...allMatches, ...allIndoor];
+  // Trova prossima partita Valchisone non ancora giocata
+  const upcoming = allMs
+    .filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
+    .filter(m => m.scoreHome === undefined && m.date >= today)
+    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  if (!upcoming.length) { container.innerHTML = ''; return; }
+  const m = upcoming[0];
+  const matchDate = new Date(m.date+'T12:00:00');
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const diffMs = matchDate - todayDate;
+  const diffDays = Math.round(diffMs / 86400000);
+  const dateStr = matchDate.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
+  const timeStr = m.time ? ' · '+m.time : '';
+  const locStr = m.location ? ' · '+m.location : '';
+  const cat = CATS[m.cat]||{};
+  const isToday = diffDays === 0;
+  const isTomorrow = diffDays === 1;
+  const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
+  const hV = m.home.toUpperCase().includes(VALCH);
+  const aV = m.away.toUpperCase().includes(VALCH);
+  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
+  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
+  container.innerHTML =
+    '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
+    + '<div class="nmb-left">'
+    + '<div class="nmb-label">🏑 Prossima partita ' + (cat.short||'') + '</div>'
+    + '<div class="nmb-teams">' + homeHtml + ' <span style="color:rgba(255,255,255,.4)">vs</span> ' + awayHtml + '</div>'
+    + '<div class="nmb-meta">📅 ' + dateStr + timeStr + locStr + '</div>'
+    + '</div>'
+    + '<div class="nmb-countdown">' + countdownLabel + '<small>' + (isToday?'':'al via') + '</small></div>'
+    + '</div>';
+}
+
 function renderEventiPage() {
   const el = document.getElementById('eventi-list');
   if (!el) return;
@@ -3040,14 +3142,15 @@ function closeMobileNav(){
   document.getElementById('mobile-nav-overlay').classList.remove('open');
 }
 function mobileNav(page){
-  // Aggiorna stato drawer mobile
-  document.querySelectorAll('.mnav-pill').forEach(p=>p.classList.remove('active'));
-  const mpill = document.getElementById('mnav-'+page);
-  if(mpill) mpill.classList.add('active');
-  // Delega a showPage (che a sua volta usa switchSport per prato/indoor)
+  // Aggiorna stato bottom nav
+  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  const bb = document.getElementById('bnav-'+page);
+  if(bb) bb.classList.add('active');
+  // Delega a showPage
   showPage(page, null);
-  closeMobileNav();
 }
+function toggleMobileNav(){}
+function closeMobileNav(){}
 
 // Update mobile nav live indicator
 function updateMobileLiveIndicator(hasLive){
