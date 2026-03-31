@@ -151,6 +151,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
+.mc-scorers { font-size:11px; color:var(--ink3); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+.mc-scorer-home { color:var(--green); font-weight:600; }
+.mc-scorer-away { color:var(--ink3); }
 .mc-meta { font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .mc-right { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; padding:10px 10px; gap:5px; flex-shrink:0; }
 .cat-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; white-space:nowrap; }
@@ -410,7 +413,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .mc-time { min-width:70px; padding:12px 16px; }
   .cat-badge { font-size:13px; padding:4px 10px; }
   .status-badge { font-size:13px; padding:4px 10px; }
-  .mc-meta { font-size:14px; gap:8px; }
+  .mc-scorers { font-size:11px; color:var(--ink3); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+.mc-scorer-home { color:var(--green); font-weight:600; }
+.mc-scorer-away { color:var(--ink3); }
+.mc-meta { font-size:14px; gap:8px; }
   .mc-vs { font-size:13px; }
   .mc-body { padding:12px 16px; }
   .mc-right { padding:12px 12px; gap:7px; }
@@ -806,11 +812,15 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <div class="form-field"><label id="result-home-label">Casa</label><input type="number" id="result-home" min="0"></div>
       <div class="form-field"><label id="result-away-label">Ospite</label><input type="number" id="result-away" min="0"></div>
     </div>
-    <!-- Marcatrici Valchisone -->
-    <div id="scorers-section" style="display:none;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:6px">🏑 Marcatrici Valchisone</div>
-      <div id="scorers-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-      <button onclick="addScorerRow()" style="background:#f0faf2;color:#1a7a2e;border:1.5px solid #d1fae5;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%">+ Aggiungi marcatrice</button>
+    <!-- Marcatrici entrambe squadre -->
+    <div id="scorers-section" style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">🏑 Marcatrici</div>
+      <div id="scorers-home-label" style="font-size:12px;font-weight:700;color:#1a7a2e;margin-bottom:4px"></div>
+      <div id="scorers-home-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
+      <button onclick="addScorerRow('home')" style="background:#f0faf2;color:#1a7a2e;border:1.5px solid #d1fae5;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px">+ Gol squadra casa</button>
+      <div id="scorers-away-label" style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:4px"></div>
+      <div id="scorers-away-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
+      <button onclick="addScorerRow('away')" style="background:#fafafa;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%">+ Gol squadra ospite</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('result-modal').classList.remove('open')">Annulla</button>
@@ -1343,6 +1353,15 @@ function matchCardHTML(m, showAdmin) {
       <span class="mc-vs">VS</span>
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
       ${hasSc ? `<span class="mc-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}
+    </div>
+    ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
+      Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
+        const isHome = g.team === m.home;
+        const cls = isHome ? 'mc-scorer-home' : 'mc-scorer-away';
+        const label = (g.player||'?') + (g.minute!==undefined ? ' '+g.minute+"'" : '');
+        return '<span class="'+cls+'">🏑 '+label+'</span>';
+      }).join('')
+    }</div>` : ''}
     </div>
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
@@ -2493,28 +2512,32 @@ function openResultModal(id) {
   document.getElementById('result-away-label').textContent = m.away;
   document.getElementById('result-home').value = m.scoreHome!==undefined ? m.scoreHome : '';
   document.getElementById('result-away').value = m.scoreAway!==undefined ? m.scoreAway : '';
-  // Show scorers section only for Valchisone matches
-  const isValch = (m.home||'').toUpperCase().includes(VALCH)||(m.away||'').toUpperCase().includes(VALCH);
-  const sec = document.getElementById('scorers-section');
-  sec.style.display = isValch ? '' : 'none';
-  if (isValch) {
-    // Populate existing scorers
-    const list = document.getElementById('scorers-list');
-    list.innerHTML = '';
-    const goals = m.goals ? Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)) : [];
-    goals.forEach(g => addScorerRow(g.player, g.minute, g.id));
-  }
+  // Marcatori per entrambe le squadre
+  document.getElementById('scorers-home-label').textContent = '🟢 ' + m.home;
+  document.getElementById('scorers-away-label').textContent = '⚪ ' + m.away;
+  const homeList = document.getElementById('scorers-home-list');
+  const awayList = document.getElementById('scorers-away-list');
+  homeList.innerHTML = ''; awayList.innerHTML = '';
+  const goals = m.goals ? Object.values(m.goals).sort(function(a,b){return (a.minute||0)-(b.minute||0);}) : [];
+  goals.forEach(function(g) {
+    const side = g.team && g.team === m.away ? 'away' : 'home';
+    addScorerRow(side, g.player, g.minute, g.id);
+  });
   document.getElementById('result-modal').classList.add('open');
 }
 
-function addScorerRow(player, minute, gid) {
-  const list = document.getElementById('scorers-list');
+function addScorerRow(side, player, minute, gid) {
+  const listId = side === 'away' ? 'scorers-away-list' : 'scorers-home-list';
+  const list = document.getElementById(listId);
+  if (!list) return;
   const id = gid || ('g'+Date.now()+Math.random().toString(36).slice(2,6));
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;gap:6px;align-items:center';
   row.dataset.gid = id;
-  row.innerHTML = '<input type="text" placeholder="Nome marcatrice" value="'+(player||'')+'" style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px" class="scorer-name">'
-    +'<input type="number" placeholder="Min" min="0" max="90" value="'+(minute!==undefined?minute:'')+'" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;text-align:center" class="scorer-min">'
+  row.dataset.side = side || 'home';
+  const borderColor = side === 'away' ? '#e5e7eb' : '#d1fae5';
+  row.innerHTML = '<input type="text" placeholder="Nome marcatrice" value="'+(player||'')+'" style="flex:1;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 10px;font-size:13px" class="scorer-name">'
+    +'<input type="number" placeholder="Min" min="0" max="120" value="'+(minute!==undefined?minute:'')+'" style="width:60px;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 8px;font-size:13px;text-align:center" class="scorer-min">'
     +'<button onclick="this.parentNode.remove()" style="background:none;border:1.5px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px;flex-shrink:0">🗑</button>';
   list.appendChild(row);
 }
@@ -2529,23 +2552,24 @@ function saveResult() {
   if (!match) { alert('Partita non trovata!'); return; }
   match.scoreHome = parseInt(sh);
   match.scoreAway = parseInt(sa);
-  // Save scorers if section is visible
-  const sec = document.getElementById('scorers-section');
-  if (sec && sec.style.display !== 'none') {
-    const goals = {};
-    document.querySelectorAll('#scorers-list > div[data-gid]').forEach(row => {
+  // Salva marcatori entrambe squadre
+  const goals = {};
+  ['scorers-home-list','scorers-away-list'].forEach(function(listId) {
+    const isAway = listId === 'scorers-away-list';
+    const teamName = isAway ? match.away : match.home;
+    document.querySelectorAll('#'+listId+' > div[data-gid]').forEach(function(row) {
       const nameEl = row.querySelector('.scorer-name');
       const minEl = row.querySelector('.scorer-min');
       if (!nameEl || !minEl) return;
       const name = nameEl.value.trim();
       const min = minEl.value;
       const gid = row.dataset.gid;
-      if (name || min) {
-        goals[gid] = { id: gid, player: name, minute: min!=='' ? parseInt(min) : undefined };
+      if (name || min !== '') {
+        goals[gid] = { id: gid, player: name, minute: min!=='' ? parseInt(min) : undefined, team: teamName };
       }
     });
-    match.goals = goals;
-  }
+  });
+  match.goals = goals;
   // Rebuild and save
   const matchesObj = {}, indoorObj = {};
   allMatches.forEach(m => { matchesObj[m.id] = m; });
