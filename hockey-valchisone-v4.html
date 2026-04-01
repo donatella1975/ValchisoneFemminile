@@ -2776,34 +2776,9 @@ function openPrintWindow(title, styles, bodyHTML) {
     <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button>
   </div><div style="height:48px"></div>`;
   const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '
-<!-- PRIVACY BAR -->
-<div class="privacy-bar" id="privacy-bar" style="display:none">
-  <span style="flex:1">🔒 Questa app tratta dati sportivi di atlete. Nessun dato è venduto a terzi.
-  <a onclick="document.getElementById('privacy-modal').classList.add('open')">Informativa privacy</a></span>
-  <button class="privacy-accept" onclick="acceptPrivacy()">Ho capito</button>
-</div>
 
-<!-- PRIVACY MODAL -->
-<div class="privacy-modal" id="privacy-modal">
-  <div class="privacy-content">
-    <h2>🔒 Informativa Privacy</h2>
-    <p>L'app <strong>HP Valchisone Femminile</strong> è gestita da ASD Hockey su Prato Valchisone Femminile, titolare del trattamento dei dati.</p>
-    <h3>Dati trattati</h3>
-    <p>L'app visualizza dati sportivi pubblici: risultati delle partite, nomi delle atlete marcatrici (inseriti volontariamente dallo staff), calendari e classifiche.</p>
-    <h3>Finalità</h3>
-    <p>I dati sono utilizzati esclusivamente per la gestione sportiva del club e la comunicazione con famiglie e tifosi.</p>
-    <h3>Conservazione</h3>
-    <p>I dati sono conservati su Firebase (Google Ireland Ltd.) in server europei, in conformità al GDPR.</p>
-    <h3>Diritti</h3>
-    <p>Puoi richiedere la cancellazione o la modifica dei dati contattando la società: <strong>info@valchisone.it</strong></p>
-    <h3>Cookie</h3>
-    <p>L'app utilizza solo localStorage per ricordare le preferenze dell'utente (es. tour già visto). Nessun cookie di profilazione.</p>
-    <div style="margin-top:16px;display:flex;justify-content:flex-end">
-      <button class="privacy-accept" onclick="document.getElementById('privacy-modal').classList.remove('open')">Chiudi</button>
-    </div>
-  </div>
-</div>
 
+</div>
 </body></html>';
   const blob = new Blob([fullHTML], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
@@ -3188,31 +3163,29 @@ function updateMobileLiveIndicator(hasLive){
 
 <!-- PRIVACY BAR -->
 <div class="privacy-bar" id="privacy-bar" style="display:none">
-  <span style="flex:1">🔒 Questa app tratta dati sportivi di atlete. Nessun dato è venduto a terzi.
-  <a onclick="document.getElementById('privacy-modal').classList.add('open')">Informativa privacy</a></span>
+  <span style="flex:1">🔒 Questa app tratta dati sportivi di atlete. Nessun dato venduto a terzi.
+  <a onclick="document.getElementById('privacy-modal').classList.add('open')" style="cursor:pointer;color:#4dc76a;text-decoration:underline">Informativa privacy</a></span>
   <button class="privacy-accept" onclick="acceptPrivacy()">Ho capito</button>
 </div>
-
 <!-- PRIVACY MODAL -->
 <div class="privacy-modal" id="privacy-modal">
   <div class="privacy-content">
     <h2>🔒 Informativa Privacy</h2>
-    <p>L'app <strong>HP Valchisone Femminile</strong> è gestita da ASD Hockey su Prato Valchisone Femminile, titolare del trattamento dei dati.</p>
+    <p>L'app <strong>HP Valchisone Femminile</strong> è gestita da ASD Hockey su Prato Valchisone Femminile.</p>
     <h3>Dati trattati</h3>
-    <p>L'app visualizza dati sportivi pubblici: risultati delle partite, nomi delle atlete marcatrici (inseriti volontariamente dallo staff), calendari e classifiche.</p>
+    <p>Risultati partite, nomi marcatrici (inseriti dallo staff), calendari e classifiche.</p>
     <h3>Finalità</h3>
-    <p>I dati sono utilizzati esclusivamente per la gestione sportiva del club e la comunicazione con famiglie e tifosi.</p>
+    <p>Gestione sportiva del club e comunicazione con famiglie e tifosi.</p>
     <h3>Conservazione</h3>
-    <p>I dati sono conservati su Firebase (Google Ireland Ltd.) in server europei, in conformità al GDPR.</p>
+    <p>Dati su Firebase (Google Ireland Ltd.) in server europei, conforme al GDPR.</p>
     <h3>Diritti</h3>
-    <p>Puoi richiedere la cancellazione o la modifica dei dati contattando la società: <strong>info@valchisone.it</strong></p>
+    <p>Cancellazione o modifica dati: <strong>info@valchisone.it</strong></p>
     <h3>Cookie</h3>
-    <p>L'app utilizza solo localStorage per ricordare le preferenze dell'utente (es. tour già visto). Nessun cookie di profilazione.</p>
+    <p>Solo localStorage per preferenze utente. Nessun cookie di profilazione.</p>
     <div style="margin-top:16px;display:flex;justify-content:flex-end">
       <button class="privacy-accept" onclick="document.getElementById('privacy-modal').classList.remove('open')">Chiudi</button>
     </div>
   </div>
 </div>
-
 </body>
 </html>
