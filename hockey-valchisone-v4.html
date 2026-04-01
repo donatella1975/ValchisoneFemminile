@@ -42,6 +42,37 @@
 .privacy-content { background:white; border-radius:16px; padding:24px; max-width:480px; width:100%; max-height:80vh; overflow-y:auto; font-size:13px; line-height:1.6; color:#374151; }
 .privacy-content h2 { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:#1a3a22; margin-bottom:12px; }
 .privacy-content h3 { font-size:13px; font-weight:700; color:#1a7a2e; margin:12px 0 4px; }
+
+/* ─── TOUR GUIDATO ─────────────────────────────────────── */
+.tour-overlay { position:fixed; inset:0; z-index:9990; pointer-events:none; }
+.tour-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9991; }
+.tour-highlight { position:fixed; z-index:9992; border-radius:10px;
+  box-shadow:0 0 0 4px #fb923c, 0 0 0 9999px rgba(0,0,0,.55);
+  pointer-events:none; transition:all .35s ease; }
+.tour-bubble { position:fixed; z-index:9993; background:white; border-radius:16px;
+  padding:18px 20px; max-width:300px; width:88vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.25); }
+.tour-bubble::before { content:''; position:absolute; width:14px; height:14px;
+  background:white; transform:rotate(45deg); }
+.tour-bubble.arrow-top::before { top:-7px; left:50%; margin-left:-7px; }
+.tour-bubble.arrow-bottom::before { bottom:-7px; left:50%; margin-left:-7px; }
+.tour-bubble.arrow-left::before { left:-7px; top:24px; }
+.tour-step-num { font-size:11px; font-weight:800; color:var(--orange);
+  text-transform:uppercase; letter-spacing:.8px; margin-bottom:6px; }
+.tour-title { font-family:'Bricolage Grotesque',sans-serif; font-size:16px;
+  font-weight:800; color:#1a3a22; margin-bottom:6px; }
+.tour-desc { font-size:13px; color:#374151; line-height:1.5; margin-bottom:14px; }
+.tour-btns { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.tour-skip { background:none; border:none; font-size:12px; color:#9ca3af;
+  cursor:pointer; font-family:DM Sans,sans-serif; padding:0; }
+.tour-skip:hover { color:#6b7280; }
+.tour-next { background:var(--green); color:white; border:none; border-radius:10px;
+  padding:9px 20px; font-size:13px; font-weight:700; cursor:pointer;
+  font-family:DM Sans,sans-serif; transition:background .15s; }
+.tour-next:hover { background:#15622a; }
+.tour-dots { display:flex; gap:5px; align-items:center; }
+.tour-dot { width:6px; height:6px; border-radius:50%; background:#e5e7eb; }
+.tour-dot.active { background:var(--green); width:18px; border-radius:3px; }
 /* ─── TOKENS ─────────────────────────────────── */
 :root {
   --green:  #1a7a30; --green2: #25a040; --green3: #4dc76a; --green4: #d4f5dc;
@@ -3113,6 +3144,167 @@ function acceptPrivacy() {
   document.getElementById('privacy-bar').style.display='none';
 }
 initPrivacy();
+
+// ─── TOUR GUIDATO ───────────────────────────────────────────
+const TOUR_STEPS = [
+  {
+    target: '.hero',
+    title: 'Benvenuta in HP Valchisone! 🏑',
+    desc: 'Qui trovi il calendario, i risultati e la classifica della stagione 2025/26. Tocca i bottoni in alto per navigare.',
+    position: 'bottom'
+  },
+  {
+    target: '#btn-sport-prato',
+    title: 'Prato e Indoor',
+    desc: 'Passa tra le partite su prato e quelle indoor con questi bottoni. I contatori si aggiornano automaticamente.',
+    position: 'bottom'
+  },
+  {
+    target: '.cal-wrap',
+    title: 'Calendario partite 📅',
+    desc: 'Tocca un giorno evidenziato (sfondo verde) per filtrare le partite di quella data. Il punto arancione indica giorni con partite.',
+    position: 'bottom'
+  },
+  {
+    target: '.filter-bar',
+    title: 'Filtra per categoria',
+    desc: 'Tocca una categoria per vedere solo quelle partite: A2, U16, U14. Il bottone arancione mostra solo le partite di HP Valchisone.',
+    position: 'bottom'
+  },
+  {
+    target: '#nav-pill-prato',
+    title: 'Naviga tra le sezioni',
+    desc: 'Usa la barra in alto per passare tra Partite, Indoor, Classifica, Live ed Eventi. Su smartphone scorri orizzontalmente.',
+    position: 'bottom'
+  },
+  {
+    target: '#nav-live-btn',
+    title: 'Tabellone Live 🔴',
+    desc: "Durante le partite puoi seguire il punteggio in tempo reale! Appare quando c'e una partita attiva.",
+    position: 'bottom'
+  }
+];
+
+let _tourStep = 0;
+let _tourEl = null;
+let _tourHighlight = null;
+let _tourBubble = null;
+
+function startTour() {
+  if (_tourEl) return;
+  _tourStep = 0;
+  _tourEl = document.createElement('div');
+  _tourEl.className = 'tour-overlay';
+  document.body.appendChild(_tourEl);
+  _tourHighlight = document.createElement('div');
+  _tourHighlight.className = 'tour-highlight';
+  document.body.appendChild(_tourHighlight);
+  _tourBubble = document.createElement('div');
+  _tourBubble.className = 'tour-bubble';
+  document.body.appendChild(_tourBubble);
+  showTourStep(_tourStep);
+}
+
+function showTourStep(idx) {
+  const step = TOUR_STEPS[idx];
+  if (!step) { endTour(); return; }
+  const target = document.querySelector(step.target);
+  if (!target) { showTourStep(idx + 1); return; }
+
+  // Highlight
+  const r = target.getBoundingClientRect();
+  const pad = 6;
+  _tourHighlight.style.cssText =
+    'position:fixed;z-index:9992;border-radius:10px;pointer-events:none;transition:all .3s ease;' +
+    'top:'+(r.top-pad)+'px;left:'+(r.left-pad)+'px;' +
+    'width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;' +
+    'box-shadow:0 0 0 4px #fb923c,0 0 0 9999px rgba(0,0,0,.55)';
+
+  // Dots
+  const dots = TOUR_STEPS.map(function(_,i){
+    return '<div class="tour-dot'+(i===idx?' active':'')+'"></div>';
+  }).join('');
+
+  // Bubble content
+  _tourBubble.innerHTML =
+    '<div class="tour-step-num">'+( idx+1)+' di '+TOUR_STEPS.length+'</div>' +
+    '<div class="tour-title">'+step.title+'</div>' +
+    '<div class="tour-desc">'+step.desc+'</div>' +
+    '<div class="tour-btns">' +
+      '<button class="tour-skip" onclick="endTour()">Salta tour</button>' +
+      '<div class="tour-dots">'+dots+'</div>' +
+      '<button class="tour-next" onclick="nextTourStep()">'+(idx===TOUR_STEPS.length-1?'Fine ✓':'Avanti →')+'</button>' +
+    '</div>';
+
+  // Position bubble
+  const bw = Math.min(300, window.innerWidth * 0.88);
+  let top, left;
+  _tourBubble.className = 'tour-bubble';
+
+  if (step.position === 'bottom' || r.bottom + 180 < window.innerHeight) {
+    top = Math.min(r.bottom + pad + 16, window.innerHeight - 180);
+    left = Math.max(12, Math.min(r.left + r.width/2 - bw/2, window.innerWidth - bw - 12));
+    _tourBubble.classList.add('arrow-top');
+  } else {
+    top = Math.max(12, r.top - pad - 16 - 160);
+    left = Math.max(12, Math.min(r.left + r.width/2 - bw/2, window.innerWidth - bw - 12));
+    _tourBubble.classList.add('arrow-bottom');
+  }
+
+  _tourBubble.style.cssText =
+    'position:fixed;z-index:9993;background:white;border-radius:16px;padding:18px 20px;' +
+    'width:'+bw+'px;box-shadow:0 8px 32px rgba(0,0,0,.25);' +
+    'top:'+top+'px;left:'+left+'px;';
+  // Arrow position
+  const arrowLeft = (r.left + r.width/2) - left;
+  _tourBubble.style.setProperty('--arrow-left', Math.max(16, Math.min(arrowLeft, bw-16))+'px');
+
+  // Scroll target into view
+  target.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function nextTourStep() {
+  _tourStep++;
+  if (_tourStep >= TOUR_STEPS.length) { endTour(); return; }
+  showTourStep(_tourStep);
+}
+
+function endTour() {
+  if (_tourEl) { _tourEl.remove(); _tourEl = null; }
+  if (_tourHighlight) { _tourHighlight.remove(); _tourHighlight = null; }
+  if (_tourBubble) { _tourBubble.remove(); _tourBubble = null; }
+  localStorage.setItem('tour_done_v4', '1');
+}
+
+function initTour() {
+  // Aspetta che i dati Firebase siano caricati (max 3s)
+  if (!localStorage.getItem('tour_done_v4')) {
+    setTimeout(startTour, 2000);
+  }
+}
+
+// Bottone "?" per riaprire il tour
+function addTourButton() {
+  const nav = document.querySelector('header .header-inner');
+  if (!nav || document.getElementById('tour-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'tour-btn';
+  btn.title = 'Tour guidato';
+  btn.setAttribute('aria-label', 'Avvia tour guidato');
+  btn.style.cssText = 'background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);' +
+    'border-radius:50%;width:32px;height:32px;color:white;font-size:14px;font-weight:800;' +
+    'cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;' +
+    'font-family:DM Sans,sans-serif;margin-left:4px;';
+  btn.textContent = '?';
+  btn.onclick = function() { localStorage.removeItem('tour_done_v4'); startTour(); };
+  nav.appendChild(btn);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  addTourButton();
+  initTour();
+});
+
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
 
 function toggleStandingsLegend() {
