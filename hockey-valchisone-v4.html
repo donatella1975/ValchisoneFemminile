@@ -3109,6 +3109,9 @@ function updateHeroStats() {
   const chip = (label, val, accent) => '<div style="background:' + (accent||'rgba(255,255,255,.15)') + ';border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
     + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1">' + val + '</span>'
     + '<span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
+  // Mostra chip solo se categoria specifica selezionata o filtro Valchisone attivo
+  const catFiltered = cat !== 'all' || catEx || onlyValch;
+  if (!catFiltered) { statsEl.innerHTML = ''; return; }
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
   if (valchPlayed.length > 0) {
@@ -3149,8 +3152,8 @@ initPrivacy();
 const TOUR_STEPS = [
   {
     target: '.hero',
-    title: 'Benvenuta in HP Valchisone! 🏑',
-    desc: 'Qui trovi il calendario, i risultati e la classifica della stagione 2025/26. Tocca i bottoni in alto per navigare.',
+    title: 'Benvenuta... e benvenuto! 🏑',
+    desc: 'Questa app e dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
     position: 'bottom'
   },
   {
