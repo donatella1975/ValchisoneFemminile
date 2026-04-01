@@ -34,6 +34,14 @@
 
 <style>
 .skip-link { position:absolute; top:-100px; left:8px; background:var(--green); color:white; padding:8px 16px; border-radius:0 0 8px 8px; font-size:14px; font-weight:700; z-index:9999; text-decoration:none; transition:top .15s; }.skip-link:focus { top:0; }
+.privacy-bar { background:#1a1a1a; color:rgba(255,255,255,.85); font-size:12px; padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; position:fixed; bottom:0; left:0; right:0; z-index:9998; box-shadow:0 -2px 12px rgba(0,0,0,.3); }
+.privacy-bar a { color:#4dc76a; text-decoration:underline; cursor:pointer; }
+.privacy-accept { background:var(--green); color:white; border:none; border-radius:8px; padding:6px 16px; font-size:12px; font-weight:700; cursor:pointer; font-family:DM Sans,sans-serif; flex-shrink:0; white-space:nowrap; }
+.privacy-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+.privacy-modal.open { display:flex; }
+.privacy-content { background:white; border-radius:16px; padding:24px; max-width:480px; width:100%; max-height:80vh; overflow-y:auto; font-size:13px; line-height:1.6; color:#374151; }
+.privacy-content h2 { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:#1a3a22; margin-bottom:12px; }
+.privacy-content h3 { font-size:13px; font-weight:700; color:#1a7a2e; margin:12px 0 4px; }
 /* ─── TOKENS ─────────────────────────────────── */
 :root {
   --green:  #1a7a30; --green2: #25a040; --green3: #4dc76a; --green4: #d4f5dc;
@@ -151,9 +159,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
-.mc-scorers { font-size:11px; color:var(--ink3); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 10px; }
-.mc-scorer-home { color:var(--green); font-weight:600; }
-.mc-scorer-away { color:var(--ink3); }
+.mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
+.mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
+.mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
 .mc-meta { font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .mc-right { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; padding:10px 10px; gap:5px; flex-shrink:0; }
 .cat-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; white-space:nowrap; }
@@ -413,9 +421,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .mc-time { min-width:70px; padding:12px 16px; }
   .cat-badge { font-size:13px; padding:4px 10px; }
   .status-badge { font-size:13px; padding:4px 10px; }
-  .mc-scorers { font-size:11px; color:var(--ink3); margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 10px; }
-.mc-scorer-home { color:var(--green); font-weight:600; }
-.mc-scorer-away { color:var(--ink3); }
+  .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
+.mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
+.mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
 .mc-meta { font-size:14px; gap:8px; }
   .mc-vs { font-size:13px; }
   .mc-body { padding:12px 16px; }
@@ -1207,6 +1215,7 @@ function renderMatches() {
   });
 
   const c = document.getElementById('matches-list');
+  renderNextMatchBanner();
   let _bannerHtml = '';
   if (calSelected) {
     const _selD = new Date(calSelected+'T12:00:00');
@@ -1421,10 +1430,12 @@ function renderLiveBadge() {
   if (liveData && liveData.active) {
     badge.classList.add('visible');
     navLive.classList.add('nav-live');
-    matchText.textContent = `${liveData.home} vs ${liveData.away}`;
+    navLive.style.display = '';
+    matchText.textContent = liveData.home + ' vs ' + liveData.away;
   } else {
     badge.classList.remove('visible');
     navLive.classList.remove('nav-live');
+    if (!liveData || !liveData.active) navLive.style.opacity = '0.5';
   }
 }
 
@@ -1808,7 +1819,7 @@ function showFinalResult() {
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 8500);
 }
 function stopLive() {
-  if (!confirm('Terminare la partita live?')) return;
+  if (!confirm('⚠️ Chiudere il live?\nIl tabellone sarà rimosso per tutti gli utenti.')) return;
   // Save final score to match
   if (liveData) {
     const all = [...allMatches, ...allIndoor];
@@ -1911,7 +1922,7 @@ function startNextQuarter() {
 }
 
 function timerReset() {
-  if (!confirm('Azzerare entrambi i cronometri?')) return;
+  if (!confirm('⚠️ Azzerare i cronometri?\nI tempi registrati andranno persi.')) return;
   const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0, totalElapsed: 0, half: 1}; // resetarti da 15'
   window._fbSaveLive(updated);
 }
@@ -2481,7 +2492,7 @@ function editMatch(id) {
 }
 
 function resetResult(id) {
-  if (!confirm('Sei sicuro di voler cancellare il risultato?')) return;
+  if (!confirm('⚠️ Cancellare il risultato?\nI marcatori salvati verranno persi.')) return;
   const all = [...allMatches, ...allIndoor];
   const match = all.find(x => x.id === id);
   if (!match) return;
@@ -2498,9 +2509,11 @@ function resetResult(id) {
   }
 }
 function deleteMatch(id) {
-  if (!confirm('Eliminare questa partita?')) return;
-  const all = [...allMatches,...allIndoor];
-  const obj = {}; all.forEach(m => { if(m.id!==id) obj[m.id]=m; });
+  const allDel = [...allMatches,...allIndoor];
+  const mDel = allDel.find(x=>x.id===id);
+  const label = mDel ? abbrevTeam(mDel.home,15)+' vs '+abbrevTeam(mDel.away,15) : 'questa partita';
+  if (!confirm('⚠️ Eliminare "'+label+'"?\n\nQuesta azione non può essere annullata.')) return;
+  const obj = {}; allDel.forEach(m => { if(m.id!==id) obj[m.id]=m; });
   window._fbSave(obj);
 }
 
@@ -2762,7 +2775,36 @@ function openPrintWindow(title, styles, bodyHTML) {
     <span style="color:rgba(255,255,255,.7);font-size:12px;font-weight:600;font-family:sans-serif;flex:1">${title}</span>
     <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button>
   </div><div style="height:48px"></div>`;
-  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '</body></html>';
+  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '
+<!-- PRIVACY BAR -->
+<div class="privacy-bar" id="privacy-bar" style="display:none">
+  <span style="flex:1">🔒 Questa app tratta dati sportivi di atlete. Nessun dato è venduto a terzi.
+  <a onclick="document.getElementById('privacy-modal').classList.add('open')">Informativa privacy</a></span>
+  <button class="privacy-accept" onclick="acceptPrivacy()">Ho capito</button>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="privacy-modal" id="privacy-modal">
+  <div class="privacy-content">
+    <h2>🔒 Informativa Privacy</h2>
+    <p>L'app <strong>HP Valchisone Femminile</strong> è gestita da ASD Hockey su Prato Valchisone Femminile, titolare del trattamento dei dati.</p>
+    <h3>Dati trattati</h3>
+    <p>L'app visualizza dati sportivi pubblici: risultati delle partite, nomi delle atlete marcatrici (inseriti volontariamente dallo staff), calendari e classifiche.</p>
+    <h3>Finalità</h3>
+    <p>I dati sono utilizzati esclusivamente per la gestione sportiva del club e la comunicazione con famiglie e tifosi.</p>
+    <h3>Conservazione</h3>
+    <p>I dati sono conservati su Firebase (Google Ireland Ltd.) in server europei, in conformità al GDPR.</p>
+    <h3>Diritti</h3>
+    <p>Puoi richiedere la cancellazione o la modifica dei dati contattando la società: <strong>info@valchisone.it</strong></p>
+    <h3>Cookie</h3>
+    <p>L'app utilizza solo localStorage per ricordare le preferenze dell'utente (es. tour già visto). Nessun cookie di profilazione.</p>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="privacy-accept" onclick="document.getElementById('privacy-modal').classList.remove('open')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+</body></html>';
   const blob = new Blob([fullHTML], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3058,13 +3100,20 @@ function updateHeroStats() {
   const played    = ms.filter(m => m.scoreHome !== undefined).length;
   const upcoming  = total - played;
   const valchMs   = ms.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
-  const valchPlayed = valchMs.filter(m => m.scoreHome !== undefined).length;
-  const valchWins   = valchMs.filter(m => m.scoreHome !== undefined && (m.home.toUpperCase().includes(VALCH) ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome)).length;
-  const chip = (label, val) => '<div style="background:rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
+  const valchPlayed = valchMs.filter(m => m.scoreHome !== undefined);
+  const valchW = valchPlayed.filter(m => m.home.toUpperCase().includes(VALCH) ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome).length;
+  const valchD = valchPlayed.filter(m => m.scoreHome === m.scoreAway).length;
+  const valchL = valchPlayed.length - valchW - valchD;
+  const chip = (label, val, accent) => '<div style="background:' + (accent||'rgba(255,255,255,.15)') + ';border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
     + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1">' + val + '</span>'
     + '<span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
+  if (valchPlayed.length > 0) {
+    html += chip('V', valchW, 'rgba(34,197,94,.25)');
+    if (valchD > 0) html += chip('N', valchD, 'rgba(251,191,36,.2)');
+    html += chip('P', valchL, 'rgba(239,68,68,.2)');
+  }
   statsEl.innerHTML = html;
 }
 
@@ -3081,6 +3130,18 @@ function resetFilters(section) {
   renderMatches();
 }
 
+
+// ─── PRIVACY ────────────────────────────────────────────────
+function initPrivacy() {
+  if (!localStorage.getItem('privacy_accepted')) {
+    setTimeout(function(){ document.getElementById('privacy-bar').style.display='flex'; }, 1500);
+  }
+}
+function acceptPrivacy() {
+  localStorage.setItem('privacy_accepted','1');
+  document.getElementById('privacy-bar').style.display='none';
+}
+initPrivacy();
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
 
 function toggleStandingsLegend() {
@@ -3124,5 +3185,34 @@ function updateMobileLiveIndicator(hasLive){
   if(ind){ if(hasLive) ind.classList.remove('hidden'); else ind.classList.add('hidden'); }
 }
 </script>
+
+<!-- PRIVACY BAR -->
+<div class="privacy-bar" id="privacy-bar" style="display:none">
+  <span style="flex:1">🔒 Questa app tratta dati sportivi di atlete. Nessun dato è venduto a terzi.
+  <a onclick="document.getElementById('privacy-modal').classList.add('open')">Informativa privacy</a></span>
+  <button class="privacy-accept" onclick="acceptPrivacy()">Ho capito</button>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="privacy-modal" id="privacy-modal">
+  <div class="privacy-content">
+    <h2>🔒 Informativa Privacy</h2>
+    <p>L'app <strong>HP Valchisone Femminile</strong> è gestita da ASD Hockey su Prato Valchisone Femminile, titolare del trattamento dei dati.</p>
+    <h3>Dati trattati</h3>
+    <p>L'app visualizza dati sportivi pubblici: risultati delle partite, nomi delle atlete marcatrici (inseriti volontariamente dallo staff), calendari e classifiche.</p>
+    <h3>Finalità</h3>
+    <p>I dati sono utilizzati esclusivamente per la gestione sportiva del club e la comunicazione con famiglie e tifosi.</p>
+    <h3>Conservazione</h3>
+    <p>I dati sono conservati su Firebase (Google Ireland Ltd.) in server europei, in conformità al GDPR.</p>
+    <h3>Diritti</h3>
+    <p>Puoi richiedere la cancellazione o la modifica dei dati contattando la società: <strong>info@valchisone.it</strong></p>
+    <h3>Cookie</h3>
+    <p>L'app utilizza solo localStorage per ricordare le preferenze dell'utente (es. tour già visto). Nessun cookie di profilazione.</p>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="privacy-accept" onclick="document.getElementById('privacy-modal').classList.remove('open')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
