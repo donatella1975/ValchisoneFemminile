@@ -2775,11 +2775,7 @@ function openPrintWindow(title, styles, bodyHTML) {
     <span style="color:rgba(255,255,255,.7);font-size:12px;font-weight:600;font-family:sans-serif;flex:1">${title}</span>
     <button onclick="window.print()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Stampa / Salva PDF</button>
   </div><div style="height:48px"></div>`;
-  const fullHTML = '<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>' + title + '</title>' + styles + '<style>@media print{.no-print{display:none!important}}</style></head><body>' + toolbar + bodyHTML + '
-
-
-</div>
-</body></html>';
+    const fullHTML = ['<!DOCTYPE html>','<html lang="it">','<head>','<meta charset="UTF-8">','<title>',title,'<\/title>',styles,'<style>@media print{.no-print{display:none!important}}<\/style>','<\/head>','<body>',toolbar,bodyHTML,'<\/body>','<\/html>'].join('');
   const blob = new Blob([fullHTML], {type: 'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3179,13 +3175,8 @@ function updateMobileLiveIndicator(hasLive){
     <h3>Conservazione</h3>
     <p>Dati su Firebase (Google Ireland Ltd.) in server europei, conforme al GDPR.</p>
     <h3>Diritti</h3>
-    <p>Cancellazione o modifica dati: <strong>info@valchisone.it</strong></p>
+    <p>Cancellazione o modifica dati: <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e881868e87a89e89848b80819b87868dc6819c">[email&#160;protected]</a></strong></p>
     <h3>Cookie</h3>
     <p>Solo localStorage per preferenze utente. Nessun cookie di profilazione.</p>
     <div style="margin-top:16px;display:flex;justify-content:flex-end">
-      <button class="privacy-accept" onclick="document.getElementById('privacy-modal').classList.remove('open')">Chiudi</button>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+      <button class="privacy-accept" onclick="docu
