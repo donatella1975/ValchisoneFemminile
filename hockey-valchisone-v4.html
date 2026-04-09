@@ -26,6 +26,9 @@
   window._fbSave        = (data) => set(ref(db,'matches'), data);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
   window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
+  window._fbSaveArchivio = (stagione, data) => set(ref(db,'archivio/'+stagione), data);
+  window._fbListenArchivio = (cb) => onValue(ref(db,'archivio'), snap => cb(snap.val()));
+  window._fbGetArchivioStagione = (stagione, cb) => onValue(ref(db,'archivio/'+stagione), snap => cb(snap.val()), {onlyOnce:true});
   window._fbListenEvents= (cb)   => onValue(ref(db,'events'), snap => cb(snap.val()));
   window._fbSaveLive    = (data) => set(ref(db,'live'), data);
   window._fbListenLive  = (cb)   => onValue(ref(db,'live'), snap => cb(snap.val()));
@@ -185,8 +188,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; }
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
 .mc-body { flex:1; padding:8px 10px; min-width:0; }
-.mc-teams { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
-.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:min(45%,200px); }
+.mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
+.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; max-width:min(45%,200px); flex:1; min-width:0; }
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
@@ -435,7 +438,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .filter-bar-wrap { margin-bottom:8px; }
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { max-width:38vw; }
+  .mc-team { max-width:none; flex:1; font-size:13px; }
+  .mc-teams { flex-wrap:nowrap; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -479,7 +483,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .section-title { font-size:24px; }
   .cal-title { font-size:20px; }
   .cal-dow { font-size:11px; }
-  .cal-day-btn { font-size:14px; min-height:44px; }
+  .cal-day-btn { font-size:13px; min-height:38px; }
+  .cal-wrap { max-width:480px; }
 }
 
 /* ─── NAV MOBILE (scrollabile in alto) ──────────────── */
@@ -679,6 +684,20 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div>
           <div style="font-weight:700;font-size:13px;color:#c2410c">Genera password Live</div>
           <div style="font-size:11px;color:#9a3412">Condividi con chi aggiorna il live</div>
+        </div>
+      </button>
+      <button onclick="showNuovaStagione()" style="width:100%;margin-top:10px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+        <span style="font-size:20px">📦</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:#0369a1">Nuova Stagione</div>
+          <div style="font-size:11px;color:#0284c7">Archivia e riparte da zero</div>
+        </div>
+      </button>
+      <button onclick="showArchivio()" style="width:100%;margin-top:10px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+        <span style="font-size:20px">🗂️</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:#475569">Archivio Stagioni</div>
+          <div style="font-size:11px;color:#64748b">Consulta stagioni passate</div>
         </div>
       </button>
     </div>
@@ -3106,18 +3125,18 @@ function updateHeroStats() {
   const valchW = valchPlayed.filter(m => m.home.toUpperCase().includes(VALCH) ? m.scoreHome > m.scoreAway : m.scoreAway > m.scoreHome).length;
   const valchD = valchPlayed.filter(m => m.scoreHome === m.scoreAway).length;
   const valchL = valchPlayed.length - valchW - valchD;
-  const chip = (label, val, accent) => '<div style="background:' + (accent||'rgba(255,255,255,.15)') + ';border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
-    + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:white;line-height:1">' + val + '</span>'
-    + '<span style="font-size:10px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
+  const chip = (label, val, accent, textColor) => '<div style="background:' + (accent||'rgba(255,255,255,.15)') + ';border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
+    + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:' + (textColor||'white') + ';line-height:1">' + val + '</span>'
+    + '<span style="font-size:10px;color:' + (textColor ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.8)') + ';font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
   // Mostra chip solo se categoria specifica selezionata o filtro Valchisone attivo
   const catFiltered = cat !== 'all' || catEx || onlyValch;
   if (!catFiltered) { statsEl.innerHTML = ''; return; }
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
   if (valchPlayed.length > 0) {
-    html += chip('V', valchW, 'rgba(34,197,94,.25)');
-    if (valchD > 0) html += chip('N', valchD, 'rgba(251,191,36,.2)');
-    html += chip('P', valchL, 'rgba(239,68,68,.2)');
+    html += chip('V', valchW, '#22c55e', 'white');
+    if (valchD > 0) html += chip('N', valchD, '#f59e0b', 'white');
+    html += chip('P', valchL, '#ef4444', 'white');
   }
   statsEl.innerHTML = html;
 }
@@ -3308,6 +3327,81 @@ document.addEventListener('DOMContentLoaded', function() {
   initTour();
 });
 
+
+// ─── NUOVA STAGIONE & ARCHIVIO ──────────────────────────────
+function showNuovaStagione() {
+  document.getElementById('nuova-stagione-modal').classList.add('open');
+}
+
+function eseguiNuovaStagione() {
+  const stagOld = document.getElementById('ns-stagione-old').value.trim();
+  const stagNew = document.getElementById('ns-stagione-new').value.trim();
+  if (!stagOld || !stagNew) { alert('Inserisci entrambe le stagioni'); return; }
+  if (!confirm('Sei assolutamente sicura? Stai per archiviare la stagione ' + stagOld + ' e resettare tutto.')) return;
+
+  // Costruisci oggetto archivio
+  const archivioData = {
+    stagione: stagOld,
+    archiviato: new Date().toISOString(),
+    matches: {},
+    events: {}
+  };
+  allMatches.forEach(function(m) { archivioData.matches[m.id] = m; });
+  allIndoor.forEach(function(m) { archivioData.matches[m.id] = m; });
+  allEvents.forEach(function(e) { archivioData.events[e.id] = e; });
+
+  // Salva archivio su Firebase
+  window._fbSaveArchivio(stagOld, archivioData).then(function() {
+    // Cancella partite ed eventi correnti
+    window._fbSave({});
+    window._fbSaveEvents({});
+    // Aggiorna titolo stagione nel DOM
+    const h1 = document.querySelector('.hero h1');
+    if (h1) h1.textContent = 'Stagione ' + stagNew.replace('-', '/20');
+    const logoSpan = document.querySelector('.logo-text span');
+    if (logoSpan) logoSpan.textContent = 'Femminile — ' + stagNew;
+    document.getElementById('nuova-stagione-modal').classList.remove('open');
+    alert('Stagione ' + stagOld + ' archiviata! Benvenuta nella stagione ' + stagNew + ' 🏑');
+  }).catch(function(e) {
+    alert("Errore durante l'archiviazione: " + e.message);
+  });
+}
+
+function showArchivio() {
+  document.getElementById('archivio-modal').classList.add('open');
+  const el = document.getElementById('archivio-content');
+  el.innerHTML = '<div class="loading">Caricamento...</div>';
+  if (!window._fbListenArchivio) {
+    el.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:20px">Nessun archivio disponibile</p>';
+    return;
+  }
+  window._fbListenArchivio(function(data) {
+    if (!data) {
+      el.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:20px">Nessuna stagione archiviata</p>';
+      return;
+    }
+    const stagioni = Object.keys(data).sort().reverse();
+    el.innerHTML = stagioni.map(function(s) {
+      const d = data[s];
+      const nMatches = d.matches ? Object.keys(d.matches).length : 0;
+      const nEvents = d.events ? Object.keys(d.events).length : 0;
+      const dataArch = d.archiviato ? new Date(d.archiviato).toLocaleDateString('it-IT') : '';
+      return '<div style="background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid #e2e8f0">'
+        + '<div style="font-family:Bricolage Grotesque,sans-serif;font-weight:800;font-size:15px;color:#1a3a22;margin-bottom:4px">Stagione ' + s + '</div>'
+        + '<div style="font-size:12px;color:#64748b">'
+        + nMatches + ' partite · ' + nEvents + ' eventi'
+        + (dataArch ? ' · Archiviata il ' + dataArch : '')
+        + '</div>'
+        + '<button onclick="visualizzaArchivio(&quot;' + s + '&quot;)" style="margin-top:10px;background:var(--green);color:white;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">👁 Visualizza</button>'
+        + '</div>';
+    }).join('');
+  });
+}
+
+function visualizzaArchivio(stagione) {
+  alert('Funzione in arrivo: visualizzazione completa stagione ' + stagione + ' 🏑\nPer ora consulta i dati direttamente su Firebase Console.');
+}
+
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
 
 function toggleStandingsLegend() {
@@ -3351,6 +3445,45 @@ function updateMobileLiveIndicator(hasLive){
   if(ind){ if(hasLive) ind.classList.remove('hidden'); else ind.classList.add('hidden'); }
 }
 </script>
+
+<!-- MODAL NUOVA STAGIONE -->
+<div class="modal-overlay" id="nuova-stagione-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">📦 Nuova Stagione</div>
+    <p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6">
+      Questa operazione <strong>archivia</strong> tutte le partite e gli eventi della stagione corrente
+      e prepara l'app per la nuova stagione. I dati archiviati resteranno consultabili.
+    </p>
+    <div class="form-field">
+      <label>Stagione da archiviare</label>
+      <input type="text" id="ns-stagione-old" value="2025-26" placeholder="es. 2025-26">
+    </div>
+    <div class="form-field">
+      <label>Nuova stagione</label>
+      <input type="text" id="ns-stagione-new" value="2026-27" placeholder="es. 2026-27">
+    </div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:12px;color:#9a3412;margin-bottom:16px">
+      ⚠️ Attenzione: le partite correnti verranno cancellate dopo l'archiviazione. Questa azione non si può annullare.
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('nuova-stagione-modal').classList.remove('open')">Annulla</button>
+      <button class="btn btn-green" onclick="eseguiNuovaStagione()">📦 Archivia e Riparte</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ARCHIVIO -->
+<div class="modal-overlay" id="archivio-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">🗂️ Archivio Stagioni</div>
+    <div id="archivio-content" style="min-height:80px;font-size:13px;color:#374151">
+      <div class="loading">Caricamento archivio...</div>
+    </div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('archivio-modal').classList.remove('open')">Chiudi</button>
+    </div>
+  </div>
+</div>
 
 <!-- PRIVACY BAR -->
 <div class="privacy-bar" id="privacy-bar" style="display:none">
