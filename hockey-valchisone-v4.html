@@ -13,6 +13,73 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
+<!-- PAGINA DIRIGENTE -->
+<div class="page" id="page-dirigente" style="padding:0;background:#0d2b14;min-height:100vh">
+
+  <!-- Login PIN -->
+  <div id="dir-login-wrap" class="dir-login-wrap">
+    <div class="dir-login-title">⏱️ Modalità Dirigente</div>
+    <div class="dir-login-sub">Inserisci il PIN per accedere</div>
+    <div class="dir-pin-display" id="dir-pin-display">_ _ _ _ _ _</div>
+    <div class="dir-pin-grid">
+      <button class="dir-pin-btn" onclick="dirPinTap('1')">1</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('2')">2</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('3')">3</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('4')">4</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('5')">5</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('6')">6</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('7')">7</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('8')">8</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('9')">9</button>
+      <button class="dir-pin-btn dir-pin-del" onclick="dirPinTap('del')" style="grid-column:1">⌫</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('0')">0</button>
+      <button class="dir-pin-btn" onclick="dirPinTap('ok')" style="background:#1a7a2e">✓</button>
+    </div>
+    <div class="dir-pin-err" id="dir-pin-err"></div>
+  </div>
+
+  <!-- Schermata principale dirigente -->
+  <div id="dir-main-wrap" class="dir-main" style="display:none">
+
+    <!-- Timer grande -->
+    <div class="dir-timer-box">
+      <div class="dir-match-label">Partita in corso</div>
+      <div class="dir-match-name" id="dir-match-name">—</div>
+      <div class="dir-quarter-label" id="dir-quarter-label">1° QUARTO</div>
+
+      <!-- Modalità timer -->
+      <div class="dir-mode-toggle">
+        <button class="dir-mode-btn active" id="dir-mode-fwd" onclick="dirSetMode('avanti')">▶ Avanti</button>
+        <button class="dir-mode-btn" id="dir-mode-cdn" onclick="dirSetMode('countdown')">⏳ Conto alla rovescia</button>
+      </div>
+
+      <!-- Input minuti per countdown -->
+      <div class="dir-countdown-set" id="dir-countdown-set" style="display:none">
+        <label>Minuti:</label>
+        <input type="number" id="dir-cdn-minutes" value="17" min="1" max="60" onchange="dirUpdateCountdownTarget()">
+      </div>
+
+      <!-- Display timer enorme -->
+      <div class="dir-timer-display" id="dir-timer-display">00:00</div>
+      <div class="dir-timer-total" id="dir-timer-total-wrap">Totale: <span id="dir-timer-total">00:00</span></div>
+
+      <!-- Play / Reset -->
+      <div class="dir-timer-controls">
+        <button class="dir-btn-play" id="dir-btn-play" onclick="dirTimerToggle()">▶ Avvia</button>
+        <button class="dir-btn-reset" onclick="dirTimerReset()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- Controlli campo (gol + quarto) -->
+    <div class="dir-controls-box" id="dir-live-controls">
+      <div class="dir-controls-title">⚽ Aggiorna tabellone</div>
+      <div id="dir-admin-panel-content"><!-- popolato da JS --></div>
+    </div>
+
+    <button class="dir-exit-btn" onclick="dirExit()">✕ Esci dalla modalità dirigente</button>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -188,12 +255,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; }
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
 .mc-body { flex:1; padding:8px 10px; min-width:0; }
-.mc-teams { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; margin-bottom:4px; min-width:0; }
-.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; }
-.mc-team:first-child { text-align:right; }
-.mc-team:last-of-type { text-align:left; }
+.mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
+.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; max-width:min(45%,200px); flex:1; min-width:0; }
 .mc-team.valch { color:var(--orange); }
-.mc-vs { font-size:9px; font-weight:700; color:#d1d5db; text-align:center; white-space:nowrap; }
+.mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
 .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
@@ -423,7 +488,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── PRINT MEDIA ─────────────────────────────── */
 @media print {
   header, .hero, .cal-wrap, .filter-bar-wrap, .btn-pdf, .print-box, .print-label,
-  .nav-admin, #login-wrap, #page-admin, #page-classifica, #page-live,
+  .nav-admin, #login-wrap, #page-admin, #page-classifica, #page-live, #page-dirigente,
   .nav-admin, .class-tabs, .btn-map, .mc-right button { display:none !important; }
   /* When print preview is open, print only its content */
   body > *:not(#print-preview-overlay) { display:none !important; }
@@ -440,7 +505,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .filter-bar-wrap { margin-bottom:8px; }
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { font-size:13px; }
+  .mc-team { max-width:none; flex:1; font-size:13px; }
+  .mc-teams { flex-wrap:nowrap; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -450,7 +516,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 }
 @media (min-width:900px) {
   body { font-size:17px; }
-  .mc-team { font-size:16px; }
+  .mc-team { font-size:17px; max-width:260px; }
   .mc-score { font-size:26px; }
   .t-hour { font-size:22px; }
   .t-dow  { font-size:11px; }
@@ -500,27 +566,74 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 @media (min-width:641px) {
   .nav-live-indicator { display:none; }
 }
-
-/* ─── LAYOUT DUE COLONNE DESKTOP ──────────────────── */
-@media (min-width:900px) {
-  .page-layout-two-col {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  .page-layout-left {
-    position: sticky;
-    top: 72px;
-  }
-  .page-layout-right {
-    min-width: 0;
-  }
-  .cal-wrap { max-width: none; margin-bottom: 0; }
-}
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
 .page.active { opacity:1; }
+
+/* ─── MODALITÀ DIRIGENTE ──────────────────────────── */
+#page-dirigente { background:#0d2b14; min-height:100vh; padding:0; }
+.dir-login-wrap { max-width:320px; margin:80px auto; background:#1a3a22; border-radius:18px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4); padding:32px; text-align:center; }
+.dir-login-title { color:white; font-family:'Bricolage Grotesque',sans-serif;
+  font-size:22px; font-weight:800; margin-bottom:6px; }
+.dir-login-sub { color:rgba(255,255,255,.6); font-size:13px; margin-bottom:24px; }
+.dir-pin-display { background:#0d2b14; border-radius:12px; padding:14px 20px;
+  font-family:'Bricolage Grotesque',sans-serif; font-size:36px; font-weight:900;
+  color:white; letter-spacing:14px; margin-bottom:16px; min-height:64px; }
+.dir-pin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
+.dir-pin-btn { background:#25a040; color:white; border:none; border-radius:12px;
+  padding:18px; font-size:22px; font-weight:800; cursor:pointer;
+  font-family:'Bricolage Grotesque',sans-serif; transition:background .15s; }
+.dir-pin-btn:active { background:#1a7a2e; }
+.dir-pin-del { background:#c2410c; }
+.dir-pin-del:active { background:#991b1b; }
+.dir-pin-err { color:#ff6666; font-size:13px; margin-top:8px; min-height:20px; }
+
+/* Timer schermata principale dirigente */
+.dir-main { padding:16px; }
+.dir-timer-box { background:#1a3a22; border-radius:20px; padding:28px 20px 24px;
+  text-align:center; margin-bottom:16px; position:relative; }
+.dir-match-label { color:rgba(255,255,255,.7); font-size:13px; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.dir-match-name { color:white; font-family:'Bricolage Grotesque',sans-serif;
+  font-size:19px; font-weight:900; margin-bottom:4px; }
+.dir-quarter-label { display:inline-block; background:#e8620a; color:white;
+  border-radius:20px; padding:3px 14px; font-size:12px; font-weight:800;
+  margin-bottom:16px; }
+.dir-timer-display { font-family:'Bricolage Grotesque',sans-serif;
+  font-size:88px; font-weight:900; color:white; line-height:1;
+  letter-spacing:-2px; margin-bottom:8px; }
+.dir-timer-total { color:rgba(255,255,255,.5); font-size:15px; margin-bottom:18px; }
+.dir-mode-toggle { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
+.dir-mode-btn { background:rgba(255,255,255,.12); color:white; border:1.5px solid rgba(255,255,255,.25);
+  border-radius:20px; padding:6px 18px; font-size:12px; font-weight:700; cursor:pointer;
+  transition:all .15s; }
+.dir-mode-btn.active { background:#e8620a; border-color:#e8620a; }
+.dir-countdown-set { display:flex; align-items:center; gap:8px; justify-content:center;
+  margin-bottom:14px; }
+.dir-countdown-set label { color:rgba(255,255,255,.7); font-size:13px; }
+.dir-countdown-set input { background:#0d2b14; border:1.5px solid #25a040; border-radius:8px;
+  color:white; font-size:16px; font-weight:700; padding:6px 10px; width:72px;
+  text-align:center; font-family:'Bricolage Grotesque',sans-serif; }
+.dir-timer-controls { display:flex; gap:10px; justify-content:center; }
+.dir-btn-play { background:#25a040; color:white; border:none; border-radius:14px;
+  padding:16px 32px; font-size:18px; font-weight:800; cursor:pointer;
+  font-family:'Bricolage Grotesque',sans-serif; flex:1; max-width:180px;
+  transition:background .15s; }
+.dir-btn-play:active { background:#1a7a2e; }
+.dir-btn-reset { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8);
+  border:none; border-radius:14px; padding:16px 20px; font-size:16px;
+  font-weight:700; cursor:pointer; transition:background .15s; }
+.dir-btn-reset:active { background:rgba(255,255,255,.2); }
+
+/* Pannello controlli campo (gol, quarto) */
+.dir-controls-box { background:#1a3a22; border-radius:16px; padding:18px;
+  margin-bottom:12px; }
+.dir-controls-title { color:rgba(255,255,255,.6); font-size:11px; font-weight:800;
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+.dir-exit-btn { width:100%; background:rgba(255,255,255,.08); color:rgba(255,255,255,.5);
+  border:none; border-radius:12px; padding:12px; font-size:13px; cursor:pointer;
+  margin-top:4px; }
 </style>
 </head>
 <body>
@@ -540,6 +653,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
       <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
+      <button class="nav-pill nav-admin" id="nav-dirigente-btn" onclick="showPage('dirigente',this)" title="Dirigente" style="display:none">⏱️</button>
     </nav>
   </div>
 </header>
@@ -579,25 +693,19 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-layout-two-col">
-    <div class="page-layout-left">
-      <div class="cal-wrap">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
-          <div class="cal-title" id="cal-title"></div>
-          <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
-        </div>
-        <div style="text-align:center;margin-bottom:8px">
-          <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
-      </div>
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
+      <div class="cal-title" id="cal-title"></div>
+      <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
     </div>
-    <div class="page-layout-right">
-      <div id="next-match-banner-wrap"></div>
-      <div id="matches-list"><div id="skeleton-partite"></div></div>
+    <div style="text-align:center;margin-bottom:8px">
+      <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
     </div>
+    <div class="cal-grid" id="cal-grid"></div>
   </div>
+  <div id="next-match-banner-wrap"></div>
+  <div id="matches-list"><div id="skeleton-partite"></div></div>
 </div>
 
 <!-- INDOOR -->
@@ -614,24 +722,18 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-layout-two-col">
-    <div class="page-layout-left">
-      <div class="cal-wrap">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
-          <div class="cal-title" id="cal-indoor-title"></div>
-          <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
-        </div>
-        <div style="text-align:center;margin-bottom:8px">
-          <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-        </div>
-        <div class="cal-grid" id="cal-indoor-grid"></div>
-      </div>
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
+      <div class="cal-title" id="cal-indoor-title"></div>
+      <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
     </div>
-    <div class="page-layout-right">
-      <div id="indoor-list"><div id="skeleton-indoor"></div></div>
+    <div style="text-align:center;margin-bottom:8px">
+      <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
     </div>
+    <div class="cal-grid" id="cal-indoor-grid"></div>
   </div>
+  <div id="indoor-list"><div id="skeleton-indoor"></div></div>
 </div>
 
 <!-- EVENTI -->
@@ -1067,6 +1169,7 @@ window.addEventListener('load', () => {
         }
       }
       renderLiveBadge();
+      updateDirNavBtn();
       renderLivePage();
       renderLiveAdminPanel();
     });
@@ -1094,7 +1197,7 @@ function showPage(name, btn) {
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
-  updateHeroStats();
+  if (name === 'dirigente')  { dirPinBuffer=''; document.getElementById('dir-login-wrap').style.display = dirUnlocked ? 'none' : ''; document.getElementById('dir-main-wrap').style.display = dirUnlocked ? '' : 'none'; if (dirUnlocked) dirInitMain(); }
 }
 
 function switchSport(sport) {
@@ -1443,9 +1546,8 @@ function matchCardHTML(m, showAdmin) {
       <span class="mc-team${homeClass}" title="${m.home}">${abbrevTeam(m.home,22)}</span>
       <span class="mc-vs">VS</span>
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
-
+      ${hasSc ? `<span class="mc-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}
     </div>
-    ${hasSc ? `<div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
     ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
       Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
         const isHome = g.team === m.home;
@@ -3142,15 +3244,6 @@ function abbrevTeam(name, maxLen) {
 function updateHeroStats() {
   const statsEl = document.getElementById('hero-stats');
   if (!statsEl) return;
-  // Nascondi tutto se non siamo su prato o indoor
-  const heroBtns = document.querySelector('.hero-btns');
-  if (currentPage !== 'partite' && currentPage !== 'indoor') {
-    statsEl.innerHTML = '';
-    if (heroBtns) heroBtns.style.display = 'none';
-    return;
-  }
-  if (heroBtns) heroBtns.style.display = '';
-
   const pratoBtn = document.getElementById('btn-sport-prato');
   const sport = (pratoBtn && pratoBtn.classList.contains('active-sport')) ? 'prato' : 'indoor';
   const base  = sport === 'prato' ? allMatches : allIndoor;
@@ -3214,7 +3307,7 @@ const TOUR_STEPS = [
   {
     target: '.hero',
     title: 'Benvenuta... e benvenuto! 🏑',
-    desc: 'Questa app è dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l’app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
+    desc: 'Questa app e dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
     position: 'bottom'
   },
   {
@@ -3486,6 +3579,226 @@ function updateMobileLiveIndicator(hasLive){
   const ind = document.getElementById('nav-live-indicator-mobile');
   if(ind){ if(hasLive) ind.classList.remove('hidden'); else ind.classList.add('hidden'); }
 }
+
+/* ═══════════════════════════════════════════════════════
+   MODALITÀ DIRIGENTE
+   ═══════════════════════════════════════════════════════ */
+const DIR_PIN = "757911";
+let dirPinBuffer = "";
+let dirMode = "avanti"; // "avanti" | "countdown"
+let dirCountdownTarget = 17 * 60 * 1000; // 17 minuti default
+let _dirTickInterval = null;
+let dirUnlocked = false;
+
+/* ── Mostra/nasconde pulsante dirigente in nav ── */
+function updateDirNavBtn() {
+  const btn = document.getElementById("nav-dirigente-btn");
+  if (!btn) return;
+  // Visibile solo se c'è una partita live attiva
+  btn.style.display = (liveData && liveData.active) ? "" : "none";
+}
+
+/* ── PIN ── */
+function dirPinTap(val) {
+  const display = document.getElementById("dir-pin-display");
+  const err = document.getElementById("dir-pin-err");
+  if (val === "del") {
+    dirPinBuffer = dirPinBuffer.slice(0, -1);
+  } else if (val === "ok") {
+    if (dirPinBuffer === DIR_PIN) {
+      dirUnlocked = true;
+      document.getElementById("dir-login-wrap").style.display = "none";
+      document.getElementById("dir-main-wrap").style.display = "";
+      dirInitMain();
+    } else {
+      err.textContent = "PIN errato. Riprova.";
+      dirPinBuffer = "";
+    }
+  } else {
+    if (dirPinBuffer.length < 6) dirPinBuffer += val;
+  }
+  // Aggiorna display
+  const masked = dirPinBuffer.replace(/./g, "●");
+  const placeholders = "_ _ _ _ _ _".split(" ");
+  const chars = masked.split("");
+  for (let i = 0; i < placeholders.length; i++) {
+    if (chars[i]) placeholders[i] = chars[i];
+  }
+  display.textContent = placeholders.join(" ");
+  if (val !== "ok") err.textContent = "";
+}
+
+/* ── Inizializzazione schermata principale ── */
+function dirInitMain() {
+  // Popola nome partita e quarto
+  if (liveData && liveData.active) {
+    const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
+    document.getElementById("dir-match-name").textContent =
+      (liveData.home || "?") + " vs " + (liveData.away || "?");
+    document.getElementById("dir-quarter-label").textContent =
+      qNames[Math.min((liveData.half||1)-1, 3)];
+  }
+  // Popola pannello controlli (riusa la funzione admin esistente)
+  dirRenderAdminPanel();
+  // Avvia tick display
+  dirStartTick();
+}
+
+/* ── Imposta modalità timer ── */
+function dirSetMode(mode) {
+  dirMode = mode;
+  document.getElementById("dir-mode-fwd").classList.toggle("active", mode === "avanti");
+  document.getElementById("dir-mode-cdn").classList.toggle("active", mode === "countdown");
+  document.getElementById("dir-countdown-set").style.display = mode === "countdown" ? "flex" : "none";
+  dirUpdateDisplay();
+}
+
+function dirUpdateCountdownTarget() {
+  const mins = parseInt(document.getElementById("dir-cdn-minutes").value) || 17;
+  dirCountdownTarget = mins * 60 * 1000;
+  dirUpdateDisplay();
+}
+
+/* ── Toggle avvia/pausa ── */
+function dirTimerToggle() {
+  if (!liveData || !liveData.active) return;
+  const btn = document.getElementById("dir-btn-play");
+  if (liveData.timerRunning) {
+    // Pausa - riusa timerStop esistente
+    timerStop();
+    btn.textContent = "▶ Avvia";
+  } else {
+    // Avvia - riusa timerStart esistente
+    timerStart();
+    btn.textContent = "⏸ Pausa";
+  }
+}
+
+/* ── Reset quarto ── */
+function dirTimerReset() {
+  if (!liveData || !liveData.active) return;
+  if (!confirm("Resettare il timer del quarto corrente?")) return;
+  const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0};
+  window._fbSaveLive(updated);
+  document.getElementById("dir-btn-play").textContent = "▶ Avvia";
+}
+
+/* ── Aggiorna display ogni 500ms ── */
+function dirStartTick() {
+  if (_dirTickInterval) clearInterval(_dirTickInterval);
+  _dirTickInterval = setInterval(dirUpdateDisplay, 500);
+}
+
+function dirUpdateDisplay() {
+  if (!liveData || !liveData.active) return;
+  const partialMs = getPartialMs(liveData);
+  const totalMs = getTotalMs(liveData);
+
+  let displayMs;
+  if (dirMode === "countdown") {
+    displayMs = Math.max(0, dirCountdownTarget - partialMs);
+  } else {
+    displayMs = partialMs;
+  }
+
+  const timerEl = document.getElementById("dir-timer-display");
+  const totalEl = document.getElementById("dir-timer-total");
+  const playBtn = document.getElementById("dir-btn-play");
+  const quarterEl = document.getElementById("dir-quarter-label");
+
+  if (timerEl) timerEl.textContent = msToDisplay(displayMs);
+  if (totalEl) totalEl.textContent = msToDisplay(totalMs);
+  if (playBtn) playBtn.textContent = liveData.timerRunning ? "⏸ Pausa" : "▶ Avvia";
+
+  // Aggiorna etichetta quarto
+  const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
+  if (quarterEl) quarterEl.textContent = qNames[Math.min((liveData.half||1)-1, 3)];
+
+  // Avviso countdown a zero
+  if (dirMode === "countdown" && displayMs === 0 && liveData.timerRunning) {
+    timerEl.style.color = "#ff4444";
+  } else if (timerEl) {
+    timerEl.style.color = "white";
+  }
+}
+
+/* ── Pannello gol/quarto riutilizzato dall'admin ── */
+function dirRenderAdminPanel() {
+  const wrap = document.getElementById("dir-admin-panel-content");
+  if (!wrap || !liveData || !liveData.active) return;
+  const l = liveData;
+  const isLastQuarter = (l.half||1) >= 4;
+  const qNames = ["1°","2°","3°","4°"];
+  const nextQLabel = isLastQuarter ? "🏁 Fine partita" : ("🔄 Fine " + qNames[(l.half||1)-1] + " Quarto");
+  wrap.innerHTML = \`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="text-align:center">
+        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">\${l.home||'Casa'}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="dirGoal('home')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
+          <span style="color:white;font-size:28px;font-weight:900">\${l.scoreHome||0}</span>
+          <button onclick="dirRemoveGoal('home')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">\${l.away||'Ospite'}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <button onclick="dirGoal('away')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
+          <span style="color:white;font-size:28px;font-weight:900">\${l.scoreAway||0}</span>
+          <button onclick="dirRemoveGoal('away')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
+        </div>
+      </div>
+    </div>
+    <button onclick="dirNextQuarter()" style="width:100%;background:#e8620a;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px">\${nextQLabel}</button>
+  \`;
+}
+
+function dirGoal(team) {
+  if (!liveData || !liveData.active) return;
+  const totalMs = getTotalMs(liveData);
+  const partialMs = getPartialMs(liveData);
+  const minuteTotal = Math.floor(totalMs / 60000);
+  const minuteQuarter = Math.floor(partialMs / 60000);
+  const goalId = "g" + Date.now();
+  const goals = liveData.goals ? {...liveData.goals} : {};
+  goals[goalId] = { team: team === "home" ? liveData.home : liveData.away, minute: minuteTotal, minuteQuarter, quarter: liveData.half||1 };
+  const field = team === "home" ? "scoreHome" : "scoreAway";
+  const updated = {...liveData, [field]: (liveData[field]||0) + 1, goals};
+  window._fbSaveLive(updated);
+}
+
+function dirRemoveGoal(team) {
+  if (!liveData || !liveData.active) return;
+  const field = team === "home" ? "scoreHome" : "scoreAway";
+  const cur = liveData[field] || 0;
+  if (cur <= 0) return;
+  const updated = {...liveData, [field]: cur - 1};
+  window._fbSaveLive(updated);
+}
+
+function dirNextQuarter() {
+  if (!liveData || !liveData.active) return;
+  timerHalf(); // riusa la funzione esistente
+  setTimeout(() => {
+    dirRenderAdminPanel();
+    const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
+    const el = document.getElementById("dir-quarter-label");
+    if (el) el.textContent = qNames[Math.min((liveData.half||1)-1, 3)];
+  }, 600);
+}
+
+/* ── Esci dalla modalità dirigente ── */
+function dirExit() {
+  if (_dirTickInterval) clearInterval(_dirTickInterval);
+  dirUnlocked = false;
+  dirPinBuffer = "";
+  document.getElementById("dir-login-wrap").style.display = "";
+  document.getElementById("dir-main-wrap").style.display = "none";
+  document.getElementById("dir-pin-display").textContent = "_ _ _ _ _ _";
+  document.getElementById("dir-pin-err").textContent = "";
+  showPage("live", document.getElementById("nav-live-btn"));
+}
+
 </script>
 
 <!-- MODAL NUOVA STAGIONE -->
