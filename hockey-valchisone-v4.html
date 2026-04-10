@@ -256,7 +256,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
 .mc-body { flex:1; padding:8px 10px; min-width:0; }
 .mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
-.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; max-width:min(45%,200px); flex:1; min-width:0; }
+.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
@@ -505,8 +505,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .filter-bar-wrap { margin-bottom:8px; }
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { max-width:none; flex:1; font-size:13px; }
-  .mc-teams { flex-wrap:nowrap; }
+  .mc-team { max-width:none !important; flex:1; font-size:12px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mc-teams { flex-wrap:nowrap; gap:3px; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -569,6 +569,24 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
 .page.active { opacity:1; }
+
+
+/* ─── CARD RISULTATO: vittoria/sconfitta/pareggio ──── */
+.valch-match.valch-win  { border-left:4px solid var(--green); background:#f0faf2; }
+.valch-match.valch-loss { border-left:4px solid #e5e7eb; background:#fafafa; opacity:.85; }
+.valch-match.valch-draw { border-left:4px solid #f97316; background:#fffbf5; }
+.result-badge { display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border-radius:50%; font-size:11px; font-weight:900;
+  flex-shrink:0; margin-left:6px; }
+.result-badge.win  { background:var(--green); color:white; }
+.result-badge.loss { background:#e5e7eb; color:#9ca3af; }
+.result-badge.draw { background:#f97316; color:white; }
+/* score più leggibile */
+.mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:17px; font-weight:900;
+  color:var(--green); flex-shrink:0; padding:2px 8px;
+  background:rgba(26,122,48,.08); border-radius:8px; margin:0 4px; }
+.mc-score.score-loss { color:#6b7280; background:#f3f4f6; }
+.mc-score.score-draw { color:#f97316; background:#fff7ed; }
 
 /* ─── MODALITÀ DIRIGENTE ──────────────────────────── */
 #page-dirigente { background:#0d2b14; min-height:100vh; padding:0; }
@@ -810,6 +828,15 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:24px;margin-bottom:6px">🔴</div>
           <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
+        </button>
+        <button onclick="enterDirigenteFromAdmin()" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s;grid-column:1/-1">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:28px">⏱️</span>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:#1a7a30">Modalità Dirigente</div>
+              <div style="font-size:11px;color:#6b7280;margin-top:2px">Timer grande + aggiornamento live dal campo</div>
+            </div>
+          </div>
         </button>
       </div>
       <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
@@ -1539,14 +1566,26 @@ function matchCardHTML(m, showAdmin) {
   const awayWon = hasSc && m.scoreAway > m.scoreHome;
   const homeClass = (isHomeValch?' valch':'') + (hasSc?(homeWon?' winner':' loser'):'');
   const awayClass = (isAwayValch?' valch':'') + (hasSc?(awayWon?' winner':' loser'):'');
-  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}">
+  // Calcola risultato Valchisone per stile card
+  let valchResult = '';
+  let scoreCls = '';
+  if (hasSc && isValch) {
+    const valchIsHome = isHomeValch;
+    const valchScore  = valchIsHome ? m.scoreHome : m.scoreAway;
+    const oppScore    = valchIsHome ? m.scoreAway : m.scoreHome;
+    if (valchScore > oppScore)       { valchResult = ' valch-win';  scoreCls = ''; }
+    else if (valchScore < oppScore)  { valchResult = ' valch-loss'; scoreCls = ' score-loss'; }
+    else if (hasSc)                  { valchResult = ' valch-draw'; scoreCls = ' score-draw'; }
+  }
+  const resultBadge = (hasSc && isValch) ? (valchResult.includes('win') ? '<span class="result-badge win">V</span>' : valchResult.includes('loss') ? '<span class="result-badge loss">S</span>' : '<span class="result-badge draw">P</span>') : '';
+  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}${valchResult}">
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
       <span class="mc-team${homeClass}" title="${m.home}">${abbrevTeam(m.home,22)}</span>
       <span class="mc-vs">VS</span>
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
-      ${hasSc ? `<span class="mc-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}
+      ${hasSc ? `<span class="mc-score${scoreCls}">${m.scoreHome}–${m.scoreAway}</span>${resultBadge}` : ''}
     </div>
     ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
       Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
@@ -1892,39 +1931,76 @@ function playWhistle(type) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const c = new AudioCtx();
-    function w1(t, dur) {
-      const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.3;
-      const noise=c.createBufferSource(); noise.buffer=buf;
-      const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=15;
-      const gn=c.createGain();
-      gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(0.4,t+0.02);
-      gn.gain.setValueAtTime(0.4,t+dur-0.04); gn.gain.linearRampToValueAtTime(0,t+dur);
-      noise.connect(bp); bp.connect(gn); gn.connect(c.destination);
-      noise.start(t); noise.stop(t+dur);
-      const o=c.createOscillator(),g=c.createGain();
-      o.type='sine'; o.frequency.setValueAtTime(2800,t); o.frequency.linearRampToValueAtTime(2600,t+dur);
-      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
-      g.gain.setValueAtTime(0.2,t+dur-0.04); g.gain.linearRampToValueAtTime(0,t+dur);
-      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur);
+    const now = c.currentTime + 0.05;
+
+    // ── CAMPANELLA elettronica (gol + inizio quarto) ──
+    function campanella(t) {
+      // Corpo della campana: sine ad alta frequenza con decay esponenziale
+      [880, 1108, 1318, 1760].forEach((freq, i) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'sine';
+        o.frequency.value = freq;
+        const vol = i === 0 ? 0.5 : 0.25 / (i + 1);
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + 1.8);
+      });
+      // Click iniziale metallico
+      const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.02), c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const click = c.createBufferSource(); click.buffer = buf;
+      const hpf = c.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 3000;
+      const gk = c.createGain(); gk.gain.setValueAtTime(0.6, t);
+      click.connect(hpf); hpf.connect(gk); gk.connect(c.destination);
+      click.start(t); click.stop(t + 0.02);
     }
-    const now = c.currentTime+0.05;
-    if (type==='single'||type==='start') {
-      w1(now, 0.35);
-    } else if (type==='triple') {
-      // 3 trombe (fine_B)
-      function tromba(freq,t,vol) {
-        const o=c.createOscillator(),g=c.createGain();
-        const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200;
-        o.type='sawtooth'; o.frequency.value=freq;
-        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.04);
-        g.gain.setValueAtTime(vol,t+0.36); g.gain.linearRampToValueAtTime(0,t+0.42);
-        o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.45);
-      }
-      tromba(440,now,0.4); tromba(440,now+0.6,0.4); tromba(440,now+1.2,0.5);
+
+    // ── BUZZER NBA (fine quarto / fine partita) ──
+    function buzzerNBA(t) {
+      // Onda quadra bassa (il caratteristico BZZZT dello stadio)
+      const freqs = [120, 180, 240];
+      freqs.forEach(freq => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'square';
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.35, t + 0.03);
+        g.gain.setValueAtTime(0.35, t + 0.55);
+        g.gain.linearRampToValueAtTime(0, t + 0.65);
+        // Distorsione leggera tramite waveshaper
+        const ws = c.createWaveShaper();
+        const curve = new Float32Array(256);
+        for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x)); }
+        ws.curve = curve;
+        o.connect(ws); ws.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + 0.65);
+      });
+      // Secondo colpo più corto dopo 0.1s
+      freqs.forEach(freq => {
+        const o2 = c.createOscillator(), g2 = c.createGain();
+        o2.type = 'square'; o2.frequency.value = freq * 0.9;
+        g2.gain.setValueAtTime(0, t + 0.75);
+        g2.gain.linearRampToValueAtTime(0.2, t + 0.78);
+        g2.gain.setValueAtTime(0.2, t + 1.0);
+        g2.gain.linearRampToValueAtTime(0, t + 1.1);
+        const ws2 = c.createWaveShaper();
+        const curve2 = new Float32Array(256);
+        for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve2[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x)); }
+        ws2.curve = curve2;
+        o2.connect(ws2); ws2.connect(g2); g2.connect(c.destination);
+        o2.start(t + 0.75); o2.stop(t + 1.1);
+      });
     }
-    setTimeout(()=>c.close(),3000);
+
+    if (type === 'single' || type === 'start') {
+      campanella(now);                     // gol e inizio quarto
+    } else if (type === 'triple') {
+      buzzerNBA(now);                      // fine quarto e fine partita
+    }
+
+    setTimeout(() => c.close(), 4000);
   } catch(e) {}
 }
 
@@ -2448,6 +2524,7 @@ function doLogin() {
     showAdminDashboard();
     renderLiveAdminPanel();
     populateDataLists();
+    updateDirNavBtn();
     setTimeout(showMissingResultsAlert, 300);
   } else {
     // Check live password from Firebase
@@ -3594,11 +3671,20 @@ let dirUnlocked = false;
 function updateDirNavBtn() {
   const btn = document.getElementById("nav-dirigente-btn");
   if (!btn) return;
-  // Visibile solo se c'è una partita live attiva
-  btn.style.display = (liveData && liveData.active) ? "" : "none";
+  // Visibile solo se admin è aperto oppure c'è una partita live attiva
+  btn.style.display = (isAdminOpen || (liveData && liveData.active)) ? "" : "none";
 }
 
 /* ── PIN ── */
+function enterDirigenteFromAdmin() {
+  // Entra in modalità dirigente direttamente dall'admin (già autenticato)
+  dirUnlocked = true;
+  showPage('dirigente', document.getElementById('nav-dirigente-btn'));
+  document.getElementById('dir-login-wrap').style.display = 'none';
+  document.getElementById('dir-main-wrap').style.display = '';
+  dirInitMain();
+}
+
 function dirPinTap(val) {
   const display = document.getElementById("dir-pin-display");
   const err = document.getElementById("dir-pin-err");
