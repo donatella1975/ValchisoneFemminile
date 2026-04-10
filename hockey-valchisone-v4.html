@@ -505,8 +505,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .filter-bar-wrap { margin-bottom:8px; }
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { max-width:none !important; flex:1; font-size:11px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .mc-teams { flex-wrap:nowrap; gap:2px; }
+  .mc-team { max-width:none !important; flex:1; font-size:10.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mc-vs { font-size:9px; padding:0 3px; flex-shrink:0; }
+  .mc-teams { flex-wrap:nowrap; gap:2px; min-width:0; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -1609,9 +1610,9 @@ function matchCardHTML(m, showAdmin) {
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
-      <span class="mc-team${homeClass}" title="${m.home}">${abbrevTeam(m.home,18)}</span>
+      <span class="mc-team${homeClass}" title="${m.home}">${m.home}</span>
       <span class="mc-vs">VS</span>
-      <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,18)}</span>
+      <span class="mc-team${awayClass}" title="${m.away}">${m.away}</span>
       ${hasSc ? `<span class="mc-score${scoreCls}">${m.scoreHome}–${m.scoreAway}</span>${resultBadge}` : ''}
     </div>
     ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
@@ -1624,7 +1625,7 @@ function matchCardHTML(m, showAdmin) {
     }</div>` : ''}
     </div>
     <div class="mc-meta">
-      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
+      ${m.location ? `<a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener" title="${m.location}">📍 Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
       <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
