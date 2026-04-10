@@ -258,7 +258,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
 .mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
 .mc-team.valch { color:var(--orange); }
-.mc-vs { font-size:11px; font-weight:800; color:#9ca3af; flex-shrink:0; padding:0 4px; }
+.mc-vs { font-size:11px; font-weight:800; color:#9ca3af; flex-shrink:0; padding:0 8px; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
 .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
@@ -551,7 +551,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .cal-title { font-size:20px; }
   .cal-dow { font-size:11px; }
   .cal-day-btn { font-size:13px; min-height:38px; }
-  .cal-wrap { max-width:480px; }
+  .cal-wrap { max-width:100%; }
+  .page-content-grid { display:grid; grid-template-columns:minmax(360px,480px) 1fr; gap:28px; align-items:start; padding:0 8px; }
+  .page-content-grid .cal-wrap { position:sticky; top:80px; }
+  .cal-wrap { min-width:340px; }
 }
 
 /* ─── NAV MOBILE (scrollabile in alto) ──────────────── */
@@ -721,19 +724,23 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="cal-wrap">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
-      <div class="cal-title" id="cal-title"></div>
-      <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+  <div class="page-content-grid">
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+      </div>
+      <div style="text-align:center;margin-bottom:8px">
+        <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
     </div>
-    <div style="text-align:center;margin-bottom:8px">
-      <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+    <div>
+      <div id="next-match-banner-wrap"></div>
+      <div id="matches-list"><div id="skeleton-partite"></div></div>
     </div>
-    <div class="cal-grid" id="cal-grid"></div>
   </div>
-  <div id="next-match-banner-wrap"></div>
-  <div id="matches-list"><div id="skeleton-partite"></div></div>
 </div>
 
 <!-- INDOOR -->
@@ -750,18 +757,22 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="cal-wrap">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
-      <div class="cal-title" id="cal-indoor-title"></div>
-      <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+  <div class="page-content-grid">
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
+        <div class="cal-title" id="cal-indoor-title"></div>
+        <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+      </div>
+      <div style="text-align:center;margin-bottom:8px">
+        <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+      </div>
+      <div class="cal-grid" id="cal-indoor-grid"></div>
     </div>
-    <div style="text-align:center;margin-bottom:8px">
-      <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+    <div>
+      <div id="indoor-list"><div id="skeleton-indoor"></div></div>
     </div>
-    <div class="cal-grid" id="cal-indoor-grid"></div>
   </div>
-  <div id="indoor-list"><div id="skeleton-indoor"></div></div>
 </div>
 
 <!-- EVENTI -->
@@ -3716,12 +3727,22 @@ function updateDirNavBtn() {
 
 /* ── PIN ── */
 function enterDirigenteFromAdmin() {
-  // Entra in modalità dirigente direttamente dall'admin (già autenticato)
-  dirUnlocked = true;
-  showPage('dirigente', document.getElementById('nav-dirigente-btn'));
-  document.getElementById('dir-login-wrap').style.display = 'none';
-  document.getElementById('dir-main-wrap').style.display = '';
-  dirInitMain();
+  // Assicurati che la pagina admin sia visibile (non page-dirigente)
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-admin').classList.add('active');
+  currentPage = 'admin';
+  // Rimuovi active dai nav pill
+  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+  const adminBtn = document.getElementById('nav-admin-btn');
+  if (adminBtn) adminBtn.classList.add('active');
+  // Mostra il pannello admin se non è già visibile
+  const panel = document.getElementById('admin-panel');
+  if (panel) panel.style.display = '';
+  const loginWrap = document.getElementById('login-wrap');
+  if (loginWrap) loginWrap.style.display = 'none';
+  // Attiva vista dirigente e vai in Gestione Live
+  _liveAdminDirView = true;
+  switchFormTab('live');
 }
 
 function dirPinTap(val) {
