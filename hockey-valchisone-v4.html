@@ -691,7 +691,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
       <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
-      <button class="nav-pill nav-admin" id="nav-dirigente-btn" onclick="showPage('dirigente',this)" title="Dirigente" style="display:none">⏱️</button>
     </nav>
   </div>
 </header>
@@ -3725,12 +3724,7 @@ let _dirTickInterval = null;
 let dirUnlocked = false;
 
 /* ── Mostra/nasconde pulsante dirigente in nav ── */
-function updateDirNavBtn() {
-  const btn = document.getElementById("nav-dirigente-btn");
-  if (!btn) return;
-  // Visibile solo se admin è aperto oppure c'è una partita live attiva
-  btn.style.display = (isAdminOpen || (liveData && liveData.active)) ? "" : "none";
-}
+function updateDirNavBtn() { /* rimosso */ }
 
 /* ── PIN ── */
 function enterDirigenteFromAdmin() {
