@@ -56,7 +56,7 @@
       <!-- Input minuti per countdown -->
       <div class="dir-countdown-set" id="dir-countdown-set" style="display:none">
         <label>Minuti:</label>
-        <input type="number" id="dir-cdn-minutes" value="17" min="1" max="60" onchange="dirUpdateCountdownTarget()">
+        <input type="number" id="dir-cdn-minutes" value="15" min="1" max="60" onchange="dirUpdateCountdownTarget()">
       </div>
 
       <!-- Display timer enorme -->
@@ -72,7 +72,7 @@
 
     <!-- Controlli campo (gol + quarto) -->
     <div class="dir-controls-box" id="dir-live-controls">
-      <div class="dir-controls-title">⚽ Aggiorna tabellone</div>
+      <div class="dir-controls-title">🏑 Aggiorna tabellone</div>
       <div id="dir-admin-panel-content"><!-- popolato da JS --></div>
     </div>
 
@@ -258,7 +258,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
 .mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
 .mc-team.valch { color:var(--orange); }
-.mc-vs { font-size:10px; font-weight:700; color:#d1d5db; flex-shrink:0; }
+.mc-vs { font-size:11px; font-weight:800; color:#9ca3af; flex-shrink:0; padding:0 4px; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
 .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
@@ -527,7 +527,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
 .mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
 .mc-meta { font-size:14px; gap:8px; }
-  .mc-vs { font-size:13px; }
+  .mc-vs { font-size:15px; font-weight:800; color:#6b7280; }
   .mc-body { padding:12px 16px; }
   .mc-right { padding:12px 12px; gap:7px; }
   .day-label { font-size:14px; letter-spacing:2px; }
@@ -588,6 +588,16 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-score.score-loss { color:#6b7280; background:#f3f4f6; }
 .mc-score.score-draw { color:#f97316; background:#fff7ed; }
 
+
+/* ─── VISTA DIRIGENTE nel live admin ──────────────── */
+.dir-live-timer-big { font-family:'Bricolage Grotesque',sans-serif;
+  font-size:72px; font-weight:900; color:white; text-align:center;
+  line-height:1; letter-spacing:-2px; padding:16px 0 8px; }
+.dir-live-toggle { display:flex; gap:8px; margin-bottom:12px; }
+.dir-live-toggle-btn { flex:1; padding:10px; border:none; border-radius:10px;
+  font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; }
+.dir-live-toggle-btn.active { background:#1a7a30; color:white; }
+.dir-live-toggle-btn:not(.active) { background:#f3f4f6; color:#6b7280; }
 /* ─── MODALITÀ DIRIGENTE ──────────────────────────── */
 #page-dirigente { background:#0d2b14; min-height:100vh; padding:0; }
 .dir-login-wrap { max-width:320px; margin:80px auto; background:#1a3a22; border-radius:18px;
@@ -1875,6 +1885,11 @@ function renderLiveAdminPanel() {
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
       </div>`).join('') || '<div class="no-events">Nessun gol</div>';
     el.innerHTML = `
+      <!-- TOGGLE VISTA -->
+      <div class="dir-live-toggle">
+        <button class="dir-live-toggle-btn ${_liveAdminDirView?'':'active'}" onclick="_liveAdminDirView=false;renderLiveAdminPanel()">⚙️ Admin</button>
+        <button class="dir-live-toggle-btn ${_liveAdminDirView?'active':''}" onclick="_liveAdminDirView=true;renderLiveAdminPanel()">⏱️ Dirigente</button>
+      </div>
       <!-- SCORE -->
       <div style="background:#1a3a22;border-radius:12px;padding:10px 12px;margin-bottom:8px;text-align:center;color:white">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -1886,6 +1901,7 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
+        ${_liveAdminDirView ? `<div class="dir-live-timer-big" id="admin-timer-big">00:00</div>` : ''}
         ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
@@ -1898,25 +1914,24 @@ function renderLiveAdminPanel() {
         }
         <button class="btn-timer-reset" onclick="timerReset()" style="padding:12px;font-size:14px">↺ Reset</button>
       </div>
-      <!-- ADD GOAL -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Aggiungi gol</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="form-field" style="margin:0">
-          <label>Squadra</label>
-          <select id="goal-team" style="padding:10px 8px;width:100%;font-size:13px;font-weight:600">
-            <option value="${l.home}">${l.home}</option>
-            <option value="${l.away}">${l.away}</option>
-          </select>
-        </div>
-        <div class="form-field" style="margin:0">
-          <label>Giocatrice <span style="font-weight:400;color:#9ca3af">(opz.)</span></label>
-          <input type="text" id="goal-player" placeholder="es. Rossi" style="padding:10px 8px;width:100%">
-        </div>
+      <!-- ADD GOAL rapido -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">🏑 Segna gol</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button onclick="addGoalQuick('home')" style="background:#1a7a30;color:white;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif">
+          <div style="font-size:22px;font-weight:900">+1</div>
+          <div style="font-size:11px;font-weight:700;margin-top:2px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.home}</div>
+        </button>
+        <button onclick="addGoalQuick('away')" style="background:#c2410c;color:white;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif">
+          <div style="font-size:22px;font-weight:900">+1</div>
+          <div style="font-size:11px;font-weight:700;margin-top:2px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.away}</div>
+        </button>
       </div>
-      <div style="margin-bottom:4px;font-size:11px;color:#9ca3af" id="goal-min-info">⏱ Minuto: verrà registrato automaticamente</div>
-      <div style="margin-bottom:8px">
-        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%">🏑 Registra Gol</button>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+        <input type="text" id="goal-player" placeholder="Giocatrice (opz.)" style="padding:8px 10px;flex:1;border:1px solid #e5e7eb;border-radius:8px;font-size:13px">
+        <button onclick="addGoal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">+ con squadra</button>
       </div>
+      <div style="margin-bottom:8px;font-size:10px;color:#9ca3af">⏱ Minuto registrato automaticamente · Tocca +1 per gol rapido senza nome</div>
+      <input type="hidden" id="goal-team" value="${l.home}">
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -2207,6 +2222,8 @@ function startTimerTick() {
     if (el3) el3.textContent = partial;
     if (el4) el4.textContent = total;
     if (el5) el5.textContent = half;
+    const el6 = document.getElementById('admin-timer-big');
+    if (el6) el6.textContent = partial;
 
     // Auto-fill goal minute with total minutes
     if (liveData.timerRunning) {
@@ -2215,6 +2232,27 @@ function startTimerTick() {
       if (gi && document.activeElement !== gi) gi.value = totalMin;
     }
   }, 500);
+}
+
+function addGoalQuick(side) {
+  // Gol rapido: imposta la squadra e registra subito
+  if (!liveData || !liveData.active) return;
+  const team = side === 'home' ? liveData.home : liveData.away;
+  const player = (document.getElementById('goal-player')||{}).value || '';
+  const totalMs = getTotalMs(liveData);
+  const quarterMs = getPartialMs(liveData);
+  const minuteTotal = Math.floor(totalMs / 60000);
+  const minuteQuarter = Math.floor(quarterMs / 60000);
+  const goalId = 'g' + Date.now();
+  const goals = liveData.goals ? {...liveData.goals} : {};
+  goals[goalId] = { team, player: player.trim(), minute: minuteTotal, minuteQuarter, quarter: liveData.half||1 };
+  const field = side === 'home' ? 'scoreHome' : 'scoreAway';
+  const updated = {...liveData, [field]: (liveData[field]||0) + 1, goals};
+  window._fbSaveLive(updated);
+  // Svuota il campo giocatrice dopo la registrazione
+  const pi = document.getElementById('goal-player');
+  if (pi) pi.value = '';
+  playWhistle('single');
 }
 
 function addGoal() {
@@ -3662,8 +3700,9 @@ function updateMobileLiveIndicator(hasLive){
    ═══════════════════════════════════════════════════════ */
 const DIR_PIN = "757911";
 let dirPinBuffer = "";
-let dirMode = "avanti"; // "avanti" | "countdown"
-let dirCountdownTarget = 17 * 60 * 1000; // 17 minuti default
+let dirMode = "avanti";
+let _liveAdminDirView = false; // vista dirigente nel pannello live // "avanti" | "countdown"
+let dirCountdownTarget = 15 * 60 * 1000; // 15 minuti per quarto (hockey su prato)
 let _dirTickInterval = null;
 let dirUnlocked = false;
 
@@ -3740,7 +3779,7 @@ function dirSetMode(mode) {
 }
 
 function dirUpdateCountdownTarget() {
-  const mins = parseInt(document.getElementById("dir-cdn-minutes").value) || 17;
+  const mins = parseInt(document.getElementById("dir-cdn-minutes").value) || 15;
   dirCountdownTarget = mins * 60 * 1000;
   dirUpdateDisplay();
 }
