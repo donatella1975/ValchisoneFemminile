@@ -3730,27 +3730,27 @@ function dirRenderAdminPanel() {
   const isLastQuarter = (l.half||1) >= 4;
   const qNames = ["1°","2°","3°","4°"];
   const nextQLabel = isLastQuarter ? "🏁 Fine partita" : ("🔄 Fine " + qNames[(l.half||1)-1] + " Quarto");
-  wrap.innerHTML = \`
+  wrap.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="text-align:center">
-        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">\${l.home||'Casa'}</div>
+        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">${l.home||'Casa'}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:10px">
           <button onclick="dirGoal('home')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
-          <span style="color:white;font-size:28px;font-weight:900">\${l.scoreHome||0}</span>
+          <span style="color:white;font-size:28px;font-weight:900">${l.scoreHome||0}</span>
           <button onclick="dirRemoveGoal('home')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
         </div>
       </div>
       <div style="text-align:center">
-        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">\${l.away||'Ospite'}</div>
+        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">${l.away||'Ospite'}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:10px">
           <button onclick="dirGoal('away')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
-          <span style="color:white;font-size:28px;font-weight:900">\${l.scoreAway||0}</span>
+          <span style="color:white;font-size:28px;font-weight:900">${l.scoreAway||0}</span>
           <button onclick="dirRemoveGoal('away')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
         </div>
       </div>
     </div>
-    <button onclick="dirNextQuarter()" style="width:100%;background:#e8620a;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px">\${nextQLabel}</button>
-  \`;
+    <button onclick="dirNextQuarter()" style="width:100%;background:#e8620a;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px">${nextQLabel}</button>
+  `;
 }
 
 function dirGoal(team) {
