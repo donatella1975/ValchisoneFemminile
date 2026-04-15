@@ -441,10 +441,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
   .mc-team { font-size:13px; }
-  .mc-right { padding:6px 6px; gap:3px; min-width:0; }
-  .mc-right .cat-badge { font-size:9px; padding:2px 5px; }
-  .mc-right .status-badge { font-size:9px; padding:2px 5px; white-space:normal; text-align:right; max-width:64px; }
-  .mc-time { min-width:48px; padding:8px 7px; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -1458,7 +1454,6 @@ function matchCardHTML(m, showAdmin) {
         return '<span class="'+cls+'">🏑 '+label+'</span>';
       }).join('')
     }</div>` : ''}
-    </div>
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
