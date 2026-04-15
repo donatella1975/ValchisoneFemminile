@@ -13,73 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
-<!-- PAGINA DIRIGENTE -->
-<div class="page" id="page-dirigente" style="padding:0;background:#0d2b14;min-height:100vh">
-
-  <!-- Login PIN -->
-  <div id="dir-login-wrap" class="dir-login-wrap">
-    <div class="dir-login-title">⏱️ Modalità Dirigente</div>
-    <div class="dir-login-sub">Inserisci il PIN per accedere</div>
-    <div class="dir-pin-display" id="dir-pin-display">_ _ _ _ _ _</div>
-    <div class="dir-pin-grid">
-      <button class="dir-pin-btn" onclick="dirPinTap('1')">1</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('2')">2</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('3')">3</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('4')">4</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('5')">5</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('6')">6</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('7')">7</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('8')">8</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('9')">9</button>
-      <button class="dir-pin-btn dir-pin-del" onclick="dirPinTap('del')" style="grid-column:1">⌫</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('0')">0</button>
-      <button class="dir-pin-btn" onclick="dirPinTap('ok')" style="background:#1a7a2e">✓</button>
-    </div>
-    <div class="dir-pin-err" id="dir-pin-err"></div>
-  </div>
-
-  <!-- Schermata principale dirigente -->
-  <div id="dir-main-wrap" class="dir-main" style="display:none">
-
-    <!-- Timer grande -->
-    <div class="dir-timer-box">
-      <div class="dir-match-label">Partita in corso</div>
-      <div class="dir-match-name" id="dir-match-name">—</div>
-      <div class="dir-quarter-label" id="dir-quarter-label">1° QUARTO</div>
-
-      <!-- Modalità timer -->
-      <div class="dir-mode-toggle">
-        <button class="dir-mode-btn active" id="dir-mode-fwd" onclick="dirSetMode('avanti')">▶ Avanti</button>
-        <button class="dir-mode-btn" id="dir-mode-cdn" onclick="dirSetMode('countdown')">⏳ Conto alla rovescia</button>
-      </div>
-
-      <!-- Input minuti per countdown -->
-      <div class="dir-countdown-set" id="dir-countdown-set" style="display:none">
-        <label>Minuti:</label>
-        <input type="number" id="dir-cdn-minutes" value="15" min="1" max="60" onchange="dirUpdateCountdownTarget()">
-      </div>
-
-      <!-- Display timer enorme -->
-      <div class="dir-timer-display" id="dir-timer-display">00:00</div>
-      <div class="dir-timer-total" id="dir-timer-total-wrap">Totale: <span id="dir-timer-total">00:00</span></div>
-
-      <!-- Play / Reset -->
-      <div class="dir-timer-controls">
-        <button class="dir-btn-play" id="dir-btn-play" onclick="dirTimerToggle()">▶ Avvia</button>
-        <button class="dir-btn-reset" onclick="dirTimerReset()">↺ Reset</button>
-      </div>
-    </div>
-
-    <!-- Controlli campo (gol + quarto) -->
-    <div class="dir-controls-box" id="dir-live-controls">
-      <div class="dir-controls-title">🏑 Aggiorna tabellone</div>
-      <div id="dir-admin-panel-content"><!-- popolato da JS --></div>
-    </div>
-
-    <button class="dir-exit-btn" onclick="dirExit()">✕ Esci dalla modalità dirigente</button>
-  </div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -255,15 +188,17 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; }
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
 .mc-body { flex:1; padding:8px 10px; min-width:0; }
-.mc-teams { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; margin-bottom:4px; min-width:0; }
-.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+.mc-teams { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:6px; margin-bottom:4px; min-width:0; overflow:hidden; }
+.mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; }
+.mc-team:first-child { text-align:right; }
+.mc-team:last-of-type { text-align:left; }
 .mc-team.valch { color:var(--orange); }
-.mc-vs { font-size:11px; font-weight:800; color:#9ca3af; flex-shrink:0; padding:0 8px; }
+.mc-vs { font-size:9px; font-weight:700; color:#d1d5db; text-align:center; white-space:nowrap; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
 .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
 .mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
-.mc-meta { font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:4px; }
+.mc-meta { font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .mc-right { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; padding:10px 10px; gap:5px; flex-shrink:0; }
 .cat-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; white-space:nowrap; }
 .cat-af  { background:rgba(236,72,153,.12); color:#be185d; }
@@ -488,7 +423,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── PRINT MEDIA ─────────────────────────────── */
 @media print {
   header, .hero, .cal-wrap, .filter-bar-wrap, .btn-pdf, .print-box, .print-label,
-  .nav-admin, #login-wrap, #page-admin, #page-classifica, #page-live, #page-dirigente,
+  .nav-admin, #login-wrap, #page-admin, #page-classifica, #page-live,
   .nav-admin, .class-tabs, .btn-map, .mc-right button { display:none !important; }
   /* When print preview is open, print only its content */
   body > *:not(#print-preview-overlay) { display:none !important; }
@@ -505,9 +440,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .filter-bar-wrap { margin-bottom:8px; }
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { max-width:none !important; flex:1; font-size:10.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .mc-vs { font-size:9px; padding:0 3px; flex-shrink:0; }
-  .mc-teams { flex-wrap:nowrap; gap:2px; min-width:0; }
+  .mc-team { font-size:13px; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
@@ -517,7 +450,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 }
 @media (min-width:900px) {
   body { font-size:17px; }
-  .mc-team { font-size:15px; max-width:none; }
+  .mc-team { font-size:16px; }
   .mc-score { font-size:26px; }
   .t-hour { font-size:22px; }
   .t-dow  { font-size:11px; }
@@ -528,7 +461,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
 .mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
 .mc-meta { font-size:14px; gap:8px; }
-  .mc-vs { font-size:15px; font-weight:800; color:#6b7280; }
+  .mc-vs { font-size:13px; }
   .mc-body { padding:12px 16px; }
   .mc-right { padding:12px 12px; gap:7px; }
   .day-label { font-size:14px; letter-spacing:2px; }
@@ -552,16 +485,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .cal-title { font-size:20px; }
   .cal-dow { font-size:11px; }
   .cal-day-btn { font-size:13px; min-height:38px; }
-  .cal-wrap { max-width:100%; }
-  .page-content-grid { display:grid; grid-template-columns:minmax(360px,480px) 1fr; gap:28px; align-items:start; padding:0 8px; }
-  .page-content-grid .cal-wrap { position:sticky; top:80px; }
-  .cal-wrap { min-width:340px; }
-}
-
-/* ─── MOBILE: disabilita grid a 2 colonne ──────────── */
-@media (max-width:899px) {
-  .page-content-grid { display:block; }
-  .page-content-grid .cal-wrap { position:static; }
+  .cal-wrap { max-width:480px; }
 }
 
 /* ─── NAV MOBILE (scrollabile in alto) ──────────────── */
@@ -576,102 +500,27 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 @media (min-width:641px) {
   .nav-live-indicator { display:none; }
 }
+
+/* ─── LAYOUT DUE COLONNE DESKTOP ──────────────────── */
+@media (min-width:900px) {
+  .page-layout-two-col {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .page-layout-left {
+    position: sticky;
+    top: 72px;
+  }
+  .page-layout-right {
+    min-width: 0;
+  }
+  .cal-wrap { max-width: none; margin-bottom: 0; }
+}
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
 .page.active { opacity:1; }
-
-
-/* ─── CARD RISULTATO: vittoria/sconfitta/pareggio ──── */
-.valch-match.valch-win  { border-left:4px solid var(--green); background:#f0faf2; }
-.valch-match.valch-loss { border-left:4px solid #e5e7eb; background:#fafafa; opacity:.85; }
-.valch-match.valch-draw { border-left:4px solid #f97316; background:#fffbf5; }
-.result-badge { display:inline-flex; align-items:center; justify-content:center;
-  width:26px; height:26px; border-radius:50%; font-size:11px; font-weight:900;
-  flex-shrink:0; margin-left:6px; }
-.result-badge.win  { background:var(--green); color:white; }
-.result-badge.loss { background:#e5e7eb; color:#9ca3af; }
-.result-badge.draw { background:#f97316; color:white; }
-/* score più leggibile */
-.mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:17px; font-weight:900;
-  color:var(--green); flex-shrink:0; padding:2px 8px;
-  background:rgba(26,122,48,.08); border-radius:8px; margin:0 4px; }
-.mc-score.score-loss { color:#6b7280; background:#f3f4f6; }
-.mc-score.score-draw { color:#f97316; background:#fff7ed; }
-
-
-/* ─── VISTA DIRIGENTE nel live admin ──────────────── */
-.dir-live-timer-big { font-family:'Bricolage Grotesque',sans-serif;
-  font-size:72px; font-weight:900; color:white; text-align:center;
-  line-height:1; letter-spacing:-2px; padding:16px 0 8px; }
-.dir-live-toggle { display:flex; gap:8px; margin-bottom:12px; }
-.dir-live-toggle-btn { flex:1; padding:10px; border:none; border-radius:10px;
-  font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; }
-.dir-live-toggle-btn.active { background:#1a7a30; color:white; }
-.dir-live-toggle-btn:not(.active) { background:#f3f4f6; color:#6b7280; }
-/* ─── MODALITÀ DIRIGENTE ──────────────────────────── */
-#page-dirigente { background:#0d2b14; min-height:100vh; padding:0; }
-.dir-login-wrap { max-width:320px; margin:80px auto; background:#1a3a22; border-radius:18px;
-  box-shadow:0 8px 32px rgba(0,0,0,.4); padding:32px; text-align:center; }
-.dir-login-title { color:white; font-family:'Bricolage Grotesque',sans-serif;
-  font-size:22px; font-weight:800; margin-bottom:6px; }
-.dir-login-sub { color:rgba(255,255,255,.6); font-size:13px; margin-bottom:24px; }
-.dir-pin-display { background:#0d2b14; border-radius:12px; padding:14px 20px;
-  font-family:'Bricolage Grotesque',sans-serif; font-size:36px; font-weight:900;
-  color:white; letter-spacing:14px; margin-bottom:16px; min-height:64px; }
-.dir-pin-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
-.dir-pin-btn { background:#25a040; color:white; border:none; border-radius:12px;
-  padding:18px; font-size:22px; font-weight:800; cursor:pointer;
-  font-family:'Bricolage Grotesque',sans-serif; transition:background .15s; }
-.dir-pin-btn:active { background:#1a7a2e; }
-.dir-pin-del { background:#c2410c; }
-.dir-pin-del:active { background:#991b1b; }
-.dir-pin-err { color:#ff6666; font-size:13px; margin-top:8px; min-height:20px; }
-
-/* Timer schermata principale dirigente */
-.dir-main { padding:16px; }
-.dir-timer-box { background:#1a3a22; border-radius:20px; padding:28px 20px 24px;
-  text-align:center; margin-bottom:16px; position:relative; }
-.dir-match-label { color:rgba(255,255,255,.7); font-size:13px; font-weight:700;
-  text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-.dir-match-name { color:white; font-family:'Bricolage Grotesque',sans-serif;
-  font-size:19px; font-weight:900; margin-bottom:4px; }
-.dir-quarter-label { display:inline-block; background:#e8620a; color:white;
-  border-radius:20px; padding:3px 14px; font-size:12px; font-weight:800;
-  margin-bottom:16px; }
-.dir-timer-display { font-family:'Bricolage Grotesque',sans-serif;
-  font-size:88px; font-weight:900; color:white; line-height:1;
-  letter-spacing:-2px; margin-bottom:8px; }
-.dir-timer-total { color:rgba(255,255,255,.5); font-size:15px; margin-bottom:18px; }
-.dir-mode-toggle { display:flex; gap:8px; justify-content:center; margin-bottom:18px; }
-.dir-mode-btn { background:rgba(255,255,255,.12); color:white; border:1.5px solid rgba(255,255,255,.25);
-  border-radius:20px; padding:6px 18px; font-size:12px; font-weight:700; cursor:pointer;
-  transition:all .15s; }
-.dir-mode-btn.active { background:#e8620a; border-color:#e8620a; }
-.dir-countdown-set { display:flex; align-items:center; gap:8px; justify-content:center;
-  margin-bottom:14px; }
-.dir-countdown-set label { color:rgba(255,255,255,.7); font-size:13px; }
-.dir-countdown-set input { background:#0d2b14; border:1.5px solid #25a040; border-radius:8px;
-  color:white; font-size:16px; font-weight:700; padding:6px 10px; width:72px;
-  text-align:center; font-family:'Bricolage Grotesque',sans-serif; }
-.dir-timer-controls { display:flex; gap:10px; justify-content:center; }
-.dir-btn-play { background:#25a040; color:white; border:none; border-radius:14px;
-  padding:16px 32px; font-size:18px; font-weight:800; cursor:pointer;
-  font-family:'Bricolage Grotesque',sans-serif; flex:1; max-width:180px;
-  transition:background .15s; }
-.dir-btn-play:active { background:#1a7a2e; }
-.dir-btn-reset { background:rgba(255,255,255,.1); color:rgba(255,255,255,.8);
-  border:none; border-radius:14px; padding:16px 20px; font-size:16px;
-  font-weight:700; cursor:pointer; transition:background .15s; }
-.dir-btn-reset:active { background:rgba(255,255,255,.2); }
-
-/* Pannello controlli campo (gol, quarto) */
-.dir-controls-box { background:#1a3a22; border-radius:16px; padding:18px;
-  margin-bottom:12px; }
-.dir-controls-title { color:rgba(255,255,255,.6); font-size:11px; font-weight:800;
-  text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
-.dir-exit-btn { width:100%; background:rgba(255,255,255,.08); color:rgba(255,255,255,.5);
-  border:none; border-radius:12px; padding:12px; font-size:13px; cursor:pointer;
-  margin-top:4px; }
 </style>
 </head>
 <body>
@@ -730,19 +579,21 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-content-grid">
-    <div class="cal-wrap">
-      <div class="cal-header">
-        <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
-        <div class="cal-title" id="cal-title"></div>
-        <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+  <div class="page-layout-two-col">
+    <div class="page-layout-left">
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
+          <div class="cal-title" id="cal-title"></div>
+          <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+        </div>
+        <div style="text-align:center;margin-bottom:8px">
+          <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
       </div>
-      <div style="text-align:center;margin-bottom:8px">
-        <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-      </div>
-      <div class="cal-grid" id="cal-grid"></div>
     </div>
-    <div>
+    <div class="page-layout-right">
       <div id="next-match-banner-wrap"></div>
       <div id="matches-list"><div id="skeleton-partite"></div></div>
     </div>
@@ -763,19 +614,21 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-content-grid">
-    <div class="cal-wrap">
-      <div class="cal-header">
-        <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
-        <div class="cal-title" id="cal-indoor-title"></div>
-        <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+  <div class="page-layout-two-col">
+    <div class="page-layout-left">
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
+          <div class="cal-title" id="cal-indoor-title"></div>
+          <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+        </div>
+        <div style="text-align:center;margin-bottom:8px">
+          <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+        </div>
+        <div class="cal-grid" id="cal-indoor-grid"></div>
       </div>
-      <div style="text-align:center;margin-bottom:8px">
-        <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-      </div>
-      <div class="cal-grid" id="cal-indoor-grid"></div>
     </div>
-    <div>
+    <div class="page-layout-right">
       <div id="indoor-list"><div id="skeleton-indoor"></div></div>
     </div>
   </div>
@@ -855,15 +708,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:24px;margin-bottom:6px">🔴</div>
           <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
-        </button>
-        <button onclick="enterDirigenteFromAdmin()" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s;grid-column:1/-1">
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:28px">⏱️</span>
-            <div>
-              <div style="font-weight:700;font-size:14px;color:#1a7a30">Modalità Dirigente</div>
-              <div style="font-size:11px;color:#6b7280;margin-top:2px">Timer grande + aggiornamento live dal campo</div>
-            </div>
-          </div>
         </button>
       </div>
       <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
@@ -1223,7 +1067,6 @@ window.addEventListener('load', () => {
         }
       }
       renderLiveBadge();
-      updateDirNavBtn();
       renderLivePage();
       renderLiveAdminPanel();
     });
@@ -1251,7 +1094,7 @@ function showPage(name, btn) {
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
-  if (name === 'dirigente')  { dirPinBuffer=''; document.getElementById('dir-login-wrap').style.display = dirUnlocked ? 'none' : ''; document.getElementById('dir-main-wrap').style.display = dirUnlocked ? '' : 'none'; if (dirUnlocked) dirInitMain(); }
+  updateHeroStats();
 }
 
 function switchSport(sport) {
@@ -1593,27 +1436,16 @@ function matchCardHTML(m, showAdmin) {
   const awayWon = hasSc && m.scoreAway > m.scoreHome;
   const homeClass = (isHomeValch?' valch':'') + (hasSc?(homeWon?' winner':' loser'):'');
   const awayClass = (isAwayValch?' valch':'') + (hasSc?(awayWon?' winner':' loser'):'');
-  // Calcola risultato Valchisone per stile card
-  let valchResult = '';
-  let scoreCls = '';
-  if (hasSc && isValch) {
-    const valchIsHome = isHomeValch;
-    const valchScore  = valchIsHome ? m.scoreHome : m.scoreAway;
-    const oppScore    = valchIsHome ? m.scoreAway : m.scoreHome;
-    if (valchScore > oppScore)       { valchResult = ' valch-win';  scoreCls = ''; }
-    else if (valchScore < oppScore)  { valchResult = ' valch-loss'; scoreCls = ' score-loss'; }
-    else if (hasSc)                  { valchResult = ' valch-draw'; scoreCls = ' score-draw'; }
-  }
-  const resultBadge = (hasSc && isValch) ? (valchResult.includes('win') ? '<span class="result-badge win">V</span>' : valchResult.includes('loss') ? '<span class="result-badge loss">S</span>' : '<span class="result-badge draw">P</span>') : '';
-  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}${valchResult}">
+  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}">
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
-      <span class="mc-team${homeClass}" title="${m.home}">${m.home}</span>
+      <span class="mc-team${homeClass}" title="${m.home}">${abbrevTeam(m.home,22)}</span>
       <span class="mc-vs">VS</span>
-      <span class="mc-team${awayClass}" title="${m.away}">${m.away}</span>
-      ${hasSc ? `<span class="mc-score${scoreCls}">${m.scoreHome}–${m.scoreAway}</span>${resultBadge}` : ''}
+      <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
+
     </div>
+    ${hasSc ? `<div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
     ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
       Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
         const isHome = g.team === m.home;
@@ -1624,7 +1456,7 @@ function matchCardHTML(m, showAdmin) {
     }</div>` : ''}
     </div>
     <div class="mc-meta">
-      ${m.location ? `<a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener" title="${m.location}">📍 Naviga</a>` : ''}
+      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
       <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
@@ -1902,11 +1734,6 @@ function renderLiveAdminPanel() {
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
       </div>`).join('') || '<div class="no-events">Nessun gol</div>';
     el.innerHTML = `
-      <!-- TOGGLE VISTA -->
-      <div class="dir-live-toggle">
-        <button class="dir-live-toggle-btn ${_liveAdminDirView?'':'active'}" onclick="_liveAdminDirView=false;renderLiveAdminPanel()">⚙️ Admin</button>
-        <button class="dir-live-toggle-btn ${_liveAdminDirView?'active':''}" onclick="_liveAdminDirView=true;renderLiveAdminPanel()">⏱️ Dirigente</button>
-      </div>
       <!-- SCORE -->
       <div style="background:#1a3a22;border-radius:12px;padding:10px 12px;margin-bottom:8px;text-align:center;color:white">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -1918,7 +1745,6 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
-        ${_liveAdminDirView ? `<div class="dir-live-timer-big" id="admin-timer-big">00:00</div>` : ''}
         ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
@@ -1931,24 +1757,25 @@ function renderLiveAdminPanel() {
         }
         <button class="btn-timer-reset" onclick="timerReset()" style="padding:12px;font-size:14px">↺ Reset</button>
       </div>
-      <!-- ADD GOAL rapido -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">🏑 Segna gol</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <button onclick="addGoalQuick('home')" style="background:#1a7a30;color:white;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif">
-          <div style="font-size:22px;font-weight:900">+1</div>
-          <div style="font-size:11px;font-weight:700;margin-top:2px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.home}</div>
-        </button>
-        <button onclick="addGoalQuick('away')" style="background:#c2410c;color:white;border:none;border-radius:12px;padding:14px 8px;cursor:pointer;font-family:'Bricolage Grotesque',sans-serif">
-          <div style="font-size:22px;font-weight:900">+1</div>
-          <div style="font-size:11px;font-weight:700;margin-top:2px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.away}</div>
-        </button>
+      <!-- ADD GOAL -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Aggiungi gol</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div class="form-field" style="margin:0">
+          <label>Squadra</label>
+          <select id="goal-team" style="padding:10px 8px;width:100%;font-size:13px;font-weight:600">
+            <option value="${l.home}">${l.home}</option>
+            <option value="${l.away}">${l.away}</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin:0">
+          <label>Giocatrice <span style="font-weight:400;color:#9ca3af">(opz.)</span></label>
+          <input type="text" id="goal-player" placeholder="es. Rossi" style="padding:10px 8px;width:100%">
+        </div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
-        <input type="text" id="goal-player" placeholder="Giocatrice (opz.)" style="padding:8px 10px;flex:1;border:1px solid #e5e7eb;border-radius:8px;font-size:13px">
-        <button onclick="addGoal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">+ con squadra</button>
+      <div style="margin-bottom:4px;font-size:11px;color:#9ca3af" id="goal-min-info">⏱ Minuto: verrà registrato automaticamente</div>
+      <div style="margin-bottom:8px">
+        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%">🏑 Registra Gol</button>
       </div>
-      <div style="margin-bottom:8px;font-size:10px;color:#9ca3af">⏱ Minuto registrato automaticamente · Tocca +1 per gol rapido senza nome</div>
-      <input type="hidden" id="goal-team" value="${l.home}">
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -1963,76 +1790,39 @@ function playWhistle(type) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const c = new AudioCtx();
-    const now = c.currentTime + 0.05;
-
-    // ── CAMPANELLA elettronica (gol + inizio quarto) ──
-    function campanella(t) {
-      // Corpo della campana: sine ad alta frequenza con decay esponenziale
-      [880, 1108, 1318, 1760].forEach((freq, i) => {
-        const o = c.createOscillator(), g = c.createGain();
-        o.type = 'sine';
-        o.frequency.value = freq;
-        const vol = i === 0 ? 0.5 : 0.25 / (i + 1);
-        g.gain.setValueAtTime(vol, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
-        o.connect(g); g.connect(c.destination);
-        o.start(t); o.stop(t + 1.8);
-      });
-      // Click iniziale metallico
-      const buf = c.createBuffer(1, Math.floor(c.sampleRate * 0.02), c.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      const click = c.createBufferSource(); click.buffer = buf;
-      const hpf = c.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 3000;
-      const gk = c.createGain(); gk.gain.setValueAtTime(0.6, t);
-      click.connect(hpf); hpf.connect(gk); gk.connect(c.destination);
-      click.start(t); click.stop(t + 0.02);
+    function w1(t, dur) {
+      const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.3;
+      const noise=c.createBufferSource(); noise.buffer=buf;
+      const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=15;
+      const gn=c.createGain();
+      gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(0.4,t+0.02);
+      gn.gain.setValueAtTime(0.4,t+dur-0.04); gn.gain.linearRampToValueAtTime(0,t+dur);
+      noise.connect(bp); bp.connect(gn); gn.connect(c.destination);
+      noise.start(t); noise.stop(t+dur);
+      const o=c.createOscillator(),g=c.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(2800,t); o.frequency.linearRampToValueAtTime(2600,t+dur);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
+      g.gain.setValueAtTime(0.2,t+dur-0.04); g.gain.linearRampToValueAtTime(0,t+dur);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur);
     }
-
-    // ── BUZZER NBA (fine quarto / fine partita) ──
-    function buzzerNBA(t) {
-      // Onda quadra bassa (il caratteristico BZZZT dello stadio)
-      const freqs = [120, 180, 240];
-      freqs.forEach(freq => {
-        const o = c.createOscillator(), g = c.createGain();
-        o.type = 'square';
-        o.frequency.value = freq;
-        g.gain.setValueAtTime(0, t);
-        g.gain.linearRampToValueAtTime(0.35, t + 0.03);
-        g.gain.setValueAtTime(0.35, t + 0.55);
-        g.gain.linearRampToValueAtTime(0, t + 0.65);
-        // Distorsione leggera tramite waveshaper
-        const ws = c.createWaveShaper();
-        const curve = new Float32Array(256);
-        for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x)); }
-        ws.curve = curve;
-        o.connect(ws); ws.connect(g); g.connect(c.destination);
-        o.start(t); o.stop(t + 0.65);
-      });
-      // Secondo colpo più corto dopo 0.1s
-      freqs.forEach(freq => {
-        const o2 = c.createOscillator(), g2 = c.createGain();
-        o2.type = 'square'; o2.frequency.value = freq * 0.9;
-        g2.gain.setValueAtTime(0, t + 0.75);
-        g2.gain.linearRampToValueAtTime(0.2, t + 0.78);
-        g2.gain.setValueAtTime(0.2, t + 1.0);
-        g2.gain.linearRampToValueAtTime(0, t + 1.1);
-        const ws2 = c.createWaveShaper();
-        const curve2 = new Float32Array(256);
-        for (let i = 0; i < 256; i++) { const x = (i * 2) / 256 - 1; curve2[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x)); }
-        ws2.curve = curve2;
-        o2.connect(ws2); ws2.connect(g2); g2.connect(c.destination);
-        o2.start(t + 0.75); o2.stop(t + 1.1);
-      });
+    const now = c.currentTime+0.05;
+    if (type==='single'||type==='start') {
+      w1(now, 0.35);
+    } else if (type==='triple') {
+      // 3 trombe (fine_B)
+      function tromba(freq,t,vol) {
+        const o=c.createOscillator(),g=c.createGain();
+        const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200;
+        o.type='sawtooth'; o.frequency.value=freq;
+        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.04);
+        g.gain.setValueAtTime(vol,t+0.36); g.gain.linearRampToValueAtTime(0,t+0.42);
+        o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.45);
+      }
+      tromba(440,now,0.4); tromba(440,now+0.6,0.4); tromba(440,now+1.2,0.5);
     }
-
-    if (type === 'single' || type === 'start') {
-      campanella(now);                     // gol e inizio quarto
-    } else if (type === 'triple') {
-      buzzerNBA(now);                      // fine quarto e fine partita
-    }
-
-    setTimeout(() => c.close(), 4000);
+    setTimeout(()=>c.close(),3000);
   } catch(e) {}
 }
 
@@ -2239,8 +2029,6 @@ function startTimerTick() {
     if (el3) el3.textContent = partial;
     if (el4) el4.textContent = total;
     if (el5) el5.textContent = half;
-    const el6 = document.getElementById('admin-timer-big');
-    if (el6) el6.textContent = partial;
 
     // Auto-fill goal minute with total minutes
     if (liveData.timerRunning) {
@@ -2249,27 +2037,6 @@ function startTimerTick() {
       if (gi && document.activeElement !== gi) gi.value = totalMin;
     }
   }, 500);
-}
-
-function addGoalQuick(side) {
-  // Gol rapido: imposta la squadra e registra subito
-  if (!liveData || !liveData.active) return;
-  const team = side === 'home' ? liveData.home : liveData.away;
-  const player = (document.getElementById('goal-player')||{}).value || '';
-  const totalMs = getTotalMs(liveData);
-  const quarterMs = getPartialMs(liveData);
-  const minuteTotal = Math.floor(totalMs / 60000);
-  const minuteQuarter = Math.floor(quarterMs / 60000);
-  const goalId = 'g' + Date.now();
-  const goals = liveData.goals ? {...liveData.goals} : {};
-  goals[goalId] = { team, player: player.trim(), minute: minuteTotal, minuteQuarter, quarter: liveData.half||1 };
-  const field = side === 'home' ? 'scoreHome' : 'scoreAway';
-  const updated = {...liveData, [field]: (liveData[field]||0) + 1, goals};
-  window._fbSaveLive(updated);
-  // Svuota il campo giocatrice dopo la registrazione
-  const pi = document.getElementById('goal-player');
-  if (pi) pi.value = '';
-  playWhistle('single');
 }
 
 function addGoal() {
@@ -2579,7 +2346,6 @@ function doLogin() {
     showAdminDashboard();
     renderLiveAdminPanel();
     populateDataLists();
-    updateDirNavBtn();
     setTimeout(showMissingResultsAlert, 300);
   } else {
     // Check live password from Firebase
@@ -3376,6 +3142,15 @@ function abbrevTeam(name, maxLen) {
 function updateHeroStats() {
   const statsEl = document.getElementById('hero-stats');
   if (!statsEl) return;
+  // Nascondi tutto se non siamo su prato o indoor
+  const heroBtns = document.querySelector('.hero-btns');
+  if (currentPage !== 'partite' && currentPage !== 'indoor') {
+    statsEl.innerHTML = '';
+    if (heroBtns) heroBtns.style.display = 'none';
+    return;
+  }
+  if (heroBtns) heroBtns.style.display = '';
+
   const pratoBtn = document.getElementById('btn-sport-prato');
   const sport = (pratoBtn && pratoBtn.classList.contains('active-sport')) ? 'prato' : 'indoor';
   const base  = sport === 'prato' ? allMatches : allIndoor;
@@ -3439,7 +3214,7 @@ const TOUR_STEPS = [
   {
     target: '.hero',
     title: 'Benvenuta... e benvenuto! 🏑',
-    desc: 'Questa app e dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
+    desc: 'Questa app è dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l’app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
     position: 'bottom'
   },
   {
@@ -3711,292 +3486,6 @@ function updateMobileLiveIndicator(hasLive){
   const ind = document.getElementById('nav-live-indicator-mobile');
   if(ind){ if(hasLive) ind.classList.remove('hidden'); else ind.classList.add('hidden'); }
 }
-
-/* ═══════════════════════════════════════════════════════
-   MODALITÀ DIRIGENTE
-   ═══════════════════════════════════════════════════════ */
-const DIR_PIN = "757911";
-let dirPinBuffer = "";
-let dirMode = "avanti";
-let _liveAdminDirView = false; // vista dirigente nel pannello live // "avanti" | "countdown"
-let dirCountdownTarget = 15 * 60 * 1000; // 15 minuti per quarto (hockey su prato)
-let _dirTickInterval = null;
-let dirUnlocked = false;
-
-/* ── Mostra/nasconde pulsante dirigente in nav ── */
-function updateDirNavBtn() { /* rimosso */ }
-
-/* ── PIN ── */
-function enterDirigenteFromAdmin() {
-  // Mostra modal PIN prima di entrare in modalità dirigente
-  showDirPinModal();
-}
-
-function showDirPinModal() {
-  // Rimuovi modal precedente se esiste
-  const existing = document.getElementById('dir-pin-modal');
-  if (existing) existing.remove();
-  let pinBuf = '';
-  const modal = document.createElement('div');
-  modal.id = 'dir-pin-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
-  modal.innerHTML = `
-    <div style="background:#1a3a22;border-radius:20px;padding:28px 24px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-      <div style="font-size:32px;margin-bottom:8px">⏱️</div>
-      <div style="color:white;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;margin-bottom:4px">Modalità Dirigente</div>
-      <div style="color:rgba(255,255,255,.6);font-size:12px;margin-bottom:20px">Inserisci il PIN per accedere</div>
-      <div id="dpm-display" style="background:#0d2b14;border-radius:10px;padding:12px;font-size:28px;font-weight:900;color:white;letter-spacing:10px;margin-bottom:16px;min-height:54px">_ _ _ _ _ _</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
-        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="dpmTap('${n}')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:16px;font-size:20px;font-weight:800;cursor:pointer">${n}</button>`).join('')}
-        <button onclick="dpmTap('del')" style="background:#c2410c;color:white;border:none;border-radius:10px;padding:16px;font-size:18px;font-weight:800;cursor:pointer">⌫</button>
-        <button onclick="dpmTap('0')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:16px;font-size:20px;font-weight:800;cursor:pointer">0</button>
-        <button onclick="dpmTap('ok')" style="background:#1a7a30;color:white;border:none;border-radius:10px;padding:16px;font-size:16px;font-weight:800;cursor:pointer">✓</button>
-      </div>
-      <div id="dpm-err" style="color:#ff6666;font-size:12px;min-height:18px;margin-bottom:8px"></div>
-      <button onclick="document.getElementById('dir-pin-modal').remove()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:8px;padding:8px 20px;font-size:12px;cursor:pointer">Annulla</button>
-    </div>`;
-  document.body.appendChild(modal);
-  // Funzione locale per gestire il PIN
-  window.dpmTap = function(val) {
-    const display = document.getElementById('dpm-display');
-    const err = document.getElementById('dpm-err');
-    if (val === 'del') {
-      pinBuf = pinBuf.slice(0, -1);
-    } else if (val === 'ok') {
-      if (pinBuf === DIR_PIN) {
-        modal.remove();
-        // PIN corretto: vai in Gestione Live con vista dirigente
-        _liveAdminDirView = true;
-        // Assicura che la pagina admin sia visibile
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-admin').classList.add('active');
-        currentPage = 'admin';
-        document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
-        const adminBtn = document.getElementById('nav-admin-btn');
-        if (adminBtn) adminBtn.classList.add('active');
-        const panel = document.getElementById('admin-panel');
-        if (panel) panel.style.display = '';
-        const loginWrap = document.getElementById('login-wrap');
-        if (loginWrap) loginWrap.style.display = 'none';
-        switchFormTab('live');
-      } else {
-        err.textContent = 'PIN errato. Riprova.';
-        pinBuf = '';
-        display.textContent = '_ _ _ _ _ _';
-      }
-      return;
-    } else {
-      if (pinBuf.length < 6) pinBuf += val;
-    }
-    // Aggiorna display
-    const dots = pinBuf.replace(/./g, '●').split('');
-    const slots = ['_','_','_','_','_','_'];
-    dots.forEach((d,i) => slots[i] = d);
-    display.textContent = slots.join(' ');
-    if (val !== 'ok') err.textContent = '';
-  };
-}
-
-function dirPinTap(val) {
-  const display = document.getElementById("dir-pin-display");
-  const err = document.getElementById("dir-pin-err");
-  if (val === "del") {
-    dirPinBuffer = dirPinBuffer.slice(0, -1);
-  } else if (val === "ok") {
-    if (dirPinBuffer === DIR_PIN) {
-      dirUnlocked = true;
-      document.getElementById("dir-login-wrap").style.display = "none";
-      document.getElementById("dir-main-wrap").style.display = "";
-      dirInitMain();
-    } else {
-      err.textContent = "PIN errato. Riprova.";
-      dirPinBuffer = "";
-    }
-  } else {
-    if (dirPinBuffer.length < 6) dirPinBuffer += val;
-  }
-  // Aggiorna display
-  const masked = dirPinBuffer.replace(/./g, "●");
-  const placeholders = "_ _ _ _ _ _".split(" ");
-  const chars = masked.split("");
-  for (let i = 0; i < placeholders.length; i++) {
-    if (chars[i]) placeholders[i] = chars[i];
-  }
-  display.textContent = placeholders.join(" ");
-  if (val !== "ok") err.textContent = "";
-}
-
-/* ── Inizializzazione schermata principale ── */
-function dirInitMain() {
-  // Popola nome partita e quarto
-  if (liveData && liveData.active) {
-    const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
-    document.getElementById("dir-match-name").textContent =
-      (liveData.home || "?") + " vs " + (liveData.away || "?");
-    document.getElementById("dir-quarter-label").textContent =
-      qNames[Math.min((liveData.half||1)-1, 3)];
-  }
-  // Popola pannello controlli (riusa la funzione admin esistente)
-  dirRenderAdminPanel();
-  // Avvia tick display
-  dirStartTick();
-}
-
-/* ── Imposta modalità timer ── */
-function dirSetMode(mode) {
-  dirMode = mode;
-  document.getElementById("dir-mode-fwd").classList.toggle("active", mode === "avanti");
-  document.getElementById("dir-mode-cdn").classList.toggle("active", mode === "countdown");
-  document.getElementById("dir-countdown-set").style.display = mode === "countdown" ? "flex" : "none";
-  dirUpdateDisplay();
-}
-
-function dirUpdateCountdownTarget() {
-  const mins = parseInt(document.getElementById("dir-cdn-minutes").value) || 15;
-  dirCountdownTarget = mins * 60 * 1000;
-  dirUpdateDisplay();
-}
-
-/* ── Toggle avvia/pausa ── */
-function dirTimerToggle() {
-  if (!liveData || !liveData.active) return;
-  const btn = document.getElementById("dir-btn-play");
-  if (liveData.timerRunning) {
-    // Pausa - riusa timerStop esistente
-    timerStop();
-    btn.textContent = "▶ Avvia";
-  } else {
-    // Avvia - riusa timerStart esistente
-    timerStart();
-    btn.textContent = "⏸ Pausa";
-  }
-}
-
-/* ── Reset quarto ── */
-function dirTimerReset() {
-  if (!liveData || !liveData.active) return;
-  if (!confirm("Resettare il timer del quarto corrente?")) return;
-  const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0};
-  window._fbSaveLive(updated);
-  document.getElementById("dir-btn-play").textContent = "▶ Avvia";
-}
-
-/* ── Aggiorna display ogni 500ms ── */
-function dirStartTick() {
-  if (_dirTickInterval) clearInterval(_dirTickInterval);
-  _dirTickInterval = setInterval(dirUpdateDisplay, 500);
-}
-
-function dirUpdateDisplay() {
-  if (!liveData || !liveData.active) return;
-  const partialMs = getPartialMs(liveData);
-  const totalMs = getTotalMs(liveData);
-
-  let displayMs;
-  if (dirMode === "countdown") {
-    displayMs = Math.max(0, dirCountdownTarget - partialMs);
-  } else {
-    displayMs = partialMs;
-  }
-
-  const timerEl = document.getElementById("dir-timer-display");
-  const totalEl = document.getElementById("dir-timer-total");
-  const playBtn = document.getElementById("dir-btn-play");
-  const quarterEl = document.getElementById("dir-quarter-label");
-
-  if (timerEl) timerEl.textContent = msToDisplay(displayMs);
-  if (totalEl) totalEl.textContent = msToDisplay(totalMs);
-  if (playBtn) playBtn.textContent = liveData.timerRunning ? "⏸ Pausa" : "▶ Avvia";
-
-  // Aggiorna etichetta quarto
-  const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
-  if (quarterEl) quarterEl.textContent = qNames[Math.min((liveData.half||1)-1, 3)];
-
-  // Avviso countdown a zero
-  if (dirMode === "countdown" && displayMs === 0 && liveData.timerRunning) {
-    timerEl.style.color = "#ff4444";
-  } else if (timerEl) {
-    timerEl.style.color = "white";
-  }
-}
-
-/* ── Pannello gol/quarto riutilizzato dall'admin ── */
-function dirRenderAdminPanel() {
-  const wrap = document.getElementById("dir-admin-panel-content");
-  if (!wrap || !liveData || !liveData.active) return;
-  const l = liveData;
-  const isLastQuarter = (l.half||1) >= 4;
-  const qNames = ["1°","2°","3°","4°"];
-  const nextQLabel = isLastQuarter ? "🏁 Fine partita" : ("🔄 Fine " + qNames[(l.half||1)-1] + " Quarto");
-  wrap.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <div style="text-align:center">
-        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">${l.home||'Casa'}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-          <button onclick="dirGoal('home')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
-          <span style="color:white;font-size:28px;font-weight:900">${l.scoreHome||0}</span>
-          <button onclick="dirRemoveGoal('home')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
-        </div>
-      </div>
-      <div style="text-align:center">
-        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-bottom:6px;text-transform:uppercase">${l.away||'Ospite'}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px">
-          <button onclick="dirGoal('away')" style="background:#25a040;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:20px;font-weight:900;cursor:pointer">+1</button>
-          <span style="color:white;font-size:28px;font-weight:900">${l.scoreAway||0}</span>
-          <button onclick="dirRemoveGoal('away')" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:10px;padding:12px 14px;font-size:16px;cursor:pointer">-</button>
-        </div>
-      </div>
-    </div>
-    <button onclick="dirNextQuarter()" style="width:100%;background:#e8620a;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px">${nextQLabel}</button>
-  `;
-}
-
-function dirGoal(team) {
-  if (!liveData || !liveData.active) return;
-  const totalMs = getTotalMs(liveData);
-  const partialMs = getPartialMs(liveData);
-  const minuteTotal = Math.floor(totalMs / 60000);
-  const minuteQuarter = Math.floor(partialMs / 60000);
-  const goalId = "g" + Date.now();
-  const goals = liveData.goals ? {...liveData.goals} : {};
-  goals[goalId] = { team: team === "home" ? liveData.home : liveData.away, minute: minuteTotal, minuteQuarter, quarter: liveData.half||1 };
-  const field = team === "home" ? "scoreHome" : "scoreAway";
-  const updated = {...liveData, [field]: (liveData[field]||0) + 1, goals};
-  window._fbSaveLive(updated);
-}
-
-function dirRemoveGoal(team) {
-  if (!liveData || !liveData.active) return;
-  const field = team === "home" ? "scoreHome" : "scoreAway";
-  const cur = liveData[field] || 0;
-  if (cur <= 0) return;
-  const updated = {...liveData, [field]: cur - 1};
-  window._fbSaveLive(updated);
-}
-
-function dirNextQuarter() {
-  if (!liveData || !liveData.active) return;
-  timerHalf(); // riusa la funzione esistente
-  setTimeout(() => {
-    dirRenderAdminPanel();
-    const qNames = ["1° QUARTO","2° QUARTO","3° QUARTO","4° QUARTO"];
-    const el = document.getElementById("dir-quarter-label");
-    if (el) el.textContent = qNames[Math.min((liveData.half||1)-1, 3)];
-  }, 600);
-}
-
-/* ── Esci dalla modalità dirigente ── */
-function dirExit() {
-  if (_dirTickInterval) clearInterval(_dirTickInterval);
-  dirUnlocked = false;
-  dirPinBuffer = "";
-  document.getElementById("dir-login-wrap").style.display = "";
-  document.getElementById("dir-main-wrap").style.display = "none";
-  document.getElementById("dir-pin-display").textContent = "_ _ _ _ _ _";
-  document.getElementById("dir-pin-err").textContent = "";
-  showPage("live", document.getElementById("nav-live-btn"));
-}
-
 </script>
 
 <!-- MODAL NUOVA STAGIONE -->
