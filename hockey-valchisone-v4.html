@@ -188,7 +188,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .t-hour { font-family:'Bricolage Grotesque',sans-serif; font-size:14px; font-weight:800; }
 .t-dow  { font-size:9px; opacity:.85; margin-top:2px; text-transform:uppercase; }
 .mc-body { flex:1; padding:8px 10px; min-width:0; }
-.mc-teams { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:6px; margin-bottom:4px; min-width:0; overflow:hidden; }
+.mc-teams { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; margin-bottom:4px; min-width:0; }
 .mc-team { font-family:'Bricolage Grotesque',sans-serif; font-size:12px; font-weight:800; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; }
 .mc-team:first-child { text-align:right; }
 .mc-team:last-of-type { text-align:left; }
@@ -441,6 +441,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .ftab { padding:3px 8px; font-size:11px; }
   .form-row { grid-template-columns:1fr; }
   .mc-team { font-size:13px; }
+  .mc-right { padding:6px 6px; gap:3px; min-width:0; }
+  .mc-right .cat-badge { font-size:9px; padding:2px 5px; }
+  .mc-right .status-badge { font-size:9px; padding:2px 5px; white-space:normal; text-align:right; max-width:64px; }
+  .mc-time { min-width:48px; padding:8px 7px; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
