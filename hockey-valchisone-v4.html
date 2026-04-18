@@ -2662,7 +2662,9 @@ function saveResult() {
       const min = minEl.value;
       const gid = row.dataset.gid;
       if (name || min !== '') {
-        goals[gid] = { id: gid, player: name, minute: min!=='' ? parseInt(min) : undefined, team: teamName };
+        const goal = { id: gid, player: name, team: teamName };
+        if (min !== '') goal.minute = parseInt(min);
+        goals[gid] = goal;
       }
     });
   });
