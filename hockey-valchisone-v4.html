@@ -411,8 +411,8 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .amatch-meta { font-size:12px; color:var(--ink3); margin-top:1px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
 .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:10000; display:none; align-items:center; justify-content:center; }
 .modal-overlay.open { display:flex; }
-.modal { background:white; border-radius:16px; padding:24px; max-width:380px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:90vh; overflow-y:auto; }
-.modal-title { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; margin-bottom:16px; }
+.modal { background:white; border-radius:16px; max-width:380px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:88vh; display:flex; flex-direction:column; overflow:hidden; }
+.modal-title { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; margin-bottom:16px; padding:24px 24px 0; flex-shrink:0; }
 #login-wrap { max-width:360px; margin:60px auto; background:white; border-radius:var(--radius); box-shadow:0 4px 24px rgba(0,0,0,.1); padding:28px; }
 .loading { text-align:center; padding:40px; font-size:14px; color:var(--ink3); }
 .empty { text-align:center; padding:50px 20px; }
@@ -897,23 +897,25 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div class="modal" style="max-width:400px">
     <div class="modal-title">🏑 Inserisci Risultato</div>
     <input type="hidden" id="result-match-id">
-    <div class="form-row" style="margin-bottom:12px">
-      <div class="form-field"><label id="result-home-label">Casa</label><input type="number" id="result-home" min="0"></div>
-      <div class="form-field"><label id="result-away-label">Ospite</label><input type="number" id="result-away" min="0"></div>
+    <div style="flex:1;overflow-y:auto;padding:0 24px;-webkit-overflow-scrolling:touch">
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-field"><label id="result-home-label">Casa</label><input type="number" id="result-home" min="0"></div>
+        <div class="form-field"><label id="result-away-label">Ospite</label><input type="number" id="result-away" min="0"></div>
+      </div>
+      <!-- Marcatrici entrambe squadre -->
+      <div id="scorers-section" style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">🏑 Marcatrici</div>
+        <div id="scorers-home-label" style="font-size:12px;font-weight:700;color:#1a7a2e;margin-bottom:4px"></div>
+        <div id="scorers-home-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
+        <button onclick="addScorerRow('home')" style="background:#f0faf2;color:#1a7a2e;border:1.5px solid #d1fae5;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px;touch-action:manipulation">+ Gol squadra casa</button>
+        <div id="scorers-away-label" style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:4px"></div>
+        <div id="scorers-away-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
+        <button onclick="addScorerRow('away')" style="background:#fafafa;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;touch-action:manipulation">+ Gol squadra ospite</button>
+      </div>
     </div>
-    <!-- Marcatrici entrambe squadre -->
-    <div id="scorers-section" style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">🏑 Marcatrici</div>
-      <div id="scorers-home-label" style="font-size:12px;font-weight:700;color:#1a7a2e;margin-bottom:4px"></div>
-      <div id="scorers-home-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
-      <button onclick="addScorerRow('home')" style="background:#f0faf2;color:#1a7a2e;border:1.5px solid #d1fae5;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-bottom:10px">+ Gol squadra casa</button>
-      <div id="scorers-away-label" style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:4px"></div>
-      <div id="scorers-away-list" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px"></div>
-      <button onclick="addScorerRow('away')" style="background:#fafafa;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%">+ Gol squadra ospite</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('result-modal').classList.remove('open')">Annulla</button>
-      <button class="btn btn-green" onclick="saveResult()">Salva</button>
+    <div class="btn-row" style="padding:16px 24px;border-top:1px solid #f3f4f6;flex-shrink:0;margin:0">
+      <button class="btn btn-ghost btn-sm" style="touch-action:manipulation" onclick="document.getElementById('result-modal').classList.remove('open')">Annulla</button>
+      <button class="btn btn-green" style="touch-action:manipulation" onclick="saveResult()">Salva</button>
     </div>
   </div>
 </div>
