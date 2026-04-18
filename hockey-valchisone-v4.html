@@ -2649,7 +2649,6 @@ function saveResult() {
   if (!match) { alert('Partita non trovata!'); return; }
   match.scoreHome = parseInt(sh);
   match.scoreAway = parseInt(sa);
-  // Salva marcatori entrambe squadre
   const goals = {};
   ['scorers-home-list','scorers-away-list'].forEach(function(listId) {
     const isAway = listId === 'scorers-away-list';
@@ -2669,11 +2668,11 @@ function saveResult() {
     });
   });
   match.goals = goals;
-  // Rebuild and save
   const matchesObj = {}, indoorObj = {};
   allMatches.forEach(m => { matchesObj[m.id] = m; });
   allIndoor.forEach(m => { indoorObj[m.id] = m; });
-  window._fbSave(Object.assign({}, matchesObj, indoorObj));
+  window._fbSave(Object.assign({}, matchesObj, indoorObj))
+    .catch(function(e) { alert('Errore salvataggio: ' + e.message); });
   document.getElementById('result-modal').classList.remove('open');
 }
 
