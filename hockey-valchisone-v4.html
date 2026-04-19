@@ -1791,39 +1791,37 @@ function playWhistle(type) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const c = new AudioCtx();
-    function w1(t, dur) {
+    function wb(t) {
+      const dur = 0.5;
+      const freq = 2800;
+      const o = c.createOscillator(), lfo = c.createOscillator();
+      const lfoGain = c.createGain(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      lfo.type = 'sine'; lfo.frequency.value = 6;
+      lfoGain.gain.value = 25;
+      lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.45,t+0.03);
+      g.gain.setValueAtTime(0.45,t+dur-0.06); g.gain.linearRampToValueAtTime(0,t+dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t+dur); lfo.start(t); lfo.stop(t+dur);
       const buf=c.createBuffer(1,c.sampleRate*dur,c.sampleRate);
       const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.3;
-      const noise=c.createBufferSource(); noise.buffer=buf;
-      const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=15;
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.1;
+      const ns=c.createBufferSource(); ns.buffer=buf;
+      const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=12;
       const gn=c.createGain();
-      gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(0.4,t+0.02);
-      gn.gain.setValueAtTime(0.4,t+dur-0.04); gn.gain.linearRampToValueAtTime(0,t+dur);
-      noise.connect(bp); bp.connect(gn); gn.connect(c.destination);
-      noise.start(t); noise.stop(t+dur);
-      const o=c.createOscillator(),g=c.createGain();
-      o.type='sine'; o.frequency.setValueAtTime(2800,t); o.frequency.linearRampToValueAtTime(2600,t+dur);
-      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
-      g.gain.setValueAtTime(0.2,t+dur-0.04); g.gain.linearRampToValueAtTime(0,t+dur);
-      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+dur);
+      gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(0.3,t+0.03);
+      gn.gain.setValueAtTime(0.3,t+dur-0.06); gn.gain.linearRampToValueAtTime(0,t+dur);
+      ns.connect(bp); bp.connect(gn); gn.connect(c.destination); ns.start(t); ns.stop(t+dur);
     }
-    const now = c.currentTime+0.05;
+    const now = c.currentTime + 0.05;
     if (type==='single'||type==='start') {
-      w1(now, 0.35);
+      wb(now);
+      setTimeout(()=>c.close(), 1500);
     } else if (type==='triple') {
-      // 3 trombe (fine_B)
-      function tromba(freq,t,vol) {
-        const o=c.createOscillator(),g=c.createGain();
-        const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200;
-        o.type='sawtooth'; o.frequency.value=freq;
-        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.04);
-        g.gain.setValueAtTime(vol,t+0.36); g.gain.linearRampToValueAtTime(0,t+0.42);
-        o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t); o.stop(t+0.45);
-      }
-      tromba(440,now,0.4); tromba(440,now+0.6,0.4); tromba(440,now+1.2,0.5);
+      wb(now); wb(now+0.7); wb(now+1.4);
+      setTimeout(()=>c.close(), 3000);
     }
-    setTimeout(()=>c.close(),3000);
   } catch(e) {}
 }
 
