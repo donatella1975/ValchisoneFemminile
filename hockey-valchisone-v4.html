@@ -1777,6 +1777,30 @@ function renderLiveAdminPanel() {
       <div style="margin-bottom:8px">
         <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%">🏑 Registra Gol</button>
       </div>
+      <!-- TIRI CORTI -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Tiri corti (penalty corner)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div style="background:#f0faf2;border-radius:10px;padding:8px 10px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:#1a7a2e;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.home,14)}</div>
+          <div style="font-size:24px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:#1a7a2e">${l.cornerHome||0}</div>
+          <div style="display:flex;gap:4px;justify-content:center;margin-top:6px">
+            <button onclick="addCorner('home')" style="background:#1a7a2e;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation">+</button>
+            <button onclick="removeCorner('home')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 12px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation">−</button>
+          </div>
+        </div>
+        <div style="background:#fafafa;border-radius:10px;padding:8px 10px;text-align:center;border:1px solid #f3f4f6">
+          <div style="font-size:10px;font-weight:700;color:#6b7280;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.away,14)}</div>
+          <div style="font-size:24px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:#374151">${l.cornerAway||0}</div>
+          <div style="display:flex;gap:4px;justify-content:center;margin-top:6px">
+            <button onclick="addCorner('away')" style="background:#374151;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation">+</button>
+            <button onclick="removeCorner('away')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 12px;font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation">−</button>
+          </div>
+        </div>
+      </div>
+      <!-- PULSANTE PDF -->
+      <div style="margin-bottom:8px">
+        <button onclick="generateRefertoLive()" style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;touch-action:manipulation">📄 Scarica Referto Arbitrale</button>
+      </div>
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -1860,6 +1884,8 @@ function startLive() {
     totalElapsed: 0,
     goals: {}
   };
+  live.cornerHome = live.cornerHome || 0;
+  live.cornerAway = live.cornerAway || 0;
   window._fbSaveLive(live);
   sendLiveNotification(live.home, live.away);
 }
@@ -2084,6 +2110,127 @@ function deleteGoal(goalId) {
   else sa = Math.max(0, sa-1);
   delete goals[goalId];
   window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
+}
+
+// ─── CORNER (TIRI CORTI) ────────────────────────────────
+function addCorner(side) {
+  if (!liveData) return;
+  const key = side === 'home' ? 'cornerHome' : 'cornerAway';
+  const updated = {...liveData, [key]: (liveData[key]||0) + 1};
+  window._fbSaveLive(updated);
+}
+
+function removeCorner(side) {
+  if (!liveData) return;
+  const key = side === 'home' ? 'cornerHome' : 'cornerAway';
+  const updated = {...liveData, [key]: Math.max(0, (liveData[key]||0) - 1)};
+  window._fbSaveLive(updated);
+}
+
+// ─── REFERTO ARBITRALE PDF ───────────────────────────────
+function generateRefertoLive() {
+  if (!liveData) return;
+  const l = liveData;
+  const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0)) : [];
+  const cat = CATS[l.cat]||{};
+  const today = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  const quarterLabel = l.finished ? 'FINALE' : (['1° Quarto','2° Quarto','3° Quarto','4° Quarto'][(l.half||1)-1]||'');
+
+  // Righe marcatrici
+  const goalsHome = goals.filter(g => g.team === l.home);
+  const goalsAway = goals.filter(g => g.team === l.away);
+
+  function goalRows(list) {
+    if (!list.length) return '<tr><td colspan="3" style="color:#9ca3af;font-style:italic;text-align:center;padding:6px">Nessuna marcatrice</td></tr>';
+    return list.map(g => {
+      const qLabel = g.quarter ? g.minuteQuarter+"' ("+g.quarter+"°Q)" : (g.minute!==undefined ? g.minute+"'" : '—');
+      const totLabel = g.minuteTotal !== undefined ? g.minuteTotal+"'" : (g.minute!==undefined ? g.minute+"'" : '—');
+      return '<tr><td style="padding:5px 8px;border-bottom:1px solid #f3f4f6">'+(g.player||'—')+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6;text-align:center">'+qLabel+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6;text-align:center">'+totLabel+'</td></tr>';
+    }).join('');
+  }
+
+  const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+<title>Referto — ${l.home} vs ${l.away}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11px;color:#1a1a1a;margin:0;padding:20px}
+  .header{border-bottom:2px solid #1a7a2e;padding-bottom:10px;margin-bottom:14px}
+  .title{font-size:16px;font-weight:800;color:#1a7a2e}
+  .meta{font-size:10px;color:#6b7280;margin-top:3px}
+  .score-box{display:flex;align-items:center;justify-content:center;gap:16px;background:#f0faf2;border-radius:8px;padding:12px;margin-bottom:14px;border:1px solid #d1fae5}
+  .team-name{font-size:13px;font-weight:700;max-width:160px;text-align:center}
+  .score{font-size:32px;font-weight:800;color:#1a7a2e;font-family:'Arial Black',sans-serif}
+  .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;border-bottom:1px solid #d1fae5;padding-bottom:4px;margin:12px 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:10px}
+  th{background:#f0faf2;color:#1a7a2e;font-weight:700;padding:5px 8px;text-align:left;border-bottom:1.5px solid #d1fae5}
+  th.center{text-align:center}
+  .corners-grid{display:flex;gap:16px;margin-bottom:10px}
+  .corner-box{flex:1;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;text-align:center}
+  .corner-num{font-size:22px;font-weight:800;color:#374151}
+  .corner-label{font-size:9px;color:#6b7280;margin-top:2px}
+  .footer{margin-top:20px;border-top:1px solid #e5e7eb;padding-top:8px;font-size:9px;color:#9ca3af;display:flex;justify-content:space-between}
+  .firma-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:16px}
+  .firma-box{border-top:1px solid #1a1a1a;padding-top:4px;font-size:9px;color:#6b7280;text-align:center}
+  @media print{body{padding:10px}}
+</style></head><body>
+<div class="header">
+  <div class="title">Referto Arbitrale — Hockey su Prato</div>
+  <div class="meta">${cat.icon||''} ${cat.label||''} &nbsp;·&nbsp; ${today} ore ${now} &nbsp;·&nbsp; ${quarterLabel}</div>
+  ${l.location ? '<div class="meta">📍 '+l.location+'</div>' : ''}
+</div>
+
+<div class="score-box">
+  <div class="team-name">${l.home}</div>
+  <div class="score">${l.scoreHome||0} – ${l.scoreAway||0}</div>
+  <div class="team-name">${l.away}</div>
+</div>
+
+<div class="section-title">Tiri Corti (Penalty Corner)</div>
+<div class="corners-grid">
+  <div class="corner-box">
+    <div class="corner-num">${l.cornerHome||0}</div>
+    <div class="corner-label">${l.home}</div>
+  </div>
+  <div class="corner-box">
+    <div class="corner-num">${l.cornerAway||0}</div>
+    <div class="corner-label">${l.away}</div>
+  </div>
+</div>
+
+<div class="section-title">Marcatrici — ${l.home}</div>
+<table>
+  <thead><tr><th>Giocatrice</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
+  <tbody>${goalRows(goalsHome)}</tbody>
+</table>
+
+<div class="section-title">Marcatrici — ${l.away}</div>
+<table>
+  <thead><tr><th>Giocatrice</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
+  <tbody>${goalRows(goalsAway)}</tbody>
+</table>
+
+<div class="firma-grid">
+  <div class="firma-box">Arbitro 1</div>
+  <div class="firma-box">Arbitro 2</div>
+  <div class="firma-box">Segnapunti</div>
+</div>
+
+<div class="footer">
+  <span>HP Valchisone Femminile — app.valchisone</span>
+  <span>Generato il ${today} alle ${now}</span>
+</div>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'referto_'+l.home.replace(/[^a-z0-9]/gi,'_')+'_vs_'+l.away.replace(/[^a-z0-9]/gi,'_')+'_'+today.replace(/\//g,'-')+'.html';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
 }
 
 // ─── RENDER EVENTI PAGE ─────────────────────────────────
