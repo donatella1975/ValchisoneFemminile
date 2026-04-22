@@ -656,7 +656,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
     <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
-    <button id="results-filter-btn" style="display:inline-block;background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation">📋 Tutte le partite</button>
+
   </div>
   <div class="standings-legend" id="standings-legend">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
@@ -2483,11 +2483,8 @@ function renderEventiPage() {
 
 // ─── STANDINGS ──────────────────────────────────────────
 function toggleResultsFilter() {
-  console.log('toggleResultsFilter called, showAllResults:', showAllResults);
   showAllResults = !showAllResults;
-  console.log('after toggle:', showAllResults);
   const btn = document.getElementById('results-filter-btn');
-  console.log('btn element:', btn);
   if (showAllResults) {
     btn.textContent = '📋 Solo Valchisone';
     btn.style.background = '#dcfce7';
@@ -2562,8 +2559,15 @@ function renderResults() {
     html += '</div>';
   });
   
-  resultsContent.innerHTML = html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>';
-  resultsSection.style.display = html ? '' : 'none';
+  const filterLabel = showAllResults ? '🟢 Solo Valchisone' : '📋 Tutte le partite';
+  const filterStyle = showAllResults
+    ? 'display:inline-block;background:#dcfce7;color:#166534;border:1.5px solid #86efac;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation;margin-bottom:12px'
+    : 'display:inline-block;background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation;margin-bottom:12px';
+
+  const btnHtml = '<button id="results-filter-btn" style="'+filterStyle+'" onclick="toggleResultsFilter()">'+filterLabel+'</button>';
+  
+  resultsContent.innerHTML = btnHtml + (html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>');
+  resultsSection.style.display = '';
 }
 
 function renderStandings() {
@@ -2619,12 +2623,6 @@ function renderStandings() {
   });
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
   renderResults();
-  // Aggancia event listener al bottone
-  const btn = document.getElementById('results-filter-btn');
-  if (btn && !btn._eventAttached) {
-    btn.addEventListener('click', toggleResultsFilter);
-    btn._eventAttached = true;
-  }
 }
 
 
