@@ -656,7 +656,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
     <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
-
+    <button id="results-filter-btn" style="display:inline-block;background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation" onclick="toggleResultsFilter()">📋 Risultati</button>
   </div>
   <div class="standings-legend" id="standings-legend">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
@@ -673,7 +673,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
   </div>
   <div id="standings-content"><div id="skeleton-standings"></div></div>
-  <div id="results-section" style="display:none;margin-top:20px">
+  <div id="results-section" style="display:block;margin-top:20px">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:12px">📋 Calendario e Risultati</div>
     <div id="results-content"></div>
   </div>
@@ -2559,15 +2559,13 @@ function renderResults() {
     html += '</div>';
   });
   
-  const filterLabel = showAllResults ? '🟢 Solo Valchisone' : '📋 Tutte le partite';
-  const filterStyle = showAllResults
-    ? 'display:inline-block;background:#dcfce7;color:#166534;border:1.5px solid #86efac;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation;margin-bottom:12px'
-    : 'display:inline-block;background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation;margin-bottom:12px';
-
-  const btnHtml = '<button id="results-filter-btn" style="'+filterStyle+'" onclick="toggleResultsFilter()">'+filterLabel+'</button>';
-  
-  resultsContent.innerHTML = btnHtml + (html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>');
-  resultsSection.style.display = '';
+  resultsContent.innerHTML = html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>';
+  const filterBtn = document.getElementById('results-filter-btn');
+  if (filterBtn) {
+    filterBtn.textContent = showAllResults ? '🟢 Solo Valchisone' : '📋 Risultati';
+    filterBtn.style.background = showAllResults ? '#dcfce7' : '#fff7ed';
+    filterBtn.style.color = showAllResults ? '#166534' : '#ea580c';
+  }
 }
 
 function renderStandings() {
