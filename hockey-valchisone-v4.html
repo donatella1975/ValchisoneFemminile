@@ -656,7 +656,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
     <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
-    <button id="results-filter-btn" class="standings-toggle" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa" onclick="toggleResultsFilter()">📋 Tutte le partite</button>
+    <button id="results-filter-btn" class="standings-toggle" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa">📋 Tutte le partite</button>
   </div>
   <div class="standings-legend" id="standings-legend">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
@@ -2619,6 +2619,12 @@ function renderStandings() {
   });
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
   renderResults();
+  // Aggancia event listener al bottone
+  const btn = document.getElementById('results-filter-btn');
+  if (btn && !btn._eventAttached) {
+    btn.addEventListener('click', toggleResultsFilter);
+    btn._eventAttached = true;
+  }
 }
 
 
