@@ -656,6 +656,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
     <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
+    <button id="results-filter-btn" class="standings-toggle" style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa" onclick="toggleResultsFilter()">📋 Tutte le partite</button>
   </div>
   <div class="standings-legend" id="standings-legend">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
@@ -672,6 +673,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
   </div>
   <div id="standings-content"><div id="skeleton-standings"></div></div>
+  <div id="results-section" style="display:none;margin-top:20px">
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:12px">📋 Calendario e Risultati</div>
+    <div id="results-content"></div>
+  </div>
 </div>
 
 <!-- ADMIN -->
@@ -834,7 +839,16 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
     <!-- LISTS MANAGEMENT -->
     <div id="form-lists" class="admin-section" style="display:none">
-      <h3>📋 Gestione Squadre e Campi</h3>
+      <h3>📋 Gestione Squadre, Campi e Rosa</h3>
+      <div style="margin-bottom:16px;border:1.5px solid #d1fae5;border-radius:10px;padding:12px">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:8px">👕 Rosa HP Valchisone (n° maglia + nome)</div>
+        <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
+          <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
+          <button class="btn btn-green btn-sm" onclick="addRosaPlayer()" style="touch-action:manipulation">+ Aggiungi</button>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">🏑 Squadre Prato</div>
@@ -988,7 +1002,7 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
-let teamsListPrato = [], teamsListIndoor = [], fieldsList = [];
+let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [];
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
   'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
@@ -1048,6 +1062,7 @@ window.addEventListener('load', () => {
       teamsListPrato  = data?.teamsPrato  ? data.teamsPrato  : [...DEFAULT_TEAMS_PRATO];
       teamsListIndoor = data?.teamsIndoor ? data.teamsIndoor : [...DEFAULT_TEAMS_INDOOR];
       fieldsList      = data?.fields      ? data.fields      : [...DEFAULT_FIELDS];
+      rosaValchisone  = data?.rosaValchisone ? data.rosaValchisone : [];
     });
     window._fbListenLive(data => {
       const prev = liveData;
@@ -1092,7 +1107,7 @@ function showPage(name, btn) {
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
+  if (name === 'classifica') { renderStandings(); renderResults(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
@@ -1143,8 +1158,12 @@ function syncHeroBtns(sport) { syncAllSportControls(sport); }
 
 function setClassSport(sport) {
   classSport = sport;
+  showAllResults = false;
+  const btn = document.getElementById('results-filter-btn');
+  if (btn) { btn.textContent = '📋 Tutte le partite'; btn.style.background = '#fff7ed'; }
   syncAllSportControls(sport);
   renderStandings();
+  renderResults();
 }
 
 // ─── FILTER BAR ────────────────────────────────────────
@@ -1618,7 +1637,7 @@ function renderLivePage() {
       <div class="eli-minute" style="${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'color:var(--green)':'color:#dc2626'}">${g.quarter ? g.minuteQuarter+"'  "+g.quarter+"°Q" : (g.minute!==undefined ? g.minute+"'" : "—")}</div>
       <div class="eli-icon">${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'🟢':'🔴'}</div>
       <div class="eli-text">
-        <div class="eli-player">${g.player||'—'}</div>
+        <div class="eli-player">${g.jersey ? '#'+g.jersey+' ' : ''}${g.player||''}</div>
         <div class="eli-team">${g.team||''}</div>
       </div>
     </div>
@@ -1727,7 +1746,7 @@ function renderLiveAdminPanel() {
         <div class="eli-icon">🏑</div>
         <div class="eli-text">
           <div class="eli-player" style="display:flex;align-items:center;gap:4px">
-            ${g.player?'<span>'+g.player+'</span>':''}
+            ${g.jersey ? '<span style="font-weight:800;color:#1a7a2e">#'+g.jersey+'</span> ' : ''}${g.player?'<span>'+g.player+'</span>':''}
             <button onclick="editGoalPlayer('${g.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#6b7280;padding:0">✏️</button>
           </div>
           <div class="eli-team">${g.team||''}</div>
@@ -1763,19 +1782,27 @@ function renderLiveAdminPanel() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div class="form-field" style="margin:0">
           <label>Squadra</label>
-          <select id="goal-team" style="padding:10px 8px;width:100%;font-size:13px;font-weight:600">
-            <option value="${l.home}">${l.home}</option>
-            <option value="${l.away}">${l.away}</option>
+          <select id="goal-team" onchange="updateGoalForm()" style="padding:10px 8px;width:100%;font-size:13px;font-weight:600">
+            <option value="${l.home}">${abbrevTeam(l.home,16)}</option>
+            <option value="${l.away}">${abbrevTeam(l.away,16)}</option>
           </select>
         </div>
         <div class="form-field" style="margin:0">
-          <label>Giocatrice <span style="font-weight:400;color:#9ca3af">(opz.)</span></label>
-          <input type="text" id="goal-player" placeholder="es. Rossi" style="padding:10px 8px;width:100%">
+          <label id="goal-field-label">Giocatrice</label>
+          <select id="goal-rosa-select" style="padding:10px 8px;width:100%;font-size:13px;display:none" onchange="onRosaSelect()">
+            <option value="">— Seleziona —</option>
+            ${rosaValchisone.sort((a,b)=>a.num-b.num).map(p=>`<option value="${p.num}|${p.name}">#${p.num} ${p.name}</option>`).join('')}
+            <option value="__manual__">✏️ Inserisci manuale...</option>
+          </select>
+          <div id="goal-manual-fields" style="display:flex;gap:4px">
+            <input type="number" id="goal-jersey" placeholder="N°" min="1" max="99" style="width:52px;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
+            <input type="text" id="goal-player" placeholder="Nome" style="flex:1;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
+          </div>
         </div>
       </div>
-      <div style="margin-bottom:4px;font-size:11px;color:#9ca3af" id="goal-min-info">⏱ Minuto: verrà registrato automaticamente</div>
+      <div style="margin-bottom:4px;font-size:11px;color:#9ca3af">⏱ Minuto registrato automaticamente</div>
       <div style="margin-bottom:8px">
-        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%">🏑 Registra Gol</button>
+        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%;touch-action:manipulation">🏑 Registra Gol</button>
       </div>
       <!-- TIRI CORTI -->
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Tiri corti (penalty corner)</div>
@@ -2064,39 +2091,84 @@ function startTimerTick() {
   }, 500);
 }
 
+function updateGoalForm() {
+  if (!liveData) return;
+  const teamEl = document.getElementById('goal-team');
+  if (!teamEl) return;
+  const isHome = teamEl.value === liveData.home;
+  const rosaSelect = document.getElementById('goal-rosa-select');
+  const manualFields = document.getElementById('goal-manual-fields');
+  const label = document.getElementById('goal-field-label');
+  const playerEl = document.getElementById('goal-player');
+  if (isHome && rosaValchisone.length > 0) {
+    if (rosaSelect) rosaSelect.style.display = '';
+    if (manualFields) manualFields.style.display = 'none';
+    if (label) label.textContent = 'Giocatrice';
+  } else {
+    if (rosaSelect) rosaSelect.style.display = 'none';
+    if (manualFields) manualFields.style.display = 'flex';
+    if (label) label.textContent = isHome ? 'N° e Nome' : 'N° maglia';
+    if (playerEl) playerEl.style.display = isHome ? '' : 'none';
+  }
+}
+
+function onRosaSelect() {
+  const rosaSelect = document.getElementById('goal-rosa-select');
+  const manualFields = document.getElementById('goal-manual-fields');
+  if (!rosaSelect || !manualFields) return;
+  manualFields.style.display = rosaSelect.value === '__manual__' ? 'flex' : 'none';
+}
+
 function addGoal() {
-  // Minuto automatico dal cronometro
   const totalMs = getTotalMs(liveData);
   const quarterMs = getPartialMs(liveData);
   const minuteTotal = Math.floor(totalMs / 60000);
   const minuteQuarter = Math.floor(quarterMs / 60000);
-  const minute = minuteTotal; // compatibilità con display esistente
+  const minute = minuteTotal;
   const quarter = liveData.half || 1;
-  const player = document.getElementById('goal-player').value.trim();
-  const team   = document.getElementById('goal-team').value;
-  // Giocatrice opzionale - non bloccare
+  const teamEl = document.getElementById('goal-team');
+  const team = teamEl ? teamEl.value : liveData.home;
+  const isHome = team === liveData.home;
+  let player = '', jersey = '';
+  const rosaSelect = document.getElementById('goal-rosa-select');
+  const rosaVal = rosaSelect ? rosaSelect.value : '';
+  if (isHome && rosaValchisone.length > 0 && rosaVal && rosaVal !== '__manual__' && rosaVal !== '') {
+    const parts = rosaVal.split('|');
+    jersey = parts[0] || '';
+    player = parts[1] || '';
+  } else {
+    jersey = ((document.getElementById('goal-jersey')?.value) || '').trim();
+    player = isHome ? (((document.getElementById('goal-player')?.value) || '').trim()) : '';
+  }
   const goalId = 'g' + Date.now();
-  const goals = liveData.goals || {};
-  goals[goalId] = { id: goalId, minute, minuteTotal, minuteQuarter, quarter, player, team };
-  let sh = liveData.scoreHome||0;
-  let sa = liveData.scoreAway||0;
-  if (team === liveData.home) sh++;
-  else sa++;
-  const updated = {...liveData, goals, scoreHome: sh, scoreAway: sa};
-  window._fbSaveLive(updated);
-  document.getElementById('goal-minute').value = '';
-  document.getElementById('goal-player').value = '';
+  const goals = {...(liveData.goals || {})};
+  const goal = { id: goalId, minute, minuteTotal, minuteQuarter, quarter, team };
+  if (player) goal.player = player;
+  if (jersey) goal.jersey = jersey;
+  goals[goalId] = goal;
+  let sh = liveData.scoreHome || 0;
+  let sa = liveData.scoreAway || 0;
+  if (team === liveData.home) sh++; else sa++;
+  window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
+  if (rosaSelect) rosaSelect.value = '';
+  const jerseyEl = document.getElementById('goal-jersey');
+  if (jerseyEl) jerseyEl.value = '';
+  const playerEl2 = document.getElementById('goal-player');
+  if (playerEl2) playerEl2.value = '';
 }
 
 function editGoalPlayer(goalId) {
   const goals = liveData && liveData.goals ? liveData.goals : {};
   const g = goals[goalId];
   if (!g) return;
-  const name = prompt('Nome giocatrice:', g.player||'');
+  const jersey = prompt('Numero maglia:', g.jersey || '');
+  if (jersey === null) return;
+  const name = prompt('Nome giocatrice:', g.player || '');
   if (name === null) return;
-  g.player = name.trim();
-  const updated = {...liveData, goals: {...goals, [goalId]: g}};
-  window._fbSaveLive(updated);
+  const updated_g = {...g};
+  if (jersey.trim()) updated_g.jersey = jersey.trim(); else delete updated_g.jersey;
+  if (name.trim()) updated_g.player = name.trim(); else delete updated_g.player;
+  window._fbSaveLive({...liveData, goals: {...goals, [goalId]: updated_g}});
 }
 
 function deleteGoal(goalId) {
@@ -2110,6 +2182,93 @@ function deleteGoal(goalId) {
   else sa = Math.max(0, sa-1);
   delete goals[goalId];
   window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
+}
+
+// ─── ROSA VALCHISONE ────────────────────────────────────
+function renderRosaEditor() {
+  const el = document.getElementById('rosa-editor');
+  if (!el) return;
+  if (!rosaValchisone.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice aggiunta</div>'; return; }
+  el.innerHTML = rosaValchisone.slice().sort((a,b)=>a.num-b.num).map((p,i) =>
+    '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
+    +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
+    +'<span style="font-size:12px;flex:1">'+p.name+'</span>'
+    +'<button onclick="removeRosaPlayer('+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
+    +'</div>'
+  ).join('');
+}
+
+function addRosaPlayer() {
+  const numEl = document.getElementById('new-rosa-num');
+  const nameEl = document.getElementById('new-rosa-name');
+  const num = parseInt(numEl ? numEl.value : '0');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!num || !name) { alert('Inserisci numero e nome!'); return; }
+  const existing = rosaValchisone.findIndex(p => p.num === num);
+  if (existing >= 0) rosaValchisone[existing] = {num, name};
+  else rosaValchisone.push({num, name});
+  saveAllLists();
+  if (numEl) numEl.value = '';
+  if (nameEl) nameEl.value = '';
+  renderRosaEditor();
+}
+
+function removeRosaPlayer(idx) {
+  const sorted = rosaValchisone.slice().sort((a,b)=>a.num-b.num);
+  const player = sorted[idx];
+  const realIdx = rosaValchisone.findIndex(p => p.num === player.num);
+  if (realIdx >= 0) rosaValchisone.splice(realIdx, 1);
+  saveAllLists();
+  renderRosaEditor();
+}
+
+function saveAllLists() {
+  window._fbSaveLists({teamsPrato:teamsListPrato, teamsIndoor:teamsListIndoor, fields:fieldsList, rosaValchisone:rosaValchisone});
+}
+
+function renderListsEditor() {
+  renderRosaEditor();
+  const tp = document.getElementById('teams-prato-editor');
+  if (tp) tp.innerHTML = teamsListPrato.map(function(t,i){return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px"><span style="flex:1;font-size:12px">'+t+'</span><button onclick="removeTeam(\'prato\','+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button></div>';}).join('') || '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna squadra</div>';
+  const ti = document.getElementById('teams-indoor-editor');
+  if (ti) ti.innerHTML = teamsListIndoor.map(function(t,i){return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px"><span style="flex:1;font-size:12px">'+t+'</span><button onclick="removeTeam(\'indoor\','+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button></div>';}).join('') || '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna squadra</div>';
+  const fe = document.getElementById('fields-editor');
+  if (fe) fe.innerHTML = fieldsList.map(function(f,i){return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px"><span style="flex:1;font-size:12px">'+f+'</span><button onclick="removeField('+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button></div>';}).join('') || '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessun campo</div>';
+}
+
+function addTeam(type) {
+  const inputId = type === 'prato' ? 'new-team-prato' : 'new-team-indoor';
+  const el = document.getElementById(inputId);
+  const val = el ? el.value.trim() : '';
+  if (!val) return;
+  if (type === 'prato') teamsListPrato.push(val);
+  else teamsListIndoor.push(val);
+  saveAllLists();
+  if (el) el.value = '';
+  renderListsEditor();
+}
+
+function removeTeam(type, idx) {
+  if (type === 'prato') teamsListPrato.splice(idx, 1);
+  else teamsListIndoor.splice(idx, 1);
+  saveAllLists();
+  renderListsEditor();
+}
+
+function addField() {
+  const el = document.getElementById('new-field-input');
+  const val = el ? el.value.trim() : '';
+  if (!val) return;
+  fieldsList.push(val);
+  saveAllLists();
+  if (el) el.value = '';
+  renderListsEditor();
+}
+
+function removeField(idx) {
+  fieldsList.splice(idx, 1);
+  saveAllLists();
+  renderListsEditor();
 }
 
 // ─── CORNER (TIRI CORTI) ────────────────────────────────
@@ -2141,12 +2300,14 @@ function generateRefertoLive() {
   const goalsHome = goals.filter(g => g.team === l.home);
   const goalsAway = goals.filter(g => g.team === l.away);
 
-  function goalRows(list) {
-    if (!list.length) return '<tr><td colspan="3" style="color:#9ca3af;font-style:italic;text-align:center;padding:6px">Nessuna marcatrice</td></tr>';
+  function goalRows(list, showName) {
+    if (!list.length) return '<tr><td colspan="4" style="color:#9ca3af;font-style:italic;text-align:center;padding:6px">Nessun gol segnato</td></tr>';
     return list.map(g => {
       const qLabel = g.quarter ? g.minuteQuarter+"' ("+g.quarter+"°Q)" : (g.minute!==undefined ? g.minute+"'" : '—');
       const totLabel = g.minuteTotal !== undefined ? g.minuteTotal+"'" : (g.minute!==undefined ? g.minute+"'" : '—');
-      return '<tr><td style="padding:5px 8px;border-bottom:1px solid #f3f4f6">'+(g.player||'—')+'</td>'
+      const jerseyCell = '<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6;text-align:center;font-weight:700">'+(g.jersey ? '#'+g.jersey : '—')+'</td>';
+      const nameCell = showName ? '<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6">'+(g.player||'—')+'</td>' : '';
+      return '<tr>'+jerseyCell+nameCell
         +'<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6;text-align:center">'+qLabel+'</td>'
         +'<td style="padding:5px 8px;border-bottom:1px solid #f3f4f6;text-align:center">'+totLabel+'</td></tr>';
     }).join('');
@@ -2201,14 +2362,14 @@ function generateRefertoLive() {
 
 <div class="section-title">Marcatrici — ${l.home}</div>
 <table>
-  <thead><tr><th>Giocatrice</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
-  <tbody>${goalRows(goalsHome)}</tbody>
+  <thead><tr><th class="center">N°</th><th>Giocatrice</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
+  <tbody>${goalRows(goalsHome, true)}</tbody>
 </table>
 
 <div class="section-title">Marcatrici — ${l.away}</div>
 <table>
-  <thead><tr><th>Giocatrice</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
-  <tbody>${goalRows(goalsAway)}</tbody>
+  <thead><tr><th class="center">N°</th><th class="center">Min. Quarto</th><th class="center">Min. Totale</th></tr></thead>
+  <tbody>${goalRows(goalsAway, false)}</tbody>
 </table>
 
 <div class="firma-grid">
@@ -2321,6 +2482,87 @@ function renderEventiPage() {
 }
 
 // ─── STANDINGS ──────────────────────────────────────────
+function toggleResultsFilter() {
+  showAllResults = !showAllResults;
+  const btn = document.getElementById('results-filter-btn');
+  if (showAllResults) {
+    btn.textContent = '📋 Solo Valchisone';
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#166534';
+  } else {
+    btn.textContent = '📋 Tutte le partite';
+    btn.style.background = '#fff7ed';
+    btn.style.color = '#ea580c';
+  }
+  renderResults();
+}
+
+function renderResults() {
+  const resultsSection = document.getElementById('results-section');
+  const resultsContent = document.getElementById('results-content');
+  if (!resultsSection || !resultsContent) return;
+  
+  const pool = classSport === 'indoor' ? allIndoor : allMatches;
+  const cats = classSport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
+  
+  let html = '';
+  cats.forEach(catKey => {
+    const cat = CATS[catKey];
+    const allMs = pool.filter(m => m.cat === catKey);
+    if (!allMs.length) return;
+    
+    // Filtra per Valchisone se necessario
+    const ms = showAllResults ? allMs : allMs.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
+    if (!ms.length) return;
+    
+    // Raggruppa per giornata (round) o per data
+    const grouped = {};
+    ms.forEach(m => {
+      const key = m.round ? 'Giornata '+m.round : 'Data '+m.date;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(m);
+    });
+    
+    html += '<div class="results-category" style="margin-bottom:20px">';
+    html += '<div style="font-weight:700;font-size:14px;color:#1a3a22;margin-bottom:8px;border-bottom:2px solid #d1fae5;padding-bottom:6px">'+cat.icon+' '+cat.label+'</div>';
+    
+    // Ordina giornate: numeri come numeri, date come date
+    const sortedKeys = Object.keys(grouped).sort((a, b) => {
+      const aNum = parseInt(a.match(/\d+/)?.[0] || '999');
+      const bNum = parseInt(b.match(/\d+/)?.[0] || '999');
+      if (aNum !== 999 && bNum !== 999) return aNum - bNum;
+      return a.localeCompare(b);
+    });
+    
+    sortedKeys.forEach(key => {
+      const matches = grouped[key];
+      html += '<div style="margin-bottom:12px">';
+      html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;padding:6px 0">'+key+'</div>';
+      
+      matches.sort((a,b) => (a.time || '').localeCompare(b.time || '')).forEach(m => {
+        const hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined;
+        const scoreStr = hasSc ? '<span style="font-weight:800;font-size:14px;color:#1a7a2e">'+m.scoreHome+' - '+m.scoreAway+'</span>' : '<span style="color:#9ca3af;font-size:12px">Programmata</span>';
+        const timeStr = m.time ? m.time + ' · ' : '';
+        const locStr = m.location ? m.location : '';
+        const isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
+        
+        html += '<div style="background:'+(isValch?'#f0faf2':'#f9fafb')+';border-radius:8px;padding:10px;margin-bottom:4px;border-left:3px solid '+(isValch?'#1a7a2e':'#d1d5db')+';display:flex;align-items:center;gap:8px;font-size:13px">';
+        html += '<div style="flex:1">';
+        html += '<div style="font-weight:700;margin-bottom:2px">'+abbrevTeam(m.home,18)+' <span style="color:#6b7280;font-weight:400">vs</span> '+abbrevTeam(m.away,18)+'</div>';
+        html += '<div style="font-size:11px;color:#6b7280">'+timeStr+locStr+'</div>';
+        html += '</div>';
+        html += '<div style="text-align:right">'+scoreStr+'</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  
+  resultsContent.innerHTML = html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>';
+  resultsSection.style.display = html ? '' : 'none';
+}
+
 function renderStandings() {
   const el = document.getElementById('standings-content');
   if (!el) return;
