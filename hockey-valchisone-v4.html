@@ -2483,8 +2483,11 @@ function renderEventiPage() {
 
 // ─── STANDINGS ──────────────────────────────────────────
 function toggleResultsFilter() {
+  console.log('toggleResultsFilter called, showAllResults:', showAllResults);
   showAllResults = !showAllResults;
+  console.log('after toggle:', showAllResults);
   const btn = document.getElementById('results-filter-btn');
+  console.log('btn element:', btn);
   if (showAllResults) {
     btn.textContent = '📋 Solo Valchisone';
     btn.style.background = '#dcfce7';
