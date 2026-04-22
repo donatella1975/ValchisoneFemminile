@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup B — Google Sites · Istituzionale/Sobrio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde:        #0a5c2e;
+  --verde-scuro:  #063820;
+  --verde-chiaro: #eaf4ee;
+  --verde-accent: #12743a;
+  --arancio:      #d45c00;
+  --arancio-pale: #fef3eb;
+  --grigio-f:     #f9f9f7;
+  --grigio-e:     #efefec;
+  --bordo:        #ddd;
+  --bordo-s:      #e8e8e4;
+  --testo:        #1c1c1c;
+  --testo-soft:   #4a4a4a;
+  --testo-light:  #888;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lato',sans-serif;color:var(--testo);background:#bfbfbf;font-weight:400;}
+
+/* SEPARATORI MOCKUP */
+.page-sep{
+  background:#1a1a1a;color:#aaa;padding:13px 40px;
+  font-family:'Lato',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;
+  display:flex;align-items:center;gap:14px;margin-top:52px;
+}
+.page-sep:first-of-type{margin-top:0;}
+.pnum{
+  background:var(--arancio);color:white;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;
+}
+.nota-cd{
+  background:#fffbe5;border-left:4px solid #e6a817;
+  padding:11px 20px;font-size:12px;color:#5a4000;line-height:1.6;
+}
+.nota-cd strong{color:#7a5500;}
+
+.pagina{background:white;max-width:980px;margin:0 auto;box-shadow:0 2px 20px rgba(0,0,0,0.15);overflow:hidden;}
+
+/* NAVBAR — barra sobria */
+nav{
+  background:white;height:68px;
+  display:flex;align-items:center;padding:0 36px;
+  border-bottom:1px solid var(--bordo);
+  position:sticky;top:0;z-index:100;
+}
+.nav-brand{display:flex;align-items:center;gap:14px;margin-right:auto;text-decoration:none;}
+.nav-logo-circle{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--verde);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.nav-name-block .n1{
+  font-family:'Playfair Display',serif;font-size:14px;font-weight:700;
+  color:var(--verde-scuro);line-height:1.2;
+}
+.nav-name-block .n2{font-size:10px;color:var(--testo-light);letter-spacing:.5px;}
+.nav-links{display:flex;gap:0;list-style:none;align-items:center;}
+.nav-links a{
+  color:var(--testo-soft);text-decoration:none;
+  font-size:13px;font-weight:400;letter-spacing:.3px;
+  padding:6px 14px;border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+}
+.nav-links a:hover{color:var(--verde);border-bottom-color:var(--verde);}
+.nav-links a.att{color:var(--verde);border-bottom-color:var(--arancio);font-weight:700;}
+.nav-links a.sec{color:var(--testo-light);font-size:12px;padding:6px 10px;}
+.nav-divider{width:1px;height:18px;background:var(--bordo);margin:0 6px;}
+
+/* HERO — sobrio, testo centrato, sfondo molto scuro con texture sottile */
+.hero{
+  background:var(--verde-scuro);
+  padding:64px 60px 52px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    45deg,transparent,transparent 40px,
+    rgba(255,255,255,0.015) 40px,rgba(255,255,255,0.015) 41px
+  );
+}
+.hero-eyebrow{
+  display:inline-block;
+  border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:300;
+  padding:5px 18px;border-radius:1px;margin-bottom:24px;
+}
+.hero h1{
+  font-family:'Playfair Display',serif;font-size:52px;font-weight:700;
+  color:white;line-height:1.1;margin-bottom:16px;
+}
+.hero h1 em{color:#6ec98a;font-style:italic;}
+.hero-sub{
+  font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;
+  line-height:1.8;max-width:480px;margin:0 auto 32px;
+}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.btn-verde{
+  background:var(--verde-accent);color:white;
+  padding:12px 28px;border-radius:1px;
+  font-size:13px;font-weight:700;letter-spacing:.5px;
+  text-decoration:none;display:inline-block;text-transform:uppercase;
+}
+.btn-outline-w{
+  border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);
+  padding:11px 26px;border-radius:1px;
+  font-size:13px;font-weight:300;letter-spacing:.5px;
+  text-decoration:none;display:inline-block;text-transform:uppercase;
+}
+/* Ribbon prossima partita */
+.prossima-ribbon{
+  background:var(--arancio-pale);border-bottom:1px solid #e8ccb0;
+  padding:13px 36px;display:flex;align-items:center;gap:18px;
+}
+.pr-tag{
+  font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--arancio);white-space:nowrap;
+}
+.pr-dot{width:4px;height:4px;border-radius:50%;background:var(--bordo);flex-shrink:0;}
+.pr-match{font-size:13.5px;color:var(--testo);font-weight:400;}
+.pr-match .vs{color:var(--testo-light);margin:0 8px;}
+.pr-date{font-size:12px;color:var(--testo-light);}
+.pr-cat{
+  margin-left:auto;font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--arancio);
+}
+
+/* SEZIONI */
+section{padding:52px 44px;border-bottom:1px solid var(--bordo-s);}
+section:last-of-type{border-bottom:none;}
+.s-label{
+  font-size:9.5px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--arancio);margin-bottom:8px;
+}
+section h2{
+  font-family:'Playfair Display',serif;font-size:32px;font-weight:700;
+  color:var(--verde-scuro);margin-bottom:6px;line-height:1.15;
+}
+.h2-line{width:40px;height:2px;background:var(--arancio);margin-bottom:20px;}
+section p{font-size:14.5px;line-height:1.85;color:var(--testo-soft);max-width:620px;margin-bottom:14px;}
+
+/* APP BOX */
+.app-box{
+  border:1px solid var(--bordo);border-radius:2px;padding:28px 32px;
+  display:flex;align-items:center;gap:28px;
+  border-left:4px solid var(--verde);margin-bottom:0;
+}
+.app-box-ico{font-size:40px;flex-shrink:0;}
+.app-box h3{
+  font-family:'Playfair Display',serif;font-size:20px;font-weight:600;
+  color:var(--verde-scuro);margin-bottom:5px;
+}
+.app-box p{font-size:13.5px;color:var(--testo-soft);line-height:1.6;margin-bottom:14px;}
+
+/* HOME NEWS PREVIEW */
+.home-news{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+.hn{border:1px solid var(--bordo-s);border-radius:2px;overflow:hidden;}
+.hn-img{background:var(--grigio-f);height:100px;display:flex;align-items:center;justify-content:center;font-size:30px;border-bottom:2px solid var(--arancio);}
+.hn-body{padding:16px;}
+.hn-tag{display:inline-block;background:var(--verde-chiaro);color:var(--verde);font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;}
+.hn-date{font-size:10px;color:var(--testo-light);margin-bottom:4px;}
+.hn-body h4{font-size:13.5px;font-weight:700;color:var(--testo);line-height:1.35;margin-bottom:4px;}
+.hn-body p{font-size:12px;color:var(--testo-light);line-height:1.5;}
+.link-tutte{
+  display:inline-flex;align-items:center;gap:5px;margin-top:20px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--arancio);text-decoration:none;
+}
+
+/* SQUADRA */
+.cat-card{border:1px solid var(--bordo-s);border-radius:2px;margin-bottom:22px;overflow:hidden;}
+.cat-header{
+  padding:16px 24px;display:flex;align-items:center;gap:12px;
+  background:var(--verde-scuro);color:white;
+}
+.cat-header h3{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;}
+.cat-pill{margin-left:auto;font-size:10px;font-weight:300;letter-spacing:.5px;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.25);padding:2px 10px;border-radius:1px;}
+.cat-body{padding:24px;display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:start;}
+.foto-ph{
+  background:var(--grigio-f);border:1px dashed #ccc;border-radius:2px;
+  height:160px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px;color:#bbb;font-size:11px;text-align:center;font-style:italic;
+}
+.foto-ph .ico{font-size:28px;}
+.cat-info h4{font-size:10px;font-weight:700;color:var(--testo-light);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;}
+.chip{background:var(--verde-chiaro);color:var(--verde-scuro);font-size:11.5px;font-weight:400;padding:4px 12px;border-radius:1px;}
+.staff-row{padding-top:12px;border-top:1px solid var(--bordo-s);font-size:13px;color:var(--testo-soft);line-height:1.7;}
+.staff-row strong{color:var(--verde-scuro);}
+
+/* CALENDARIO */
+.score-demo{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px;}
+.sc{border:1px solid var(--bordo);border-radius:2px;padding:20px;text-align:center;border-top:2px solid var(--verde);}
+.sc-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--testo-light);margin-bottom:10px;}
+.sc-teams{font-size:12px;color:var(--testo-soft);line-height:1.4;margin-bottom:8px;}
+.sc-result{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--verde-scuro);margin:4px 0;}
+.sc-status{font-size:10px;color:var(--testo-light);letter-spacing:.5px;}
+.sc.live{border-top-color:var(--arancio);}
+.sc.live .sc-result{color:var(--arancio);}
+
+/* SUCCESSI */
+.successi-header{
+  background:var(--verde-scuro);padding:44px;
+  display:flex;align-items:center;gap:32px;
+}
+.successi-trophy{font-size:64px;}
+.successi-header h2{
+  font-family:'Playfair Display',serif;font-size:36px;font-weight:700;
+  color:white;line-height:1.1;margin-bottom:8px;
+}
+.successi-header p{font-size:13.5px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.7;margin-bottom:0;max-width:400px;}
+.contatori{display:grid;grid-template-columns:repeat(4,1fr);border-top:none;}
+.cnt{
+  text-align:center;padding:22px 10px;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
+.cnt:last-child{border-right:none;}
+.cnt-n{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;line-height:1;}
+.cnt-l{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;opacity:.7;}
+.cnt.v1{background:var(--verde-scuro);color:white;} .cnt.v1 .cnt-n{color:#6ec98a;}
+.cnt.v2{background:var(--verde-accent);color:white;}
+.cnt.v3{background:var(--arancio);color:white;}
+.cnt.v4{background:var(--grigio-f);color:var(--testo-soft);} .cnt.v4 .cnt-n{color:var(--verde-scuro);}
+.trofei-section{padding:36px 44px;}
+.trofei-section h3{
+  font-family:'Playfair Display',serif;font-size:17px;font-weight:600;
+  color:var(--verde-scuro);margin-bottom:18px;
+  padding-bottom:10px;border-bottom:1px solid var(--bordo-s);
+  display:flex;align-items:center;gap:10px;
+}
+.cat-b{font-size:10px;font-weight:400;color:var(--testo-light);font-family:'Lato',sans-serif;letter-spacing:.5px;}
+.trofei-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:32px;}
+.trofeo{background:var(--grigio-f);border-radius:2px;padding:16px;border-left:3px solid var(--arancio);}
+.trofeo-stagione{font-size:10px;font-weight:700;color:var(--arancio);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.trofeo-nome{font-size:13.5px;font-weight:700;color:var(--testo);margin-bottom:3px;line-height:1.3;}
+.trofeo-pos{font-size:11.5px;color:var(--testo-light);}
+.trofeo.ph{border-left:3px dashed #ccc;background:white;display:flex;align-items:center;justify-content:center;min-height:80px;color:#ccc;font-size:12px;font-style:italic;text-align:center;}
+.istruzione{background:var(--verde-chiaro);border-left:3px solid var(--verde);padding:14px 18px;font-size:12.5px;color:var(--verde-scuro);line-height:1.65;}
+
+/* SPONSOR */
+.tier{margin-bottom:30px;}
+.tier-label{font-size:9.5px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--testo-light);padding-bottom:8px;border-bottom:1px solid var(--bordo-s);margin-bottom:14px;}
+.sp-grid{display:flex;flex-wrap:wrap;gap:12px;}
+.sp-box{border:1px solid var(--bordo-s);border-radius:2px;padding:18px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--grigio-f);min-width:130px;gap:7px;}
+.sp-box.main{min-width:200px;padding:22px 40px;border:1px solid var(--arancio);background:var(--arancio-pale);}
+.sp-ico{font-size:26px;}
+.sp-name{font-size:12.5px;font-weight:700;color:var(--testo-soft);text-align:center;}
+.sp-box.main .sp-name{font-size:14px;color:var(--testo);}
+.sp-cta{background:var(--verde-chiaro);border:1px solid #b0d8bc;border-radius:2px;padding:24px 28px;margin-top:26px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;}
+.sp-cta h3{font-family:'Playfair Display',serif;font-size:19px;color:var(--verde-scuro);margin-bottom:6px;}
+.sp-cta p{font-size:13px;color:var(--testo-soft);line-height:1.6;}
+.sp-benefits{list-style:none;margin-top:10px;display:flex;flex-wrap:wrap;gap:7px;}
+.sp-benefits li{background:white;border:1px solid #b0d8bc;border-radius:2px;padding:5px 12px;font-size:12px;color:var(--verde-scuro);}
+.sp-benefits li::before{content:'✓ ';color:var(--verde);font-weight:700;}
+.btn-cta{display:inline-block;background:var(--verde);color:white;padding:11px 22px;border-radius:1px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-decoration:none;white-space:nowrap;}
+
+/* NEWS */
+.news-featured{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:18px;}
+.nc{border:1px solid var(--bordo-s);border-radius:2px;overflow:hidden;}
+.nc-img{background:var(--grigio-f);height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;border-bottom:2px solid var(--arancio);}
+.nc.featured .nc-img{height:165px;}
+.nc-body{padding:16px;}
+.nc-tag{display:inline-block;background:var(--verde-chiaro);color:var(--verde);font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;}
+.nc-date{font-size:10px;color:var(--testo-light);letter-spacing:.5px;margin-bottom:4px;}
+.nc-body h4{font-size:14px;font-weight:700;color:var(--testo);line-height:1.3;margin-bottom:6px;}
+.nc.featured .nc-body h4{font-size:17px;font-family:'Playfair Display',serif;}
+.nc-body p{font-size:12.5px;color:var(--testo-light);line-height:1.5;}
+.nc-more{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--arancio);text-decoration:none;}
+.news-grid-small{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+
+/* CONTATTI */
+.ct-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:22px;}
+.ct-box{background:var(--grigio-f);border-radius:2px;padding:22px;border:1px solid var(--bordo-s);}
+.ct-box+.ct-box{margin-top:14px;}
+.ct-box h4{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--verde-scuro);margin-bottom:14px;}
+.ct-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:11px;font-size:13.5px;color:var(--testo-soft);line-height:1.55;}
+.ct-row .ico{font-size:14px;flex-shrink:0;margin-top:2px;}
+.form-panel{background:white;border:1px solid var(--bordo-s);border-radius:2px;padding:24px;}
+.form-panel h4{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--verde-scuro);margin-bottom:16px;}
+.fi-label{font-size:10.5px;font-weight:700;color:var(--testo-soft);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.5px;}
+.fi{display:block;width:100%;background:var(--grigio-f);border:1px solid var(--bordo);border-radius:1px;padding:10px 12px;font-size:13px;color:#aaa;margin-bottom:10px;font-family:'Lato',sans-serif;}
+.fi.ta{height:78px;}
+.btn-submit{background:var(--verde);color:white;width:100%;padding:12px;border:none;cursor:pointer;font-family:'Lato',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:4px;border-radius:1px;}
+.mappa-ph{background:var(--grigio-f);border:1px dashed #ccc;border-radius:2px;height:150px;display:flex;align-items:center;justify-content:center;color:var(--testo-light);font-size:13px;gap:8px;}
+
+/* FOOTER */
+footer{background:var(--verde-scuro);padding:32px 36px 20px;}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:28px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:16px;}
+.footer-brand .ft-logo{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:white;margin-bottom:7px;}
+.footer-brand p{font-size:11.5px;color:rgba(255,255,255,0.45);line-height:1.7;}
+.ft-col h5{font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;}
+.ft-col a{display:block;font-size:12.5px;color:rgba(255,255,255,0.55);text-decoration:none;margin-bottom:6px;}
+.ft-col a:hover{color:white;}
+.footer-bottom{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(255,255,255,0.25);}
+
+/* BADGE */
+.version-bar{background:#0a0a0a;color:#555;padding:10px 40px;font-size:11px;font-family:'Lato',sans-serif;letter-spacing:2px;text-transform:uppercase;display:flex;justify-content:space-between;}
+.version-bar span{color:var(--arancio);}
+.mock-footer{background:#111;color:#444;padding:11px 40px;font-size:11px;text-align:center;letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="version-bar">
+  <div>Mockup <span>B</span> — Google Sites &nbsp;·&nbsp; Stile: <span>Istituzionale / Sobrio</span></div>
+  <div>ASD Hockey Valchisone Femminile &nbsp;·&nbsp; CD 27 aprile 2026</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 1 — HOME
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">1</div>PAGINA 1 — HOME</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Stile istituzionale: font serif elegante (Playfair Display), navbar bianca con sottile bordo, hero scuro con testo centrato e texture diagonale leggera. Trasmette serietà e professionalità — ideale per sponsor e famiglie che cercano affidabilità.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#">
+      <div class="nav-logo-circle">🏑</div>
+      <div class="nav-name-block">
+        <div class="n1">HP Valchisone Femminile</div>
+        <div class="n2">ASD · Villar Perosa · Affiliata FIH</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" class="att">Home</a></li>
+      <li><a href="#">Squadra</a></li>
+      <li><a href="#">Calendario</a></li>
+      <li><a href="#">Successi</a></li>
+      <li><a href="#">Sponsor</a></li>
+      <li><div class="nav-divider"></div></li>
+      <li><a href="#" class="sec">News</a></li>
+      <li><a href="#" class="sec">Contatti</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-eyebrow">ASD · Stagione 2025/26 · Affiliata FIH</div>
+    <h1>Hockey Valchisone<br><em>Femminile</em></h1>
+    <p class="hero-sub">La squadra femminile di hockey su prato di Villar Perosa. Tre categorie, un campo, una comunità sportiva radicata nel territorio.</p>
+    <div class="hero-btns">
+      <a class="btn-verde" href="#">Risultati live →</a>
+      <a class="btn-outline-w" href="#">Chi siamo</a>
+    </div>
+  </div>
+
+  <div class="prossima-ribbon">
+    <span class="pr-tag">Prossima partita</span>
+    <div class="pr-dot"></div>
+    <span class="pr-match">HP Valchisone <span class="vs">vs</span> [Avversaria] <span class="pr-date">· [Data] · [Ora] · [Luogo]</span></span>
+    <span class="pr-cat">Categoria: Ragazze</span>
+  </div>
+
+  <section>
+    <div class="s-label">Il nostro strumento ufficiale</div>
+    <h2>Risultati in tempo reale</h2>
+    <div class="h2-line"></div>
+    <div class="app-box">
+      <div class="app-box-ico">📊</div>
+      <div>
+        <h3>App HP Valchisone — già attiva</h3>
+        <p>Classifiche, calendario, risultati e live score per tutte e tre le categorie. Accessibile da qualsiasi dispositivo, senza installazioni.</p>
+        <a class="btn-verde" href="https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v4.html" target="_blank">Apri app risultati →</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-label">Dal club</div>
+    <h2>Ultime notizie</h2>
+    <div class="h2-line"></div>
+    <div class="home-news">
+      <div class="hn"><div class="hn-img">🏆</div><div class="hn-body"><span class="hn-tag">Risultati</span><div class="hn-date">Aprile 2026</div><h4>Vittoria delle Ragazze nel derby</h4><p>Tre punti importanti in una partita combattuta...</p></div></div>
+      <div class="hn"><div class="hn-img">📢</div><div class="hn-body"><span class="hn-tag">Club</span><div class="hn-date">Aprile 2026</div><h4>Nuovo Consiglio Direttivo eletto</h4><p>L'assemblea del 28 marzo ha rinnovato la governance...</p></div></div>
+      <div class="hn"><div class="hn-img">🏋️</div><div class="hn-body"><span class="hn-tag">Allenamento</span><div class="hn-date">Marzo 2026</div><h4>Campo estivo 2026: prime info</h4><p>In arrivo il campo estivo per le nostre atlete...</p></div></div>
+    </div>
+    <a class="link-tutte" href="#">→ Tutte le notizie</a>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div>
+      <div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div>
+      <div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 2 — SQUADRA
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">2</div>PAGINA 2 — SQUADRA</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Header categoria verde scuro uniforme — stile istituzionale coerente. Il testo dei nomi atlete usa font leggero (weight 300), più elegante del bold. I badge categoria in alto a destra sono sobri e informativi.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#" class="att">Squadra</a></li><li><a href="#">Calendario</a></li><li><a href="#">Successi</a></li><li><a href="#">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="sec">News</a></li><li><a href="#" class="sec">Contatti</a></li></ul>
+  </nav>
+  <section>
+    <div class="s-label">Le nostre atlete</div>
+    <h2>La Squadra</h2>
+    <div class="h2-line"></div>
+    <div class="cat-card">
+      <div class="cat-header"><h3>Ragazze</h3><span class="cat-pill">Under 14 · Prato</span></div>
+      <div class="cat-body">
+        <div class="foto-ph"><div class="ico">📷</div>Foto di squadra<br><em>[da inserire]</em></div>
+        <div class="cat-info"><h4>Rosa atlete</h4><div class="chips"><span class="chip">Atleta 1</span><span class="chip">Atleta 2</span><span class="chip">Atleta 3</span><span class="chip">Atleta 4</span><span class="chip">Atleta 5</span><span class="chip">Atleta 6</span><span class="chip">Atleta 7</span><span class="chip">…</span></div><div class="staff-row"><strong>Allenatore:</strong> Michele Laurenti &nbsp;·&nbsp; <strong>Campionato:</strong> Ragazze Prato</div></div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-header"><h3>Allieve Indoor A1</h3><span class="cat-pill">Under 19 · Indoor</span></div>
+      <div class="cat-body">
+        <div class="foto-ph"><div class="ico">📷</div>Foto di squadra<br><em>[da inserire]</em></div>
+        <div class="cat-info"><h4>Rosa atlete</h4><div class="chips"><span class="chip">Atleta 1</span><span class="chip">Atleta 2</span><span class="chip">Atleta 3</span><span class="chip">Atleta 4</span><span class="chip">Atleta 5</span><span class="chip">…</span></div><div class="staff-row"><strong>Allenatore:</strong> Michele Laurenti &nbsp;·&nbsp; <strong>Campionato:</strong> Allieve Indoor A1</div></div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-header"><h3>Allieve Prato A2</h3><span class="cat-pill">Under 19 · Prato</span></div>
+      <div class="cat-body">
+        <div class="foto-ph"><div class="ico">📷</div>Foto di squadra<br><em>[da inserire]</em></div>
+        <div class="cat-info"><h4>Rosa atlete</h4><div class="chips"><span class="chip">Atleta 1</span><span class="chip">Atleta 2</span><span class="chip">Atleta 3</span><span class="chip">Atleta 4</span><span class="chip">…</span></div><div class="staff-row"><strong>Allenatore:</strong> Michele Laurenti &nbsp;·&nbsp; <strong>Campionato:</strong> Allieve Prato A2</div></div>
+      </div>
+    </div>
+  </section>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div></footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 3 — CALENDARIO & RISULTATI
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">3</div>PAGINA 3 — CALENDARIO & RISULTATI</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> I tre scoreboard usano lo stesso linguaggio visivo sobrio: bordo superiore colorato come unico elemento di colore, testo scuro su sfondo chiaro. Il card "live" usa arancio al posto del verde per segnalare l'urgenza senza urlare.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#">Squadra</a></li><li><a href="#" class="att">Calendario</a></li><li><a href="#">Successi</a></li><li><a href="#">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="sec">News</a></li><li><a href="#" class="sec">Contatti</a></li></ul>
+  </nav>
+  <section>
+    <div class="s-label">Live & Statistiche</div>
+    <h2>Calendario & Risultati</h2>
+    <div class="h2-line"></div>
+    <div class="app-box">
+      <div class="app-box-ico">📊</div>
+      <div>
+        <h3>App HP Valchisone — già attiva</h3>
+        <p>Classifiche, calendario, risultati e live score per tutte e tre le categorie. Accessibile da qualsiasi dispositivo, sempre aggiornata in tempo reale.</p>
+        <a class="btn-verde" href="https://donatella1975.github.io/ValchisoneFemminile/hockey-valchisone-v4.html" target="_blank">Apri app risultati →</a>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--testo-light);margin-top:20px;margin-bottom:12px;">Anteprima ultimi risultati — dati di esempio:</p>
+    <div class="score-demo">
+      <div class="sc"><div class="sc-cat">Ragazze</div><div class="sc-teams">HP Valchisone vs Avversaria</div><div class="sc-result">3 – 1</div><div class="sc-status">✓ Finale</div></div>
+      <div class="sc"><div class="sc-cat">Allieve Indoor A1</div><div class="sc-teams">HP Valchisone vs Avversaria</div><div class="sc-result">2 – 2</div><div class="sc-status">✓ Finale</div></div>
+      <div class="sc live"><div class="sc-cat">Allieve Prato A2</div><div class="sc-teams">HP Valchisone vs Avversaria</div><div class="sc-result">1 – 0</div><div class="sc-status">⚡ In corso — 2° tempo</div></div>
+    </div>
+  </section>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div></footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 4 — SUCCESSI
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">4</div>PAGINA 4 — SUCCESSI</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Header Playfair Display per dare peso istituzionale ai successi sportivi. Contatori con palette verde scuro/verde/arancio/grigio. Card trofeo sobrie con bordo arancio e sfondo grigio chiaro.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#">Squadra</a></li><li><a href="#">Calendario</a></li><li><a href="#" class="att">Successi</a></li><li><a href="#">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="sec">News</a></li><li><a href="#" class="sec">Contatti</a></li></ul>
+  </nav>
+  <div class="successi-header">
+    <div class="successi-trophy">🏆</div>
+    <div>
+      <h2>I nostri successi</h2>
+      <p>I titoli e i trofei conquistati dalle nostre atlete nel corso degli anni. Una storia di impegno, crescita e passione per l'hockey su prato in Val Chisone.</p>
+    </div>
+  </div>
+  <div class="contatori">
+    <div class="cnt v1"><div class="cnt-n">[N]</div><div class="cnt-l">Titoli totali</div></div>
+    <div class="cnt v2"><div class="cnt-n">[N]</div><div class="cnt-l">Campionati</div></div>
+    <div class="cnt v3"><div class="cnt-n">[N]</div><div class="cnt-l">Coppe & tornei</div></div>
+    <div class="cnt v4"><div class="cnt-n">[N]</div><div class="cnt-l">Stagioni</div></div>
+  </div>
+  <div class="trofei-section">
+    <h3>Ragazze <span class="cat-b">Under 14 · Prato</span></h3>
+    <div class="trofei-grid">
+      <div class="trofeo"><div class="trofeo-stagione">[Stagione]</div><div class="trofeo-nome">[Campionato / Torneo]</div><div class="trofeo-pos">🥇 1° posto</div></div>
+      <div class="trofeo"><div class="trofeo-stagione">[Stagione]</div><div class="trofeo-nome">[Campionato / Torneo]</div><div class="trofeo-pos">🥇 1° posto</div></div>
+      <div class="trofeo ph">+ titoli da inserire</div>
+    </div>
+    <h3>Allieve Indoor A1 <span class="cat-b">Under 19 · Indoor</span></h3>
+    <div class="trofei-grid">
+      <div class="trofeo" style="border-left-color:var(--verde-accent);"><div class="trofeo-stagione" style="color:var(--verde-accent);">[Stagione]</div><div class="trofeo-nome">[Campionato / Torneo]</div><div class="trofeo-pos">🥇 1° posto</div></div>
+      <div class="trofeo ph">+ titoli da inserire</div>
+    </div>
+    <h3>Allieve Prato A2 <span class="cat-b">Under 19 · Prato</span></h3>
+    <div class="trofei-grid">
+      <div class="trofeo" style="border-left-color:#1565c0;"><div class="trofeo-stagione" style="color:#1565c0;">[Stagione]</div><div class="trofeo-nome">[Campionato / Torneo]</div><div class="trofeo-pos">🥇 1° posto</div></div>
+      <div class="trofeo ph">+ titoli da inserire</div>
+    </div>
+    <div class="istruzione"><strong>📋 Come aggiornare:</strong> inserire stagione, nome campionato/torneo e posizione finale per ogni titolo. Recuperare lo storico dallo staff tecnico o dalla segreteria.</div>
+  </div>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div></footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 5 — SPONSOR
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">5</div>PAGINA 5 — SPONSOR</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Stile istituzionale anche qui: box sponsor con bordi sottili, main sponsor isolato con bordo arancio. La CTA sponsor ha pulsante "Contattaci" e tono professionale.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#">Squadra</a></li><li><a href="#">Calendario</a></li><li><a href="#">Successi</a></li><li><a href="#" class="att">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="sec">News</a></li><li><a href="#" class="sec">Contatti</a></li></ul>
+  </nav>
+  <section>
+    <div class="s-label">I nostri partner</div>
+    <h2>Sponsor & Partner</h2>
+    <div class="h2-line"></div>
+    <p>Grazie a chi sostiene lo sport femminile in Val Chisone. Il loro contributo permette alle nostre atlete di allenarsi e competere a livello nazionale.</p>
+    <div class="tier"><div class="tier-label">Main Sponsor</div><div class="sp-grid"><div class="sp-box main"><div class="sp-ico">🍕</div><div class="sp-name">Il Rustico</div></div></div></div>
+    <div class="tier"><div class="tier-label">Sponsor Ufficiali</div><div class="sp-grid"><div class="sp-box"><div class="sp-ico">🏪</div><div class="sp-name">Micol</div></div><div class="sp-box"><div class="sp-ico">🏠</div><div class="sp-name">Wilma e Elio</div></div><div class="sp-box"><div class="sp-ico">🚗</div><div class="sp-name">PuntoCar</div></div><div class="sp-box"><div class="sp-ico">🏗️</div><div class="sp-name">Gatto Gru</div></div><div class="sp-box"><div class="sp-ico">💊</div><div class="sp-name">Farmacia Depaoli</div></div></div></div>
+    <div class="sp-cta">
+      <div>
+        <h3>Diventa sponsor</h3>
+        <p>Sostieni la prima squadra femminile di hockey su prato della Val Chisone. Una visibilità concreta e continuativa durante tutta la stagione sportiva.</p>
+        <ul class="sp-benefits"><li>Logo sul sito web</li><li>Visibilità social media</li><li>Logo sulle divise (pacchetti selezionati)</li><li>Citazione comunicati ufficiali</li></ul>
+      </div>
+      <div style="text-align:right;">
+        <a class="btn-cta" href="#">✉ Contattaci</a>
+        <p style="font-size:11px;color:var(--testo-light);margin-top:8px;">Risposta entro 48h</p>
+      </div>
+    </div>
+  </section>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div></footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 6 — NEWS
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">6</div>PAGINA 6 — NEWS</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Layout news identico al Mockup A per coerenza UX: featured grande a sinistra + 3 card secondarie. L'unica differenza è il font serif per il titolo della notizia principale — più editoriale e autorevole.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#">Squadra</a></li><li><a href="#">Calendario</a></li><li><a href="#">Successi</a></li><li><a href="#">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="att sec">News</a></li><li><a href="#" class="sec">Contatti</a></li></ul>
+  </nav>
+  <section>
+    <div class="s-label">Dal club</div>
+    <h2>News & Aggiornamenti</h2>
+    <div class="h2-line"></div>
+    <div class="news-featured">
+      <div class="nc featured"><div class="nc-img">🏆</div><div class="nc-body"><span class="nc-tag">Risultati</span><div class="nc-date">Aprile 2026</div><h4>Vittoria delle Ragazze nel derby di campionato</h4><p>Tre punti fondamentali in una partita combattuta fino all'ultimo minuto. La nostra squadra dimostra carattere...</p><a class="nc-more" href="#">→ Leggi tutto</a></div></div>
+      <div class="nc"><div class="nc-img">📢</div><div class="nc-body"><span class="nc-tag">Club</span><div class="nc-date">Aprile 2026</div><h4>Eletto il nuovo Consiglio Direttivo</h4><p>L'assemblea del 28 marzo ha rinnovato la governance del club...</p><a class="nc-more" href="#">→ Leggi tutto</a></div></div>
+    </div>
+    <div class="news-grid-small">
+      <div class="nc"><div class="nc-img">🏋️</div><div class="nc-body"><span class="nc-tag">Allenamento</span><div class="nc-date">Marzo 2026</div><h4>Campo estivo 2026: prime info</h4><p>In arrivo il campo estivo...</p><a class="nc-more" href="#">→ Leggi</a></div></div>
+      <div class="nc"><div class="nc-img">🤝</div><div class="nc-body"><span class="nc-tag">Sponsor</span><div class="nc-date">Marzo 2026</div><h4>Benvenuto al nuovo sponsor: [Nome]</h4><p>Siamo felici di annunciare una nuova partnership...</p><a class="nc-more" href="#">→ Leggi</a></div></div>
+      <div class="nc"><div class="nc-img">🏅</div><div class="nc-body"><span class="nc-tag">Campionato</span><div class="nc-date">Marzo 2026</div><h4>Allieve Prato: fine girone d'andata</h4><p>Bilancio positivo per le Allieve Prato A2...</p><a class="nc-more" href="#">→ Leggi</a></div></div>
+    </div>
+  </section>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH</span></div></footer>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGINA 7 — CONTATTI
+══════════════════════════════════════════ -->
+<div class="page-sep"><div class="pnum">7</div>PAGINA 7 — CONTATTI</div>
+<div class="nota-cd"><strong>📌 Nota CD:</strong> Stessa struttura UX del Mockup A ma tono più sobrio. Form con campi più lineari. Link all'app incluso nelle informazioni di contatto.</div>
+
+<div class="pagina">
+  <nav>
+    <a class="nav-brand" href="#"><div class="nav-logo-circle">🏑</div><div class="nav-name-block"><div class="n1">HP Valchisone Femminile</div><div class="n2">ASD · Villar Perosa · Affiliata FIH</div></div></a>
+    <ul class="nav-links"><li><a href="#">Home</a></li><li><a href="#">Squadra</a></li><li><a href="#">Calendario</a></li><li><a href="#">Successi</a></li><li><a href="#">Sponsor</a></li><li><div class="nav-divider"></div></li><li><a href="#" class="sec">News</a></li><li><a href="#" class="att sec">Contatti</a></li></ul>
+  </nav>
+  <section>
+    <div class="s-label">Dove siamo · Come contattarci</div>
+    <h2>Contatti</h2>
+    <div class="h2-line"></div>
+    <div class="ct-layout">
+      <div>
+        <div class="ct-box">
+          <h4>Il club</h4>
+          <div class="ct-row"><span class="ico">📍</span><span>Campo Hockey Sandro Michellonet<br>Via Dante Alighieri 9 – 10069 Villar Perosa (TO)</span></div>
+          <div class="ct-row"><span class="ico">✉️</span><span>hockeypratovalchisonefemminile@gmail.com</span></div>
+          <div class="ct-row"><span class="ico">📘</span><span>Facebook: HP Valchisone Femminile</span></div>
+          <div class="ct-row"><span class="ico">📸</span><span>Instagram: @hpvalchisionefemminile</span></div>
+          <div class="ct-row"><span class="ico">📊</span><span>App risultati: <a href="#" style="color:var(--verde);">apri app</a></span></div>
+        </div>
+        <div class="ct-box" style="margin-top:14px;">
+          <h4>Iscrizioni</h4>
+          <div class="ct-row"><span class="ico">👧</span><span>Categorie: Ragazze, Allieve Indoor, Allieve Prato</span></div>
+          <div class="ct-row"><span class="ico">🏑</span><span>Affiliazione FIH · Stagione 2025/26</span></div>
+          <div class="ct-row"><span class="ico">📞</span><span>Contatta la segreteria per informazioni</span></div>
+        </div>
+      </div>
+      <div class="form-panel">
+        <h4>Scrivici</h4>
+        <label class="fi-label">Nome e cognome</label><div class="fi">Mario Rossi</div>
+        <label class="fi-label">Email</label><div class="fi">email@esempio.it</div>
+        <label class="fi-label">Argomento</label><div class="fi">es. Iscrizioni, sponsorizzazioni…</div>
+        <label class="fi-label">Messaggio</label><div class="fi ta"></div>
+        <button class="btn-submit">Invia messaggio →</button>
+        <p style="font-size:11px;color:var(--testo-light);margin-top:8px;text-align:center;">Risposta entro 48 ore lavorative</p>
+      </div>
+    </div>
+    <div class="mappa-ph">🗺️ &nbsp; Mappa Google — Campo Hockey Sandro Michellonet, Villar Perosa (TO)</div>
+  </section>
+  <footer><div class="footer-top"><div class="footer-brand"><div class="ft-logo">HP Valchisone Femminile</div><p>ASD Hockey su Prato Valchisone Femminile<br>Villar Perosa (TO) · Affiliata FIH · Stagione 2025/26</p></div><div class="ft-col"><h5>Pagine</h5><a href="#">Home</a><a href="#">Squadra</a><a href="#">Calendario</a><a href="#">Successi</a><a href="#">Sponsor</a><a href="#">News</a><a href="#">Contatti</a></div><div class="ft-col"><h5>Contatti</h5><a href="#">📍 Via Dante Alighieri 9 – Villar Perosa (TO)</a><a href="#">✉️ hockeypratovalchisonefemminile@gmail.com</a><a href="#">📘 Facebook</a><a href="#">📸 Instagram</a><a href="#">📊 App risultati</a></div></div><div class="footer-bottom"><span>© 2026 ASD Hockey su Prato Valchisone Femminile · C.F. 94578710017</span><span>Affiliata FIH · Tutti i diritti riservati</span></div></footer>
+</div>
+
+<div class="mock-footer">MOCKUP B — GOOGLE SITES ISTITUZIONALE/SOBRIO &nbsp;·&nbsp; Donatella Rappacioli &nbsp;·&nbsp; ASD Hockey Valchisone Femminile &nbsp;·&nbsp; Aprile 2026 &nbsp;·&nbsp; Documento interno CD</div>
+</body>
+</html>
