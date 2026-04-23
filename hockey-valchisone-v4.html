@@ -132,6 +132,17 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .section-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
 .section-title { font-family:'Bricolage Grotesque',sans-serif; font-size:20px; font-weight:800; color:var(--ink); }
 
+/* ─── VIEW TABS ─────────────────────────────────────────────── */
+.view-tabs { display:flex; gap:6px; margin-bottom:12px; }
+.view-tab { flex:1; padding:8px 0; border:1.5px solid #e5e7eb; border-radius:20px; background:white; font-size:13px; font-weight:700; color:#6b7280; cursor:pointer; font-family:DM Sans,sans-serif; touch-action:manipulation; }
+.view-tab.active { background:var(--green); color:white; border-color:var(--green); }
+.giornata-header { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#6b7280; padding:8px 0 4px; border-bottom:1px solid #f3f4f6; margin-bottom:6px; }
+.giornata-match { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; margin-bottom:4px; border-left:3px solid #e5e7eb; background:#f9fafb; }
+.giornata-match.valch { background:#f0faf2; border-left-color:var(--green); }
+.giornata-match-teams { flex:1; font-size:13px; font-weight:700; }
+.giornata-match-meta { font-size:11px; color:#9ca3af; font-weight:400; margin-top:2px; }
+.giornata-match-score { font-size:15px; font-weight:800; color:var(--green); white-space:nowrap; }
+.giornata-match-score.future { font-size:11px; color:#9ca3af; font-weight:400; }
 /* ─── FILTER BAR ─────────────────────────────── */
 .filter-bar { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
 .filter-bar.nowrap { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
@@ -579,24 +590,33 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-layout-two-col">
-    <div class="page-layout-left">
-      <div class="cal-wrap">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
-          <div class="cal-title" id="cal-title"></div>
-          <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-cal-prato" onclick="switchView('prato','cal')">📅 Calendario</button>
+    <button class="view-tab" id="tab-gio-prato" onclick="switchView('prato','gio')">📋 Giornate</button>
+  </div>
+  <div id="view-cal-prato">
+    <div class="page-layout-two-col">
+      <div class="page-layout-left">
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="calPrev()" aria-label="Mese precedente">◀</button>
+            <div class="cal-title" id="cal-title"></div>
+            <button class="cal-nav" onclick="calNext()" aria-label="Mese successivo">▶</button>
+          </div>
+          <div style="text-align:center;margin-bottom:8px">
+            <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
         </div>
-        <div style="text-align:center;margin-bottom:8px">
-          <button onclick="goToToday()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="page-layout-right">
+        <div id="next-match-banner-wrap"></div>
+        <div id="matches-list"><div id="skeleton-partite"></div></div>
       </div>
     </div>
-    <div class="page-layout-right">
-      <div id="next-match-banner-wrap"></div>
-      <div id="matches-list"><div id="skeleton-partite"></div></div>
-    </div>
+  </div>
+  <div id="view-gio-prato" style="display:none">
+    <div id="giornate-prato-content"></div>
   </div>
 </div>
 
@@ -614,23 +634,32 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       </div>
     </div>
   </div>
-  <div class="page-layout-two-col">
-    <div class="page-layout-left">
-      <div class="cal-wrap">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
-          <div class="cal-title" id="cal-indoor-title"></div>
-          <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-cal-indoor" onclick="switchView('indoor','cal')">📅 Calendario</button>
+    <button class="view-tab" id="tab-gio-indoor" onclick="switchView('indoor','gio')">📋 Giornate</button>
+  </div>
+  <div id="view-cal-indoor">
+    <div class="page-layout-two-col">
+      <div class="page-layout-left">
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="calIndoorPrev()" aria-label="Mese precedente">◀</button>
+            <div class="cal-title" id="cal-indoor-title"></div>
+            <button class="cal-nav" onclick="calIndoorNext()" aria-label="Mese successivo">▶</button>
+          </div>
+          <div style="text-align:center;margin-bottom:8px">
+            <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
+          </div>
+          <div class="cal-grid" id="cal-indoor-grid"></div>
         </div>
-        <div style="text-align:center;margin-bottom:8px">
-          <button onclick="goToTodayIndoor()" style="background:var(--green);color:white;border:none;border-radius:16px;padding:5px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif">📅 Oggi</button>
-        </div>
-        <div class="cal-grid" id="cal-indoor-grid"></div>
+      </div>
+      <div class="page-layout-right">
+        <div id="indoor-list"><div id="skeleton-indoor"></div></div>
       </div>
     </div>
-    <div class="page-layout-right">
-      <div id="indoor-list"><div id="skeleton-indoor"></div></div>
-    </div>
+  </div>
+  <div id="view-gio-indoor" style="display:none">
+    <div id="giornate-indoor-content"></div>
   </div>
 </div>
 
@@ -656,7 +685,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <button class="standings-toggle" id="standings-toggle-btn" onclick="toggleStandingsCols()">+ Dettagli</button>
     <button class="standings-info-btn" onclick="toggleStandingsLegend()" title="Legenda colonne" aria-label="Legenda colonne classifica">?</button>
-    <button id="results-filter-btn" style="display:inline-block;background:#fff7ed;color:#ea580c;border:1.5px solid #fed7aa;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;touch-action:manipulation" onclick="toggleResultsFilter()">📋 Risultati</button>
   </div>
   <div class="standings-legend" id="standings-legend">
     <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:13px;font-weight:800;color:var(--green);margin-bottom:8px">Legenda colonne</div>
@@ -673,10 +701,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
   </div>
   <div id="standings-content"><div id="skeleton-standings"></div></div>
-  <div id="results-section" style="display:block;margin-top:20px">
-    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:12px">📋 Calendario e Risultati</div>
-    <div id="results-content"></div>
-  </div>
+
 </div>
 
 <!-- ADMIN -->
@@ -1158,12 +1183,105 @@ function syncHeroBtns(sport) { syncAllSportControls(sport); }
 
 function setClassSport(sport) {
   classSport = sport;
-  showAllResults = false;
-  const btn = document.getElementById('results-filter-btn');
-  if (btn) { btn.textContent = '📋 Tutte le partite'; btn.style.background = '#fff7ed'; }
   syncAllSportControls(sport);
   renderStandings();
   renderResults();
+}
+
+// ─── VIEW TABS (Calendario / Giornate) ──────────────────
+function switchView(sport, view) {
+  const calDiv = document.getElementById('view-cal-'+sport);
+  const gioDiv = document.getElementById('view-gio-'+sport);
+  const tabCal = document.getElementById('tab-cal-'+sport);
+  const tabGio = document.getElementById('tab-gio-'+sport);
+  if (!calDiv || !gioDiv) return;
+  if (view === 'cal') {
+    calDiv.style.display = '';
+    gioDiv.style.display = 'none';
+    tabCal.classList.add('active');
+    tabGio.classList.remove('active');
+  } else {
+    calDiv.style.display = 'none';
+    gioDiv.style.display = '';
+    tabCal.classList.remove('active');
+    tabGio.classList.add('active');
+    renderGiornate(sport);
+  }
+}
+
+function renderGiornate(sport) {
+  const contentEl = document.getElementById('giornate-'+(sport === 'prato' ? 'prato' : 'indoor')+'-content');
+  if (!contentEl) return;
+  const pool = sport === 'indoor' ? allIndoor : allMatches;
+  const cats = sport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
+  const onlyValch = document.getElementById('valch-filter-btn') && document.getElementById('valch-filter-btn').classList.contains('active');
+
+  // Filtra categorie attive
+  const activeCats = cats.filter(c => {
+    const btn = document.querySelector('.filter-bar .ftab[data-cat="'+c+'"]');
+    return !btn || btn.classList.contains('active');
+  });
+
+  let allMs = pool.filter(m => activeCats.includes(m.cat));
+  if (onlyValch) allMs = allMs.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
+
+  if (!allMs.length) {
+    contentEl.innerHTML = '<div style="color:#9ca3af;padding:20px;text-align:center">Nessuna partita trovata</div>';
+    return;
+  }
+
+  // Raggruppa per giornata o data
+  const grouped = {};
+  allMs.forEach(m => {
+    const key = m.round ? 'Giornata ' + m.round : (m.date || 'Data sconosciuta');
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(m);
+  });
+
+  // Ordina: giornate numeriche prima, poi per data
+  const sortedKeys = Object.keys(grouped).sort((a, b) => {
+    const aRound = a.match(/^Giornata (\d+)/);
+    const bRound = b.match(/^Giornata (\d+)/);
+    if (aRound && bRound) return parseInt(aRound[1]) - parseInt(bRound[1]);
+    if (aRound) return -1;
+    if (bRound) return 1;
+    return a.localeCompare(b);
+  });
+
+  let html = '';
+  sortedKeys.forEach(key => {
+    const matches = grouped[key];
+    // Formatta data leggibile se è una data
+    let label = key;
+    if (!key.startsWith('Giornata') && key.match(/^\d{4}-\d{2}-\d{2}/)) {
+      const d = new Date(key);
+      label = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    }
+    html += '<div style="margin-bottom:16px">';
+    html += '<div class="giornata-header">'+label+'</div>';
+    matches.sort((a,b) => {
+      const catOrder = (cats.indexOf(a.cat) - cats.indexOf(b.cat));
+      if (catOrder !== 0) return catOrder;
+      return (a.time||'').localeCompare(b.time||'');
+    }).forEach(m => {
+      const isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
+      const hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null;
+      const cat = CATS[m.cat] || {};
+      const scoreHtml = hasSc
+        ? '<div class="giornata-match-score">'+m.scoreHome+' – '+m.scoreAway+'</div>'
+        : '<div class="giornata-match-score future">'+(m.time||'–')+'</div>';
+      html += '<div class="giornata-match'+(isValch?' valch':'')+'">';
+      html += '<div class="giornata-match-teams">';
+      html += abbrevTeam(m.home,20)+' <span style="color:#9ca3af;font-weight:400">vs</span> '+abbrevTeam(m.away,20);
+      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+m.location:'')+'</div>';
+      html += '</div>';
+      html += scoreHtml;
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  contentEl.innerHTML = html;
 }
 
 // ─── FILTER BAR ────────────────────────────────────────
@@ -2482,91 +2600,6 @@ function renderEventiPage() {
 }
 
 // ─── STANDINGS ──────────────────────────────────────────
-function toggleResultsFilter() {
-  showAllResults = !showAllResults;
-  const btn = document.getElementById('results-filter-btn');
-  if (showAllResults) {
-    btn.textContent = '📋 Solo Valchisone';
-    btn.style.background = '#dcfce7';
-    btn.style.color = '#166534';
-  } else {
-    btn.textContent = '📋 Tutte le partite';
-    btn.style.background = '#fff7ed';
-    btn.style.color = '#ea580c';
-  }
-  renderResults();
-}
-
-function renderResults() {
-  const resultsSection = document.getElementById('results-section');
-  const resultsContent = document.getElementById('results-content');
-  if (!resultsSection || !resultsContent) return;
-  
-  const pool = classSport === 'indoor' ? allIndoor : allMatches;
-  const cats = classSport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
-  
-  let html = '';
-  cats.forEach(catKey => {
-    const cat = CATS[catKey];
-    const allMs = pool.filter(m => m.cat === catKey);
-    if (!allMs.length) return;
-    
-    // Filtra per Valchisone se necessario
-    const ms = showAllResults ? allMs : allMs.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
-    if (!ms.length) return;
-    
-    // Raggruppa per giornata (round) o per data
-    const grouped = {};
-    ms.forEach(m => {
-      const key = m.round ? 'Giornata '+m.round : 'Data '+m.date;
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(m);
-    });
-    
-    html += '<div class="results-category" style="margin-bottom:20px">';
-    html += '<div style="font-weight:700;font-size:14px;color:#1a3a22;margin-bottom:8px;border-bottom:2px solid #d1fae5;padding-bottom:6px">'+cat.icon+' '+cat.label+'</div>';
-    
-    // Ordina giornate: numeri come numeri, date come date
-    const sortedKeys = Object.keys(grouped).sort((a, b) => {
-      const aNum = parseInt(a.match(/\d+/)?.[0] || '999');
-      const bNum = parseInt(b.match(/\d+/)?.[0] || '999');
-      if (aNum !== 999 && bNum !== 999) return aNum - bNum;
-      return a.localeCompare(b);
-    });
-    
-    sortedKeys.forEach(key => {
-      const matches = grouped[key];
-      html += '<div style="margin-bottom:12px">';
-      html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;padding:6px 0">'+key+'</div>';
-      
-      matches.sort((a,b) => (a.time || '').localeCompare(b.time || '')).forEach(m => {
-        const hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined;
-        const scoreStr = hasSc ? '<span style="font-weight:800;font-size:14px;color:#1a7a2e">'+m.scoreHome+' - '+m.scoreAway+'</span>' : '<span style="color:#9ca3af;font-size:12px">Programmata</span>';
-        const timeStr = m.time ? m.time + ' · ' : '';
-        const locStr = m.location ? m.location : '';
-        const isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
-        
-        html += '<div style="background:'+(isValch?'#f0faf2':'#f9fafb')+';border-radius:8px;padding:10px;margin-bottom:4px;border-left:3px solid '+(isValch?'#1a7a2e':'#d1d5db')+';display:flex;align-items:center;gap:8px;font-size:13px">';
-        html += '<div style="flex:1">';
-        html += '<div style="font-weight:700;margin-bottom:2px">'+abbrevTeam(m.home,18)+' <span style="color:#6b7280;font-weight:400">vs</span> '+abbrevTeam(m.away,18)+'</div>';
-        html += '<div style="font-size:11px;color:#6b7280">'+timeStr+locStr+'</div>';
-        html += '</div>';
-        html += '<div style="text-align:right">'+scoreStr+'</div>';
-        html += '</div>';
-      });
-      html += '</div>';
-    });
-    html += '</div>';
-  });
-  
-  resultsContent.innerHTML = html || '<div style="color:#9ca3af;padding:10px;text-align:center">Nessun risultato disponibile</div>';
-  const filterBtn = document.getElementById('results-filter-btn');
-  if (filterBtn) {
-    filterBtn.textContent = showAllResults ? '🟢 Solo Valchisone' : '📋 Risultati';
-    filterBtn.style.background = showAllResults ? '#dcfce7' : '#fff7ed';
-    filterBtn.style.color = showAllResults ? '#166534' : '#ea580c';
-  }
-}
 
 function renderStandings() {
   const el = document.getElementById('standings-content');
