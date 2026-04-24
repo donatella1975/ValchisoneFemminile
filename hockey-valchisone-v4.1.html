@@ -744,10 +744,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuova Partita</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiungi al calendario</div>
         </button>
-        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
-          <div style="font-size:24px;margin-bottom:6px">🏆</div>
-          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
+        <button id="tab-lists" onclick="switchFormTab('lists')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">👕</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Rosa e Liste</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Squadre, campi, giocatrici</div>
         </button>
         <button id="tab-edit" onclick="switchFormTab('edit')" style="background:white;border:2px solid #e0e7ff;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">✏️</div>
@@ -758,6 +758,11 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:24px;margin-bottom:6px">🔴</div>
           <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
+        </button>
+        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">🏆</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
         </button>
       </div>
       <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
@@ -782,11 +787,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         </div>
       </button>
     </div>
-        <button id="tab-lists" onclick="switchFormTab('lists')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
-          <div style="font-size:24px;margin-bottom:6px">👕</div>
-          <div style="font-weight:700;font-size:14px;color:#1a3a22">Rosa e Liste</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:2px">Squadre, campi, giocatrici</div>
-        </button>
 
     <!-- MATCH FORM -->
     <div id="form-match" class="admin-section" style="display:none">
@@ -885,13 +885,25 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
     <!-- LISTS MANAGEMENT -->
     <div id="form-lists" class="admin-section" style="display:none">
-      <h3>📋 Gestione Squadre, Campi e Rosa</h3>
+      <h3>👕 Rosa e Gestione Liste</h3>
+      <!-- ROSA PER CATEGORIA -->
       <div style="margin-bottom:16px;border:1.5px solid #d1fae5;border-radius:10px;padding:12px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:8px">👕 Rosa HP Valchisone (n° maglia + nome)</div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:10px">👕 Rosa HP Valchisone</div>
+        <!-- Selezione categoria -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="rosa-cat-tabs">
+          <button class="ftab active" onclick="setRosaCat('af')" id="rosa-tab-af">⚡ A2</button>
+          <button class="ftab" onclick="setRosaCat('rf')" id="rosa-tab-rf">🟣 Ragazze</button>
+          <button class="ftab" onclick="setRosaCat('alf')" id="rosa-tab-alf">🩵 Allieve</button>
+          <button class="ftab" onclick="setRosaCat('a1f')" id="rosa-tab-a1f">🏒 Indoor A1</button>
+          <button class="ftab" onclick="setRosaCat('alfi')" id="rosa-tab-alfi">🏒 Allieve Indoor</button>
+        </div>
         <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
-        <div style="display:flex;gap:6px">
-          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
-          <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:56px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
+          <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;min-width:120px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap;cursor:pointer">
+            <input type="checkbox" id="new-rosa-gk" style="width:16px;height:16px;cursor:pointer"> GK
+          </label>
           <button class="btn btn-green btn-sm" onclick="addRosaPlayer()" style="touch-action:manipulation">+ Aggiungi</button>
         </div>
       </div>
@@ -1048,7 +1060,7 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
-let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [];
+let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
   'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
@@ -1959,12 +1971,12 @@ function renderLiveAdminPanel() {
           <label id="goal-field-label">Giocatrice</label>
           <select id="goal-rosa-select" style="padding:10px 8px;width:100%;font-size:13px;display:none" onchange="onRosaSelect()">
             <option value="">— Seleziona —</option>
-            ${rosaValchisone.sort((a,b)=>a.num-b.num).map(p=>`<option value="${p.num}|${p.name}">#${p.num} ${p.name}</option>`).join('')}
+            ${rosaValchisone.filter(p=>p.cat===(l.cat||'')).sort((a,b)=>a.num-b.num).map(p=>`<option value="${p.num}|${p.name}">#${p.num} ${p.name}${p.gk?' (GK)':''}</option>`).join('')}
             <option value="__manual__">✏️ Inserisci manuale...</option>
           </select>
           <div id="goal-manual-fields" style="display:flex;gap:4px">
-            <input type="number" id="goal-jersey" placeholder="N°" min="1" max="99" style="width:52px;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
-            <input type="text" id="goal-player" placeholder="Nome" style="flex:1;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
+            <input type="number" id="goal-jersey" placeholder="N°" min="1" max="99" style="width:52px;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px" oninput="autocompleteGoal('jersey')">
+            <input type="text" id="goal-player" placeholder="Nome" style="flex:1;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px" oninput="autocompleteGoal('name')">
           </div>
         </div>
       </div>
@@ -2263,6 +2275,28 @@ function startTimerTick() {
   }, 500);
 }
 
+function autocompleteGoal(source) {
+  const teamEl = document.getElementById('goal-team');
+  if (!teamEl || !liveData) return;
+  const isHome = teamEl.value === liveData.home;
+  if (!isHome) return; // autocomplete solo per Valchisone
+  const jerseyEl = document.getElementById('goal-jersey');
+  const playerEl = document.getElementById('goal-player');
+  if (!jerseyEl || !playerEl) return;
+  const rosaFilt = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
+  if (source === 'jersey') {
+    const num = parseInt(jerseyEl.value);
+    if (!num) return;
+    const found = rosaFilt.find(function(p){ return p.num === num; });
+    if (found && playerEl.value.trim() === '') playerEl.value = found.name;
+  } else {
+    const name = playerEl.value.trim().toLowerCase();
+    if (!name) return;
+    const found = rosaFilt.find(function(p){ return p.name.toLowerCase().startsWith(name); });
+    if (found && jerseyEl.value.trim() === '') jerseyEl.value = found.num;
+  }
+}
+
 function updateGoalForm() {
   if (!liveData) return;
   const teamEl = document.getElementById('goal-team');
@@ -2357,17 +2391,29 @@ function deleteGoal(goalId) {
 }
 
 // ─── ROSA VALCHISONE ────────────────────────────────────
+function setRosaCat(cat) {
+  rosaCat = cat;
+  // Aggiorna tab attivo
+  ['af','rf','alf','a1f','alfi'].forEach(function(c) {
+    var btn = document.getElementById('rosa-tab-'+c);
+    if (btn) btn.className = 'ftab' + (c === cat ? ' active' : '');
+  });
+  renderRosaEditor();
+}
+
 function renderRosaEditor() {
   const el = document.getElementById('rosa-editor');
   if (!el) return;
-  if (!rosaValchisone.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice aggiunta</div>'; return; }
-  el.innerHTML = rosaValchisone.slice().sort((a,b)=>a.num-b.num).map((p,i) =>
-    '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
-    +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
-    +'<span style="font-size:12px;flex:1">'+p.name+'</span>'
-    +'<button onclick="removeRosaPlayer('+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
-    +'</div>'
-  ).join('');
+  const filtered = rosaValchisone.filter(function(p){ return p.cat === rosaCat; }).sort(function(a,b){ return a.num-b.num; });
+  if (!filtered.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice per questa categoria</div>'; return; }
+  el.innerHTML = filtered.map(function(p) {
+    const globalIdx = rosaValchisone.findIndex(function(x){ return x.num===p.num && x.cat===p.cat && x.name===p.name; });
+    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
+      +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
+      +'<span style="font-size:12px;flex:1">'+p.name+(p.gk?' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 5px;font-weight:700">GK</span>':'')+'</span>'
+      +'<button onclick="removeRosaPlayer('+globalIdx+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
+      +'</div>';
+  }).join('');
 }
 
 function addRosaPlayer() {
@@ -2376,12 +2422,16 @@ function addRosaPlayer() {
   const num = parseInt(numEl ? numEl.value : '0');
   const name = nameEl ? nameEl.value.trim() : '';
   if (!num || !name) { alert('Inserisci numero e nome!'); return; }
-  const existing = rosaValchisone.findIndex(p => p.num === num);
-  if (existing >= 0) rosaValchisone[existing] = {num, name};
-  else rosaValchisone.push({num, name});
+  // Cerca duplicato per num+cat
+  const gkEl = document.getElementById('new-rosa-gk');
+  const isGK = gkEl ? gkEl.checked : false;
+  const existing = rosaValchisone.findIndex(function(p){ return p.num === num && p.cat === rosaCat; });
+  if (existing >= 0) rosaValchisone[existing] = {num: num, name: name, cat: rosaCat, gk: isGK};
+  else rosaValchisone.push({num: num, name: name, cat: rosaCat, gk: isGK});
   saveAllLists();
   if (numEl) numEl.value = '';
   if (nameEl) nameEl.value = '';
+  if (gkEl) gkEl.checked = false;
   renderRosaEditor();
 }
 
