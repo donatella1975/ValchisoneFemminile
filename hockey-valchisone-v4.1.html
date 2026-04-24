@@ -1218,13 +1218,17 @@ function renderGiornate(sport) {
   const cats = sport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
   const onlyValch = document.getElementById('valch-filter-btn') && document.getElementById('valch-filter-btn').classList.contains('active');
 
-  // Filtra categorie attive
-  const activeCats = cats.filter(c => {
-    const btn = document.querySelector('.filter-bar .ftab[data-cat="'+c+'"]');
-    return !btn || btn.classList.contains('active');
-  });
-
-  let allMs = pool.filter(m => activeCats.includes(m.cat));
+  // Legge filtro attivo dalle variabili globali
+  const activeFilter = sport === 'indoor' ? fIndoor : fPartite;
+  const activeExtra  = sport === 'indoor' ? fIndoorExtra : fPartiteExtra;
+  let allMs;
+  if (activeFilter === 'all') {
+    allMs = pool;
+  } else if (activeExtra) {
+    allMs = pool.filter(m => m.cat === activeFilter || m.cat === activeExtra);
+  } else {
+    allMs = pool.filter(m => m.cat === activeFilter);
+  }
   if (onlyValch) allMs = allMs.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
 
   if (!allMs.length) {
@@ -1312,36 +1316,23 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
 function setFPartite(v) {
   if (v === 'all') {
     fPartite = 'all'; fPartiteExtra = null;
-  } else if (fPartite === v) {
-    fPartite = 'all'; fPartiteExtra = null;
-  } else if (fPartite === 'all') {
-    fPartite = v; fPartiteExtra = null;
-  } else if (fPartiteExtra === v) {
-    fPartiteExtra = null;
-  } else if (fPartiteExtra === null) {
-    fPartiteExtra = v;
   } else {
+    // Click singolo: seleziona solo questa, deseleziona tutto il resto
     fPartite = v; fPartiteExtra = null;
   }
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   renderCalendar(); renderMatches(); updateHeroStats();
+  if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function setFIndoor(v) {
   if (v === 'all') {
     fIndoor = 'all'; fIndoorExtra = null;
-  } else if (fIndoor === v) {
-    fIndoor = 'all'; fIndoorExtra = null;
-  } else if (fIndoor === 'all') {
-    fIndoor = v; fIndoorExtra = null;
-  } else if (fIndoorExtra === v) {
-    fIndoorExtra = null;
-  } else if (fIndoorExtra === null) {
-    fIndoorExtra = v;
   } else {
     fIndoor = v; fIndoorExtra = null;
   }
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 function toggleValch() {
   onlyValch = !onlyValch;
@@ -1353,11 +1344,13 @@ function addFPartiteExtra(v) {
   fPartiteExtra = (fPartiteExtra === v) ? null : v;
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   renderCalendar(); renderMatches(); updateHeroStats();
+  if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function addFIndoorExtra(v) {
   fIndoorExtra = (fIndoorExtra === v) ? null : v;
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 
 // ─── CALENDAR ──────────────────────────────────────────
