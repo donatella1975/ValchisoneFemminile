@@ -22,6 +22,8 @@
   window._fbSetLivePwd  = (pwd)  => set(ref(db,'livepwd'), {pwd, ts: Date.now()});
   window._fbGetLivePwd  = (cb)   => onValue(ref(db,'livepwd'), snap => cb(snap.val()), {onlyOnce:true});
   window._fbClearLivePwd = ()    => set(ref(db,'livepwd'), null);
+  window._fbSetMatchPin  = (matchId, pin) => set(ref(db,'matches/'+matchId+'/livePin'), pin);
+  window._fbClearMatchPin = (matchId) => set(ref(db,'matches/'+matchId+'/livePin'), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
   window._fbSave        = (data) => set(ref(db,'matches'), data);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
@@ -132,6 +134,37 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .section-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
 .section-title { font-family:'Bricolage Grotesque',sans-serif; font-size:20px; font-weight:800; color:var(--ink); }
 
+/* ─── GOAL PANEL ────────────────────────────────────────────── */
+.goal-panel-overlay { position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center; }
+.goal-panel { background:white;border-radius:20px 20px 0 0;padding:20px 16px 24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch; }
+.goal-panel-title { font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;color:#1a3a22;margin-bottom:14px; }
+.rosa-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
+.rosa-btn { background:#f0faf2;border:2px solid #d1fae5;border-radius:12px;padding:12px 6px;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif;text-align:center; }
+.rosa-btn:active { background:#dcfce7;border-color:var(--green); }
+.rosa-btn .num { font-size:18px;font-weight:800;color:var(--green); }
+.rosa-btn .name { font-size:10px;color:#374151;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.rosa-btn .gk-badge { font-size:9px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 4px;font-weight:700; }
+.keypad-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
+.keypad-btn { background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;touch-action:manipulation;font-size:20px;font-weight:700;color:#1a1a1a;font-family:'Bricolage Grotesque',sans-serif; }
+.keypad-btn:active { background:#e5e7eb; }
+.keypad-display { background:#f0faf2;border:2px solid #d1fae5;border-radius:10px;padding:12px;font-size:28px;font-weight:800;color:#1a3a22;text-align:center;margin-bottom:10px;min-height:52px;font-family:'Bricolage Grotesque',sans-serif; }
+/* ─── MATCH DETAIL ──────────────────────────────────────────── */
+.match-row { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; margin-bottom:4px; border-left:3px solid #e5e7eb; background:#f9fafb; cursor:pointer; transition:background .15s; }
+.match-row:hover { background:#f0faf2; }
+.match-row.valch { background:#f0faf2; border-left-color:var(--green); }
+.match-row-teams { flex:1; font-size:13px; font-weight:700; color:#1a1a1a; }
+.match-row-meta { font-size:11px; color:#9ca3af; margin-top:2px; }
+.match-row-score { font-size:15px; font-weight:800; color:var(--green); white-space:nowrap; }
+.match-row-score.future { font-size:11px; color:#9ca3af; font-weight:400; }
+.match-detail-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:flex;align-items:flex-end;justify-content:center; }
+.match-detail-panel { background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch; }
+.match-detail-title { font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:4px; }
+.match-detail-score { font-size:40px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;color:var(--green);text-align:center;margin:12px 0 4px; }
+.match-detail-teams { display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#6b7280;margin-bottom:16px; }
+.match-detail-section { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin:12px 0 6px;border-bottom:1px solid #f3f4f6;padding-bottom:4px; }
+.match-detail-goal { display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f9fafb;font-size:13px; }
+.match-detail-goal .minute { font-weight:700;color:var(--green);min-width:32px; }
+.match-detail-goal .player { flex:1; }
 /* ─── VIEW TABS ─────────────────────────────────────────────── */
 .view-tabs { display:flex; gap:6px; margin-bottom:12px; }
 .view-tab { flex:1; padding:8px 0; border:1.5px solid #e5e7eb; border-radius:20px; background:white; font-size:13px; font-weight:700; color:#6b7280; cursor:pointer; font-family:DM Sans,sans-serif; touch-action:manipulation; }
@@ -701,6 +734,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
     </div>
   </div>
   <div id="standings-content"><div id="skeleton-standings"></div></div>
+  <div id="standings-giornate" style="margin-top:24px"></div>
 
 </div>
 
@@ -708,7 +742,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <div class="page" id="page-admin">
   <div id="login-wrap" style="display:none">
     <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;margin-bottom:16px">🔐 Admin</h2>
-    <div class="form-field"><label>Password</label><input type="password" id="pwd-input" onkeydown="if(event.key==='Enter')doLogin()" aria-label="Password amministratore" autocomplete="current-password"></div>
+    <div class="form-field"><label>Password</label><input type="password" id="pwd-input" onkeydown="if(event.key==='Enter')doLogin()" aria-label="Password amministratore" autocomplete="current-password" placeholder="Password admin o PIN 4 cifre" style="letter-spacing:2px"></div>
     <button class="btn btn-green" onclick="doLogin()">Accedi</button>
   </div>
   <div id="admin-panel" style="display:none">
@@ -724,10 +758,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuova Partita</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Aggiungi al calendario</div>
         </button>
-        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
-          <div style="font-size:24px;margin-bottom:6px">🏆</div>
-          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
+        <button id="tab-lists" onclick="switchFormTab('lists')" style="background:white;border:2px solid #d1fae5;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">👕</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Rosa e Liste</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Squadre, campi, giocatrici</div>
         </button>
         <button id="tab-edit" onclick="switchFormTab('edit')" style="background:white;border:2px solid #e0e7ff;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
           <div style="font-size:24px;margin-bottom:6px">✏️</div>
@@ -738,6 +772,11 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:24px;margin-bottom:6px">🔴</div>
           <div style="font-weight:700;font-size:14px;color:#dc2626">Gestione Live</div>
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Tabellone in diretta</div>
+        </button>
+        <button id="tab-event" onclick="switchFormTab('event')" style="background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px 12px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;transition:all .15s">
+          <div style="font-size:24px;margin-bottom:6px">🏆</div>
+          <div style="font-weight:700;font-size:14px;color:#1a3a22">Nuovo Evento</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
         </button>
       </div>
       <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
@@ -761,10 +800,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:11px;color:#64748b">Consulta stagioni passate</div>
         </div>
       </button>
-    </div>
-    <!-- HIDDEN TABS (for compatibility) -->
-    <div style="display:none">
-      <button id="tab-lists"></button>
     </div>
 
     <!-- MATCH FORM -->
@@ -864,13 +899,25 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
     <!-- LISTS MANAGEMENT -->
     <div id="form-lists" class="admin-section" style="display:none">
-      <h3>📋 Gestione Squadre, Campi e Rosa</h3>
+      <h3>👕 Rosa e Gestione Liste</h3>
+      <!-- ROSA PER CATEGORIA -->
       <div style="margin-bottom:16px;border:1.5px solid #d1fae5;border-radius:10px;padding:12px">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:8px">👕 Rosa HP Valchisone (n° maglia + nome)</div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:10px">👕 Rosa HP Valchisone</div>
+        <!-- Selezione categoria -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="rosa-cat-tabs">
+          <button class="ftab active" onclick="setRosaCat('af')" id="rosa-tab-af">⚡ A2</button>
+          <button class="ftab" onclick="setRosaCat('rf')" id="rosa-tab-rf">🟣 Ragazze</button>
+          <button class="ftab" onclick="setRosaCat('alf')" id="rosa-tab-alf">🩵 Allieve</button>
+          <button class="ftab" onclick="setRosaCat('a1f')" id="rosa-tab-a1f">🏒 Indoor A1</button>
+          <button class="ftab" onclick="setRosaCat('alfi')" id="rosa-tab-alfi">🏒 Allieve Indoor</button>
+        </div>
         <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
-        <div style="display:flex;gap:6px">
-          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
-          <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:56px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
+          <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;min-width:120px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap;cursor:pointer">
+            <input type="checkbox" id="new-rosa-gk" style="width:16px;height:16px;cursor:pointer"> GK
+          </label>
           <button class="btn btn-green btn-sm" onclick="addRosaPlayer()" style="touch-action:manipulation">+ Aggiungi</button>
         </div>
       </div>
@@ -1027,7 +1074,7 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
-let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [];
+let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
   'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
@@ -1055,7 +1102,7 @@ let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSel
 let calIndoorYear = new Date().getFullYear();
 let calIndoorMonth = new Date().getMonth();
 let calIndoorSelected = null;
-let currentPage = 'partite', classSport = 'prato', showAllResults = false;
+let currentPage = 'partite', classSport = 'prato', showAllResults = false, _liveOpMatchId = null;
 
 // ─── INIT ───────────────────────────────────────────────
 window.addEventListener('load', () => {
@@ -1216,13 +1263,17 @@ function renderGiornate(sport) {
   const cats = sport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
   const onlyValch = document.getElementById('valch-filter-btn') && document.getElementById('valch-filter-btn').classList.contains('active');
 
-  // Filtra categorie attive
-  const activeCats = cats.filter(c => {
-    const btn = document.querySelector('.filter-bar .ftab[data-cat="'+c+'"]');
-    return !btn || btn.classList.contains('active');
-  });
-
-  let allMs = pool.filter(m => activeCats.includes(m.cat));
+  // Legge filtro attivo dalle variabili globali
+  const activeFilter = sport === 'indoor' ? fIndoor : fPartite;
+  const activeExtra  = sport === 'indoor' ? fIndoorExtra : fPartiteExtra;
+  let allMs;
+  if (activeFilter === 'all') {
+    allMs = pool;
+  } else if (activeExtra) {
+    allMs = pool.filter(m => m.cat === activeFilter || m.cat === activeExtra);
+  } else {
+    allMs = pool.filter(m => m.cat === activeFilter);
+  }
   if (onlyValch) allMs = allMs.filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
 
   if (!allMs.length) {
@@ -1310,36 +1361,23 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
 function setFPartite(v) {
   if (v === 'all') {
     fPartite = 'all'; fPartiteExtra = null;
-  } else if (fPartite === v) {
-    fPartite = 'all'; fPartiteExtra = null;
-  } else if (fPartite === 'all') {
-    fPartite = v; fPartiteExtra = null;
-  } else if (fPartiteExtra === v) {
-    fPartiteExtra = null;
-  } else if (fPartiteExtra === null) {
-    fPartiteExtra = v;
   } else {
+    // Click singolo: seleziona solo questa, deseleziona tutto il resto
     fPartite = v; fPartiteExtra = null;
   }
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   renderCalendar(); renderMatches(); updateHeroStats();
+  if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function setFIndoor(v) {
   if (v === 'all') {
     fIndoor = 'all'; fIndoorExtra = null;
-  } else if (fIndoor === v) {
-    fIndoor = 'all'; fIndoorExtra = null;
-  } else if (fIndoor === 'all') {
-    fIndoor = v; fIndoorExtra = null;
-  } else if (fIndoorExtra === v) {
-    fIndoorExtra = null;
-  } else if (fIndoorExtra === null) {
-    fIndoorExtra = v;
   } else {
     fIndoor = v; fIndoorExtra = null;
   }
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 function toggleValch() {
   onlyValch = !onlyValch;
@@ -1351,11 +1389,13 @@ function addFPartiteExtra(v) {
   fPartiteExtra = (fPartiteExtra === v) ? null : v;
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   renderCalendar(); renderMatches(); updateHeroStats();
+  if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function addFIndoorExtra(v) {
   fIndoorExtra = (fIndoorExtra === v) ? null : v;
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
   renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 
 // ─── CALENDAR ──────────────────────────────────────────
@@ -1798,49 +1838,85 @@ function renderLivePage() {
 }
 
 // ─── LIVE ADMIN PANEL ───────────────────────────────────
-function generateLivePwd() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let pwd = '';
-  for (let i=0; i<6; i++) pwd += chars[Math.floor(Math.random()*chars.length)];
-  if (!window._fbSetLivePwd) {
-    alert('Firebase non ancora pronto, riprova tra qualche secondo.');
-    return;
-  }
+function generateMatchPin(matchId) {
+  if (!window._fbSetMatchPin) { alert('Firebase non pronto, riprova.'); return; }
+  const pin = String(Math.floor(1000 + Math.random() * 9000));
+  const m = allMatches.concat(allIndoor).find(function(x){return x.id===matchId;});
+  const matchLabel = m ? (fmtDate(m.date) + ' - ' + m.home + ' vs ' + m.away) : matchId;
   const siteUrl = window.location.href.split('?')[0];
-  const msg = 'Ciao! Ti chiedo di aggiornare il live della partita di hockey 🏑\n\n'
-    + '1. Apri l\'app HP Valchisone:\n'
-    + siteUrl + '\n\n'
-    + '2. Clicca su ⚙️ in alto a destra\n'
-    + '3. Inserisci questa password:\n\n'
-    + '👉 ' + pwd + ' 👈\n\n'
-    + '4. Seleziona la partita e clicca Avvia Live\n'
-    + '5. Quando finisce clicca Fine Partita\n\n'
-    + 'Grazie! 🙏';
-  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(msg);
-
-  window._fbSetLivePwd(pwd).then(function() {
-    // Show overlay with big password and copy button
-    var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    overlay.innerHTML = '<div style="background:white;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;font-family:\'DM Sans\',sans-serif">'
-      + '<div style="font-size:13px;color:#6b7280;margin-bottom:8px">Password Live generata</div>'
-      + '<div id="pwd-display" style="font-family:\'Bricolage Grotesque\',sans-serif;font-size:48px;font-weight:800;color:#1a3a22;letter-spacing:8px;margin:12px 0;cursor:pointer;user-select:all" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent.trim());this.style.color=\'#1a7a2e\';setTimeout(()=>this.style.color=\'#1a3a22\',500)">' + pwd + '</div>'
-      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:16px">Tocca la password per copiarla</div>'
+  const waMsg = 'PIN Live: ' + pin + '\nPartita: ' + matchLabel + '\nApp: ' + siteUrl;
+  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+  window._fbSetMatchPin(matchId, pin).then(function() {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    var div = document.createElement('div');
+    div.style.cssText = 'background:white;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;font-family:DM Sans,sans-serif';
+    div.innerHTML = '<div style="font-size:13px;color:#6b7280;margin-bottom:4px">PIN Live generato</div>'
+      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:12px">' + matchLabel + '</div>'
+      + '<div id="_pin_display" style="font-family:Bricolage Grotesque,sans-serif;font-size:64px;font-weight:800;color:#1a3a22;letter-spacing:12px;margin:8px 0">' + pin + '</div>'
+      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:16px">PIN valido fino a fine partita</div>'
       + '<div style="display:flex;flex-direction:column;gap:8px">'
-      + '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+pwd+'\');this.textContent=\'✓ Copiata!\';setTimeout(()=>this.textContent=\'📋 Copia Password\',1500)" style="background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">📋 Copia Password</button>'
-      + '<a href="'+waUrl+'" target="_blank" style="background:#25d366;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block" onclick="setTimeout(()=>document.body.removeChild(overlay),500)">📱 Invia su WhatsApp</a>'
-      + '<button onclick="document.body.removeChild(this.closest(\'[style*=fixed]\'))" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">Chiudi</button>'
-      + '</div></div>';
-    document.body.appendChild(overlay);
-  }).catch(function(e) { alert('Errore salvataggio: ' + e.message); });
+      + '<button id="_pin_copy" style="background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">📋 Copia PIN</button>'
+      + '<a href="' + waUrl + '" target="_blank" style="background:#25d366;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block">📱 Invia su WhatsApp</a>'
+      + '<button id="_pin_close" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation">Chiudi</button>'
+      + '</div>';
+    ov.appendChild(div);
+    document.body.appendChild(ov);
+    document.getElementById('_pin_copy').addEventListener('click', function() {
+      navigator.clipboard && navigator.clipboard.writeText(pin);
+      this.textContent = '✓ Copiato!';
+      var btn = this;
+      setTimeout(function(){ btn.textContent = '📋 Copia PIN'; }, 1500);
+    });
+    document.getElementById('_pin_close').addEventListener('click', function() {
+      document.body.removeChild(ov);
+    });
+  }).catch(function(e) { alert('Errore: ' + e.message); });
 }
+
+
+function generateLivePwd() {
+  const matches = allMatches.concat(allIndoor)
+    .filter(function(m){return !m.scoreHome && !m.scoreAway;})
+    .sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
+  if (!matches.length) { alert('Nessuna partita futura trovata.'); return; }
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var opts = matches.map(function(m){return '<option value="'+m.id+'">'+fmtDate(m.date)+' - '+m.home+' vs '+m.away+'</option>';}).join('');
+  var div = document.createElement('div');
+  div.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:340px;width:100%;font-family:DM Sans,sans-serif';
+  div.innerHTML = '<div style="font-weight:800;font-size:16px;color:#1a3a22;margin-bottom:12px">🔑 Genera PIN Live</div>'
+    + '<div style="font-size:13px;color:#6b7280;margin-bottom:8px">Scegli la partita:</div>'
+    + '<select id="pin-match-select" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:14px"><option value="">— Seleziona —</option>'+opts+'</select>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button id="_pin_gen_btn" style="flex:1;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Genera PIN</button>'
+    + '<button id="_pin_cancel_btn" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation">Annulla</button>'
+    + '</div>';
+  ov.appendChild(div);
+  document.body.appendChild(ov);
+  document.getElementById('_pin_gen_btn').addEventListener('click', function() {
+    var sel = document.getElementById('pin-match-select');
+    if (!sel.value) { alert('Seleziona una partita'); return; }
+    var id = sel.value;
+    document.body.removeChild(ov);
+    generateMatchPin(id);
+  });
+  document.getElementById('_pin_cancel_btn').addEventListener('click', function() {
+    document.body.removeChild(ov);
+  });
+}
+
 
 function renderLiveAdminPanel() {
   const el = document.getElementById('live-admin-content');
   if (!el) return;
   if (!liveData || !liveData.active) {
-    const matchOpts = [...allMatches, ...allIndoor]
-      .filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; })
+    const allPool = [...allMatches, ...allIndoor];
+    // Live operator: mostra solo la sua partita
+    const poolFiltered = _isLiveOnly && _liveOpMatchId
+      ? allPool.filter(m => m.id === _liveOpMatchId)
+      : allPool.filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; });
+    const matchOpts = poolFiltered
       .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
       .map(m => `<option value="${m.id}">${fmtDate(m.date)} ${m.time||''} – ${m.home} vs ${m.away}</option>`)
       .join('');
@@ -1896,33 +1972,20 @@ function renderLiveAdminPanel() {
         <button class="btn-timer-reset" onclick="timerReset()" style="padding:12px;font-size:14px">↺ Reset</button>
       </div>
       <!-- ADD GOAL -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Aggiungi gol</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div class="form-field" style="margin:0">
-          <label>Squadra</label>
-          <select id="goal-team" onchange="updateGoalForm()" style="padding:10px 8px;width:100%;font-size:13px;font-weight:600">
-            <option value="${l.home}">${abbrevTeam(l.home,16)}</option>
-            <option value="${l.away}">${abbrevTeam(l.away,16)}</option>
-          </select>
-        </div>
-        <div class="form-field" style="margin:0">
-          <label id="goal-field-label">Giocatrice</label>
-          <select id="goal-rosa-select" style="padding:10px 8px;width:100%;font-size:13px;display:none" onchange="onRosaSelect()">
-            <option value="">— Seleziona —</option>
-            ${rosaValchisone.sort((a,b)=>a.num-b.num).map(p=>`<option value="${p.num}|${p.name}">#${p.num} ${p.name}</option>`).join('')}
-            <option value="__manual__">✏️ Inserisci manuale...</option>
-          </select>
-          <div id="goal-manual-fields" style="display:flex;gap:4px">
-            <input type="number" id="goal-jersey" placeholder="N°" min="1" max="99" style="width:52px;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
-            <input type="text" id="goal-player" placeholder="Nome" style="flex:1;padding:10px 6px;font-size:13px;border:1.5px solid #e5e7eb;border-radius:8px">
-          </div>
-        </div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Aggiungi gol</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button onclick="openGoalPanel('home')" style="background:#f0faf2;border:2px solid var(--green);border-radius:14px;padding:14px 8px;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">
+          <div style="font-size:22px;margin-bottom:4px">🏑</div>
+          <div style="font-size:12px;font-weight:800;color:#1a3a22;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.home,14)}</div>
+        </button>
+        <button onclick="openGoalPanel('away')" style="background:#fafafa;border:2px solid #d1d5db;border-radius:14px;padding:14px 8px;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">
+          <div style="font-size:22px;margin-bottom:4px">⚔️</div>
+          <div style="font-size:12px;font-weight:800;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.away,14)}</div>
+        </button>
       </div>
-      <div style="margin-bottom:4px;font-size:11px;color:#9ca3af">⏱ Minuto registrato automaticamente</div>
-      <div style="margin-bottom:8px">
-        <button class="btn-add-goal" onclick="addGoal()" style="padding:12px;font-size:14px;width:100%;touch-action:manipulation">🏑 Registra Gol</button>
-      </div>
-      <!-- TIRI CORTI -->
+      <div style="margin-bottom:8px;font-size:11px;color:#9ca3af">⏱ Minuto registrato automaticamente dal cronometro</div>
+      <!-- TIRI CORTI (solo admin) -->
+      ${_isLiveOnly ? '' : `
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Tiri corti (penalty corner)</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
         <div style="background:#f0faf2;border-radius:10px;padding:8px 10px;text-align:center">
@@ -1946,6 +2009,7 @@ function renderLiveAdminPanel() {
       <div style="margin-bottom:8px">
         <button onclick="generateRefertoLive()" style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;touch-action:manipulation">📄 Scarica Referto Arbitrale</button>
       </div>
+      `}
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -2045,7 +2109,9 @@ function finePartita() {
   if (liveData.timerRunning) {
     const partial = getPartialMs(liveData);
     const newTotal = (liveData.totalElapsed||0) + partial;
+    const _closingMatchId = liveData.matchId || null;
     window._fbSaveLive({...liveData, timerRunning: false, timerStart: null, timerElapsed: partial, totalElapsed: newTotal, finished: true});
+    if (_closingMatchId && window._fbClearMatchPin) window._fbClearMatchPin(_closingMatchId);
     playWhistle('triple');
   } else {
     window._fbSaveLive({...liveData, finished: true, timerRunning: false});
@@ -2209,6 +2275,201 @@ function startTimerTick() {
   }, 500);
 }
 
+// ─── GOAL PANEL ──────────────────────────────────────────────
+function openGoalPanel(side) {
+  if (!liveData) return;
+  const isHome = side === 'home';
+  const teamName = isHome ? liveData.home : liveData.away;
+  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(function(a,b){ return a.num-b.num; });
+
+  var ov = document.createElement('div');
+  ov.className = 'goal-panel-overlay';
+
+  var inner = '<div class="goal-panel">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    + '<div class="goal-panel-title">' + (isHome ? '🏑' : '⚔️') + ' ' + teamName + '</div>'
+    + '<button id="_gp_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button>'
+    + '</div>';
+
+  if (isHome && rosa.length > 0) {
+    // Griglia giocatrici
+    inner += '<div class="rosa-grid">';
+    rosa.forEach(function(p, idx) {
+      var nameShort = p.name.split(' ')[0];
+      var gkHtml = p.gk ? ' <span class="gk-badge">GK</span>' : '';
+      inner += '<button class="rosa-btn" data-num="'+p.num+'" data-name="'+p.name.replace(/"/g,'&quot;')+'">'
+        + '<div class="num">#'+p.num+'</div>'
+        + '<div class="name">'+nameShort+gkHtml+'</div>'
+        + '</button>';
+    });
+    inner += '</div>';
+    // Bottone inserimento manuale
+    inneinner += '<button id="_gp_manual" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:13px;color:#6b7280;cursor:pointer;touch-action:manipulation">✏️ Inserimento manuale</button>';
+  } else {
+    // Tastierino numerico
+    inner += '<div class="keypad-display" id="_kp_display">—</div>';
+    inner += '<div class="keypad-grid">';
+    [1,2,3,4,5,6,7,8,9,'⌫',0,'✓'].forEach(function(k) {
+      var isConfirm = k === '✓';
+      var isDel = k === '⌫';
+      var style = isConfirm ? 'background:var(--green);color:white;border-color:var(--green)' : (isDel ? 'color:#ef4444' : '');
+      inner += '<button class="keypad-btn" data-key="' + k + '" style="' + style + '">' + k + '</button>';
+    });
+    inner += '</div>';
+  }
+  inner += '</div>';
+  ov.innerHTML = inner;
+  ov._side = side;
+  ov._teamName = teamName;
+  document.body.appendChild(ov);
+  document.getElementById('_gp_close').addEventListener('click', function(){ document.body.removeChild(ov); });
+  ov.addEventListener('click', function(e){
+    if (e.target === ov) { document.body.removeChild(ov); return; }
+    var rosaBtn = e.target.closest ? e.target.closest('.rosa-btn') : null;
+    if (rosaBtn && rosaBtn.dataset.num) {
+      var num = rosaBtn.dataset.num;
+      var name = rosaBtn.dataset.name;
+      if (document.body.contains(ov)) document.body.removeChild(ov);
+      _registerGoalRosa(num + '|' + name);
+      return;
+    }
+    var kpBtn = e.target.closest ? e.target.closest('.keypad-btn') : null;
+    if (kpBtn && kpBtn.hasAttribute('data-key')) {
+      _keypadPress(kpBtn.getAttribute('data-key'));
+    }
+  });
+  var manualBtn = document.getElementById('_gp_manual');
+  if (manualBtn) manualBtn.addEventListener('click', function(){ _showGoalManual(teamName); });
+  window._goalPanelOv = ov;
+  window._keypadVal = '';
+}
+
+function _keypadPress(k) {
+  var disp = document.getElementById('_kp_display');
+  if (!disp) return;
+  if (k === '⌫') {
+    window._keypadVal = (window._keypadVal||'').slice(0,-1);
+  } else if (k === '✓') {
+    var num = parseInt(window._keypadVal||'0');
+    if (!num) { disp.style.color='#ef4444'; setTimeout(function(){ disp.style.color='#1a3a22'; },600); return; }
+    var ov = window._goalPanelOv;
+    if (ov) document.body.removeChild(ov);
+    _registerGoalKeypad(num, ov ? ov._teamName : '');
+    window._keypadVal = '';
+    return;
+  } else {
+    if ((window._keypadVal||'').length >= 2) return;
+    window._keypadVal = (window._keypadVal||'') + k;
+  }
+  disp.textContent = window._keypadVal || '—';
+}
+
+function _showGoalManual(teamName) {
+  var ov = window._goalPanelOv;
+  if (ov) document.body.removeChild(ov);
+  // Mostra tastierino per numero + nome
+  var ov2 = document.createElement('div');
+  ov2.className = 'goal-panel-overlay';
+  ov2.innerHTML = '<div class="goal-panel">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    + '<div class="goal-panel-title">✏️ ' + teamName + '</div>'
+    + '<button id="_gm_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:12px">'
+    + '<input type="number" id="_gm_num" placeholder="N°" min="1" max="99" style="width:64px;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:16px;font-weight:700" oninput="autocompleteGoalManual()">'
+    + '<input type="text" id="_gm_name" placeholder="Nome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:14px" oninput="autocompleteGoalManual()">'
+    + '</div>'
+    + '<button id="_gm_confirm" style="width:100%;background:var(--green);color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;touch-action:manipulation">✓ Registra Gol</button>'
+    + '</div>';
+  document.body.appendChild(ov2);
+  document.getElementById('_gm_close').addEventListener('click', function(){ document.body.removeChild(ov2); });
+  ov2.addEventListener('click', function(e){ if(e.target===ov2) document.body.removeChild(ov2); });
+  document.getElementById('_gm_confirm').addEventListener('click', function(){
+    var num = document.getElementById('_gm_num')?.value?.trim() || '';
+    var name = document.getElementById('_gm_name')?.value?.trim() || '';
+    document.body.removeChild(ov2);
+    _registerGoalDirect(num, name, teamName);
+  });
+  window._goalPanelOv = ov2;
+}
+
+function autocompleteGoalManual() {
+  if (!liveData) return;
+  var numEl = document.getElementById('_gm_num');
+  var nameEl = document.getElementById('_gm_name');
+  if (!numEl || !nameEl) return;
+  var rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
+  var num = parseInt(numEl.value||'0');
+  var name = (nameEl.value||'').trim().toLowerCase();
+  if (num && !nameEl.value.trim()) {
+    var found = rosa.find(function(p){ return p.num === num; });
+    if (found) nameEl.value = found.name;
+  } else if (name && !numEl.value.trim()) {
+    var found2 = rosa.find(function(p){ return p.name.toLowerCase().startsWith(name); });
+    if (found2) numEl.value = found2.num;
+  }
+}
+
+function _registerGoalRosa(val) {
+  var ov = window._goalPanelOv;
+  if (ov) document.body.removeChild(ov);
+  var parts = val.split('|');
+  var jersey = parts[0]||'';
+  var player = parts[1]||'';
+  _saveGoal(liveData.home, jersey, player);
+}
+
+function _registerGoalKeypad(num, teamName) {
+  _saveGoal(teamName, String(num), '');
+}
+
+function _registerGoalDirect(jersey, player, teamName) {
+  _saveGoal(teamName, jersey, player);
+}
+
+function _saveGoal(team, jersey, player) {
+  if (!liveData) return;
+  const totalMs = getTotalMs(liveData);
+  const quarterMs = getPartialMs(liveData);
+  const minuteTotal = Math.floor(totalMs / 60000);
+  const minuteQuarter = Math.floor(quarterMs / 60000);
+  const minute = minuteTotal;
+  const quarter = liveData.half || 1;
+  const goalId = 'g' + Date.now();
+  const goals = Object.assign({}, liveData.goals || {});
+  const goal = { id: goalId, minute: minute, minuteTotal: minuteTotal, minuteQuarter: minuteQuarter, quarter: quarter, team: team };
+  if (player) goal.player = player;
+  if (jersey) goal.jersey = jersey;
+  goals[goalId] = goal;
+  var sh = liveData.scoreHome || 0;
+  var sa = liveData.scoreAway || 0;
+  if (team === liveData.home) sh++; else sa++;
+  window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }));
+  playVictorySound && (team === liveData.home ? playVictorySound() : playReactionSound());
+}
+
+function autocompleteGoal(source) {
+  const teamEl = document.getElementById('goal-team');
+  if (!teamEl || !liveData) return;
+  const isHome = teamEl.value === liveData.home;
+  if (!isHome) return; // autocomplete solo per Valchisone
+  const jerseyEl = document.getElementById('goal-jersey');
+  const playerEl = document.getElementById('goal-player');
+  if (!jerseyEl || !playerEl) return;
+  const rosaFilt = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
+  if (source === 'jersey') {
+    const num = parseInt(jerseyEl.value);
+    if (!num) return;
+    const found = rosaFilt.find(function(p){ return p.num === num; });
+    if (found && playerEl.value.trim() === '') playerEl.value = found.name;
+  } else {
+    const name = playerEl.value.trim().toLowerCase();
+    if (!name) return;
+    const found = rosaFilt.find(function(p){ return p.name.toLowerCase().startsWith(name); });
+    if (found && jerseyEl.value.trim() === '') jerseyEl.value = found.num;
+  }
+}
+
 function updateGoalForm() {
   if (!liveData) return;
   const teamEl = document.getElementById('goal-team');
@@ -2303,17 +2564,29 @@ function deleteGoal(goalId) {
 }
 
 // ─── ROSA VALCHISONE ────────────────────────────────────
+function setRosaCat(cat) {
+  rosaCat = cat;
+  // Aggiorna tab attivo
+  ['af','rf','alf','a1f','alfi'].forEach(function(c) {
+    var btn = document.getElementById('rosa-tab-'+c);
+    if (btn) btn.className = 'ftab' + (c === cat ? ' active' : '');
+  });
+  renderRosaEditor();
+}
+
 function renderRosaEditor() {
   const el = document.getElementById('rosa-editor');
   if (!el) return;
-  if (!rosaValchisone.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice aggiunta</div>'; return; }
-  el.innerHTML = rosaValchisone.slice().sort((a,b)=>a.num-b.num).map((p,i) =>
-    '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
-    +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
-    +'<span style="font-size:12px;flex:1">'+p.name+'</span>'
-    +'<button onclick="removeRosaPlayer('+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
-    +'</div>'
-  ).join('');
+  const filtered = rosaValchisone.filter(function(p){ return p.cat === rosaCat; }).sort(function(a,b){ return a.num-b.num; });
+  if (!filtered.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice per questa categoria</div>'; return; }
+  el.innerHTML = filtered.map(function(p) {
+    const globalIdx = rosaValchisone.findIndex(function(x){ return x.num===p.num && x.cat===p.cat && x.name===p.name; });
+    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
+      +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
+      +'<span style="font-size:12px;flex:1">'+p.name+(p.gk?' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 5px;font-weight:700">GK</span>':'')+'</span>'
+      +'<button onclick="removeRosaPlayer('+globalIdx+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
+      +'</div>';
+  }).join('');
 }
 
 function addRosaPlayer() {
@@ -2322,12 +2595,16 @@ function addRosaPlayer() {
   const num = parseInt(numEl ? numEl.value : '0');
   const name = nameEl ? nameEl.value.trim() : '';
   if (!num || !name) { alert('Inserisci numero e nome!'); return; }
-  const existing = rosaValchisone.findIndex(p => p.num === num);
-  if (existing >= 0) rosaValchisone[existing] = {num, name};
-  else rosaValchisone.push({num, name});
+  // Cerca duplicato per num+cat
+  const gkEl = document.getElementById('new-rosa-gk');
+  const isGK = gkEl ? gkEl.checked : false;
+  const existing = rosaValchisone.findIndex(function(p){ return p.num === num && p.cat === rosaCat; });
+  if (existing >= 0) rosaValchisone[existing] = {num: num, name: name, cat: rosaCat, gk: isGK};
+  else rosaValchisone.push({num: num, name: name, cat: rosaCat, gk: isGK});
   saveAllLists();
   if (numEl) numEl.value = '';
   if (nameEl) nameEl.value = '';
+  if (gkEl) gkEl.checked = false;
   renderRosaEditor();
 }
 
@@ -2654,8 +2931,106 @@ function renderStandings() {
   });
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
   renderResults();
+  renderStandingsGiornate();
 }
 
+
+// ─── STANDINGS GIORNATE + DETTAGLIO PARTITA ────────────────
+function renderStandingsGiornate() {
+  var el = document.getElementById('standings-giornate');
+  if (!el) return;
+  var pool = classSport === 'indoor' ? allIndoor : allMatches;
+  var cats = classSport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
+  var html = '<div style="font-family:\'Bricolage Grotesque\',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:14px;border-bottom:2px solid #d1fae5;padding-bottom:8px">Risultati per Giornata</div>';
+  var hasContent = false;
+
+  cats.forEach(function(catKey) {
+    var cat = CATS[catKey] || {};
+    var ms = pool.filter(function(m){ return m.cat === catKey; });
+    if (!ms.length) return;
+    hasContent = true;
+    var grouped = {};
+    ms.forEach(function(m) {
+      var key = m.round ? 'Giornata ' + m.round : (m.date || 'Data sconosciuta');
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(m);
+    });
+    var sortedKeys = Object.keys(grouped).sort(function(a, b) {
+      var aR = a.match(/^Giornata ([0-9]+)/), bR = b.match(/^Giornata ([0-9]+)/);
+      if (aR && bR) return parseInt(aR[1]) - parseInt(bR[1]);
+      if (aR) return -1; if (bR) return 1;
+      return a.localeCompare(b);
+    });
+    html += '<div style="margin-bottom:20px">';
+    html += '<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">' + (cat.icon||'') + ' ' + (cat.label||catKey) + '</div>';
+    sortedKeys.forEach(function(key) {
+      var matches = grouped[key];
+      var label = key;
+      if (!key.startsWith('Giornata') && /^[0-9]{4}-[0-9]{2}-[0-9]{2}/.test(key)) {
+        var d = new Date(key);
+        label = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+      }
+      html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;padding:6px 0 4px;border-bottom:1px solid #f3f4f6;margin-bottom:4px">' + label + '</div>';
+      matches.sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); }).forEach(function(m) {
+        var isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
+        var hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null;
+        var scoreHtml = hasSc
+          ? '<span class="match-row-score">' + m.scoreHome + ' \u2013 ' + m.scoreAway + '</span>'
+          : '<span class="match-row-score future">' + (m.time||'\u2013') + '</span>';
+        var mid = JSON.stringify(m.id);
+        html += '<div class="match-row' + (isValch?' valch':'') + '" onclick="showMatchDetail(' + mid + ')" style="touch-action:manipulation">';
+        html += '<div class="match-row-teams">';
+        html += abbrevTeam(m.home, 18) + ' <span style="color:#9ca3af;font-weight:400">vs</span> ' + abbrevTeam(m.away, 18);
+        html += '<div class="match-row-meta">' + (m.location||'') + '</div>';
+        html += '</div>' + scoreHtml + '</div>';
+      });
+    });
+    html += '</div>';
+  });
+  el.innerHTML = hasContent ? html : '';
+}
+
+function showMatchDetail(matchId) {
+  var pool = allMatches.concat(allIndoor);
+  var m = pool.find(function(x){ return x.id === matchId; });
+  if (!m) return;
+  var cat = CATS[m.cat] || {};
+  var hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null;
+  var goals = m.goals ? Object.values(m.goals) : [];
+  var homeGoals = goals.filter(function(g){ return g.team === m.home; }).sort(function(a,b){ return (a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0); });
+  var awayGoals = goals.filter(function(g){ return g.team === m.away; }).sort(function(a,b){ return (a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0); });
+
+  function goalRow(g) {
+    var min = g.minuteQuarter !== undefined ? g.minuteQuarter+"' ("+(g.quarter||'')+"Q)" : (g.minute !== undefined ? g.minute+"'" : '');
+    var name = (g.jersey ? '#'+g.jersey+' ' : '') + (g.player || '');
+    return '<div class="match-detail-goal"><span class="minute">' + min + '</span><span class="player">' + (name||'\u2014') + '</span></div>';
+  }
+  function goalsSection(list) {
+    if (!list.length) return '<div class="match-detail-goal"><span style="color:#9ca3af;font-style:italic">Nessun marcatore registrato</span></div>';
+    return list.map(goalRow).join('');
+  }
+
+  var ov = document.createElement('div');
+  ov.className = 'match-detail-overlay';
+  var inner = '<div class="match-detail-panel">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    + '<div class="match-detail-title">' + (cat.icon||'') + ' ' + (cat.label||m.cat) + '</div>'
+    + '<button id="_md_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">\u00d7</button>'
+    + '</div>'
+    + (hasSc ? '<div class="match-detail-score">' + m.scoreHome + ' \u2013 ' + m.scoreAway + '</div>' : '<div style="text-align:center;color:#9ca3af;margin:12px 0">Partita programmata</div>')
+    + '<div class="match-detail-teams"><span>' + m.home + '</span><span>' + m.away + '</span></div>'
+    + '<div style="font-size:11px;color:#9ca3af;text-align:center;margin-bottom:12px">' + fmtDate(m.date) + (m.time ? ' ore '+m.time : '') + (m.location ? ' \u00b7 '+m.location : '') + '</div>';
+
+  if (hasSc) {
+    inner += '<div class="match-detail-section">Marcatrici \u2014 ' + m.home + '</div>' + goalsSection(homeGoals);
+    inner += '<div class="match-detail-section">Marcatrici \u2014 ' + m.away + '</div>' + goalsSection(awayGoals);
+  }
+  inner += '</div>';
+  ov.innerHTML = inner;
+  document.body.appendChild(ov);
+  document.getElementById('_md_close').addEventListener('click', function(){ document.body.removeChild(ov); });
+  ov.addEventListener('click', function(e){ if(e.target===ov) document.body.removeChild(ov); });
+}
 
 function showAddForm() {
   document.getElementById('form-match').style.display = '';
@@ -2775,32 +3150,34 @@ function doLogin() {
     populateDataLists();
     setTimeout(showMissingResultsAlert, 300);
   } else {
-    // Check live password from Firebase
-    if (window._fbGetLivePwd) {
-      window._fbGetLivePwd(data => {
-        if (data && data.pwd && pwd === data.pwd) {
-          // Valid live password — live only mode
+    // Controlla PIN per partita su Firebase
+    if (window._fbListen) {
+      window._fbListen(function(data) {
+        if (!data) { alert('PIN non valido'); document.getElementById('pwd-input').value=''; return; }
+        var found = null;
+        Object.keys(data).forEach(function(k) {
+          if (data[k] && data[k].livePin && String(data[k].livePin) === String(pwd)) found = k;
+        });
+        if (found) {
           _isLiveOnly = true;
+          _liveOpMatchId = found;
           isAdminOpen = true;
-          // Password stays valid until end of match
           document.getElementById('login-wrap').style.display = 'none';
           document.getElementById('admin-panel').style.display = '';
-          // Show only live tab
           switchFormTab('live');
-          // Hide non-live tabs
-          ['tab-match','tab-event','tab-lists'].forEach(id => {
-            const el = document.getElementById(id);
+          ['tab-match','tab-event','tab-lists','tab-edit'].forEach(function(id) {
+            var el = document.getElementById(id);
             if (el) el.style.display = 'none';
           });
           renderLiveAdminPanel();
         } else {
-          alert('Password errata');
+          alert('PIN non valido');
           document.getElementById('pwd-input').value = '';
           document.getElementById('pwd-input').focus();
         }
       });
     } else {
-      alert('Password errata');
+      alert('PIN non valido');
       document.getElementById('pwd-input').value = '';
       document.getElementById('pwd-input').focus();
     }
