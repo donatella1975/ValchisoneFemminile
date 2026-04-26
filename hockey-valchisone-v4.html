@@ -2589,9 +2589,17 @@ function renderRosaEditor() {
     return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
       +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
       +'<span style="font-size:12px;flex:1">'+p.name+(p.gk?' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 5px;font-weight:700">GK</span>':'')+'</span>'
-      +'<button onclick="removeRosaPlayer('+globalIdx+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
+      +'<button class="rosa-edit-btn" data-idx="'+globalIdx+'" style="background:none;border:1px solid #d1fae5;border-radius:6px;padding:3px 7px;cursor:pointer;color:#1a7a2e;font-size:12px;touch-action:manipulation">✏️</button>'
+      +'<button class="rosa-del-btn" data-idx="'+globalIdx+'" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
       +'</div>';
   }).join('');
+  // Event delegation
+  el.addEventListener('click', function handler(e) {
+    var delBtn = e.target.closest('.rosa-del-btn');
+    var editBtn = e.target.closest('.rosa-edit-btn');
+    if (delBtn) { removeRosaPlayer(parseInt(delBtn.dataset.idx)); el.removeEventListener('click', handler); }
+    if (editBtn) { editRosaPlayer(parseInt(editBtn.dataset.idx)); el.removeEventListener('click', handler); }
+  }, {once: true});
 }
 
 function addRosaPlayer() {
@@ -2613,13 +2621,58 @@ function addRosaPlayer() {
   renderRosaEditor();
 }
 
-function removeRosaPlayer(idx) {
-  const sorted = rosaValchisone.slice().sort((a,b)=>a.num-b.num);
-  const player = sorted[idx];
-  const realIdx = rosaValchisone.findIndex(p => p.num === player.num);
-  if (realIdx >= 0) rosaValchisone.splice(realIdx, 1);
+function removeRosaPlayer(globalIdx) {
+  if (globalIdx >= 0 && globalIdx < rosaValchisone.length) {
+    rosaValchisone.splice(globalIdx, 1);
+  }
   saveAllLists();
   renderRosaEditor();
+}
+
+function editRosaPlayer(globalIdx) {
+  const p = rosaValchisone[globalIdx];
+  if (!p) return;
+  const cats = [
+    {key:'af', label:'A2 Prato'},
+    {key:'rf', label:'Ragazze Prato'},
+    {key:'alf', label:'Allieve Prato'},
+    {key:'a1f', label:'Indoor A1'},
+    {key:'alfi', label:'Allieve Indoor'},
+  ];
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var catOpts = cats.map(function(c){ return '<option value="'+c.key+'"'+(c.key===p.cat?' selected':'')+'>'+c.label+'</option>'; }).join('');
+  var div = document.createElement('div');
+  div.style.cssText = 'background:white;border-radius:16px;padding:20px;width:100%;max-width:320px;font-family:DM Sans,sans-serif';
+  div.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1a3a22;margin-bottom:14px">✏️ Modifica giocatrice</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:10px">'
+    + '<input id="_edit_num" type="number" value="'+p.num+'" placeholder="N°" min="1" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:14px;font-weight:700">'
+    + '<input id="_edit_name" type="text" value="'+p.name+'" placeholder="Nome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:14px">'
+    + '</div>'
+    + '<select id="_edit_cat" style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:13px;margin-bottom:10px">'+catOpts+'</select>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#6b7280;margin-bottom:14px;cursor:pointer">'
+    + '<input id="_edit_gk" type="checkbox"'+(p.gk?' checked':'')+' style="width:16px;height:16px"> Portiere (GK)</label>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button id="_edit_save" style="flex:1;background:var(--green);color:white;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Salva</button>'
+    + '<button id="_edit_cancel" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;touch-action:manipulation">Annulla</button>'
+    + '</div>';
+  ov.appendChild(div);
+  document.body.appendChild(ov);
+  document.getElementById('_edit_cancel').addEventListener('click', function(){ document.body.removeChild(ov); renderRosaEditor(); });
+  ov.addEventListener('click', function(e){ if(e.target===ov){ document.body.removeChild(ov); renderRosaEditor(); } });
+  document.getElementById('_edit_save').addEventListener('click', function(){
+    var num = parseInt(document.getElementById('_edit_num').value||'0');
+    var name = (document.getElementById('_edit_name').value||'').trim();
+    var cat = document.getElementById('_edit_cat').value;
+    var gk = document.getElementById('_edit_gk').checked;
+    if (!num || !name) { alert('Inserisci numero e nome!'); return; }
+    rosaValchisone[globalIdx] = {num:num, name:name, cat:cat, gk:gk};
+    saveAllLists();
+    rosaCat = cat; // vai alla categoria modificata
+    setRosaCat(cat);
+    document.body.removeChild(ov);
+    renderRosaEditor();
+  });
 }
 
 function saveAllLists() {
