@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prossima Partita — HP Valchisone Femminile</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: transparent;
+    padding: 12px;
+    min-height: 80px;
+  }
+
+  .banner {
+    background: linear-gradient(135deg, #1a3a22, #1a7a30);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 16px rgba(26,122,48,.25);
+    cursor: default;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .banner.oggi { background: linear-gradient(135deg, #b45309, #e8620a); }
+
+  .left { flex: 1; min-width: 0; }
+
+  .label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .teams {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .teams .valch { color: #fb923c; }
+  .meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    background: rgba(255,255,255,0.12);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .countdown {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+    flex-shrink: 0;
+    line-height: 1;
+    min-width: 52px;
+  }
+  .countdown small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 3px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .empty {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    padding: 16px;
+    background: linear-gradient(135deg, #1a3a22, #1a7a30);
+    border-radius: 14px;
+  }
+
+  .loading {
+    text-align: center;
+    color: #aaa;
+    font-size: 12px;
+    padding: 12px;
+  }
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const app = initializeApp({
+    databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app"
+  });
+  const db = getDatabase(app);
+
+  const VALCH = 'VALCHISONE';
+  const CATS = {
+    af:   { label:'A2 Femminile',        short:'A2',   icon:'⚡' },
+    rf:   { label:'Ragazze (U16)',        short:'U16',  icon:'🟣' },
+    alf:  { label:'Allieve (U14)',        short:'U14',  icon:'🩵' },
+    a1f:  { label:'A1 Femminile Indoor', short:'A1',   icon:'🔥' },
+    rfi:  { label:'Ragazze U16 Indoor',  short:'U16i', icon:'🟣' },
+    alfi: { label:'Allieve U14 Indoor',  short:'U14i', icon:'🩵' },
+  };
+
+  function abbrev(name) {
+    if (!name) return name;
+    const upper = name.toUpperCase();
+    if (upper.includes('VALCHISONE')) return 'HP Valchisone';
+    return name.replace(/^(ASD |USD |SSD |US |AC |AS |HC |GS )/i, '').substring(0, 20);
+  }
+
+  function render(allMs) {
+    const el = document.getElementById('banner');
+    const today = new Date().toISOString().slice(0, 10);
+
+    const upcoming = allMs
+      .filter(m => (m.home||'').toUpperCase().includes(VALCH) || (m.away||'').toUpperCase().includes(VALCH))
+      .filter(m => m.scoreHome === undefined && m.date >= today)
+      .sort((a, b) => (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')));
+
+    if (!upcoming.length) {
+      el.innerHTML = '<div class="empty">🏑 Nessuna partita in programma</div>';
+      return;
+    }
+
+    const m = upcoming[0];
+    const matchDate = new Date(m.date + 'T12:00:00');
+    const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((matchDate - todayDate) / 86400000);
+
+    const dateStr = matchDate.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+    const isToday = diffDays === 0;
+    const isTomorrow = diffDays === 1;
+    const countdown = isToday ? 'Oggi!' : isTomorrow ? 'Dom.' : diffDays + 'g';
+    const countdownSub = isToday ? '' : 'al via';
+
+    const cat = CATS[m.cat] || {};
+    const hV = (m.home||'').toUpperCase().includes(VALCH);
+    const aV = (m.away||'').toUpperCase().includes(VALCH);
+    const homeHtml = `<span class="${hV ? 'valch' : ''}">${abbrev(m.home)}</span>`;
+    const awayHtml = `<span class="${aV ? 'valch' : ''}">${abbrev(m.away)}</span>`;
+
+    el.innerHTML = `
+      <div class="banner${isToday ? ' oggi' : ''}">
+        <div class="left">
+          <div class="label">${cat.icon || '🏑'} Prossima partita ${cat.short ? '· ' + cat.short : ''}</div>
+          <div class="teams">${homeHtml} <span style="color:rgba(255,255,255,.35)">vs</span> ${awayHtml}</div>
+          <div class="meta">
+            <span class="meta-chip">📅 ${dateStr}${m.time ? ' · ' + m.time : ''}</span>
+            ${m.location ? `<span class="meta-chip">📍 ${m.location.split(' - ')[0]}</span>` : ''}
+          </div>
+        </div>
+        <div class="countdown">${countdown}<small>${countdownSub}</small></div>
+      </div>`;
+  }
+
+  // Ascolta entrambi i nodi Firebase
+  let matchesPrato = [];
+  let matchesIndoor = [];
+
+  onValue(ref(db, 'matches'), snap => {
+    const val = snap.val() || {};
+    matchesPrato = Object.values(val).flat().filter(Boolean);
+    render([...matchesPrato, ...matchesIndoor]);
+  });
+
+  onValue(ref(db, 'lists'), snap => {
+    const val = snap.val() || {};
+    matchesIndoor = Object.values(val).flat().filter(Boolean);
+    render([...matchesPrato, ...matchesIndoor]);
+  });
+</script>
+</head>
+<body>
+  <div id="banner"><div class="loading">Caricamento...</div></div>
+</body>
+</html>
