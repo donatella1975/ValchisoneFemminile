@@ -239,9 +239,11 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-team.valch { color:var(--orange); }
 .mc-vs { font-size:9px; font-weight:700; color:#d1d5db; text-align:center; white-space:nowrap; }
 .mc-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-left:auto; padding-right:4px; flex-shrink:0; }
-.mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
-.mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
-.mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
+.mc-score-result { font-family:'Bricolage Grotesque',sans-serif; font-size:22px; font-weight:800; color:var(--green); margin:4px 0 6px; letter-spacing:1px; }
+.mc-score-dash { color:#d1d5db; margin:0 3px; }
+.mc-scorers { font-size:12px; margin-top:6px; padding-top:7px; border-top:2px solid #f0faf2; display:flex; flex-wrap:wrap; gap:4px 8px; }
+.mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.1); padding:3px 9px; border-radius:12px; border:1px solid rgba(26,122,48,.2); }
+.mc-scorer-away { color:#374151; font-weight:600; background:#f3f4f6; padding:3px 9px; border-radius:12px; border:1px solid #e5e7eb; }
 .mc-meta { font-size:11px; color:var(--ink3); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .mc-right { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; padding:10px 10px; gap:5px; flex-shrink:0; }
 .cat-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; text-transform:uppercase; white-space:nowrap; }
@@ -479,18 +481,34 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 @media (max-width:640px) {
   .logo-text span { display:none; }
   .header-inner { padding:6px 10px; gap:5px; }
-  .cal-day-btn { min-height:30px; font-size:10px; }
+  .cal-day-btn { min-height:34px; font-size:11px; }
   .cal-wrap { padding:6px 8px; margin-bottom:6px; }
   .filter-bar-wrap { margin-bottom:8px; }
-  .ftab { padding:3px 8px; font-size:11px; }
+  .ftab { padding:5px 10px; font-size:12px; }
   .form-row { grid-template-columns:1fr; }
-  .mc-team { font-size:13px; }
+  .mc-team { font-size:14px; }
+  .mc-score-result { font-size:20px; }
+  .mc-body { padding:10px 12px; }
+  .mc-time { min-width:48px; padding:10px 8px; }
+  .t-hour { font-size:15px; }
+  .t-dow  { font-size:9px; }
+  .mc-right { padding:10px 8px; gap:6px; }
+  .cat-badge { font-size:11px; padding:3px 8px; }
+  .status-badge { font-size:11px; padding:3px 8px; }
+  .mc-scorers { font-size:12px; gap:4px 7px; }
+  .mc-scorer-home, .mc-scorer-away { font-size:12px; padding:3px 8px; }
+  .mc-meta { font-size:12px; gap:6px; }
   .hero h1 { font-size:20px; }
   .hero { padding:14px 12px 14px; }
   #hero-stats { gap:8px; margin-top:8px; }
   .hero-btns { margin-top:10px; }
   .standings-table { font-size:11px; }
   .standings-table th, .standings-table td { padding:7px 3px; }
+  .day-label { font-size:11px; padding:5px 0 5px; }
+  .match-card { margin-bottom:8px; }
+  .btn-share { font-size:11px; padding:4px 9px; }
+  .btn-map { font-size:11px; padding:3px 9px; }
+  .section-title { font-size:17px; }
 }
 @media (min-width:900px) {
   body { font-size:17px; }
@@ -501,9 +519,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .mc-time { min-width:70px; padding:12px 16px; }
   .cat-badge { font-size:13px; padding:4px 10px; }
   .status-badge { font-size:13px; padding:4px 10px; }
-  .mc-scorers { font-size:11px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; display:flex; flex-wrap:wrap; gap:3px 8px; }
-.mc-scorer-home { color:var(--green); font-weight:700; background:rgba(26,122,48,.08); padding:2px 7px; border-radius:10px; }
-.mc-scorer-away { color:var(--ink3); background:#f3f4f6; padding:2px 7px; border-radius:10px; }
+  .mc-scorers { font-size:13px; margin-top:8px; padding-top:8px; gap:5px 10px; }
+  .mc-scorer-home { padding:4px 11px; }
+  .mc-scorer-away { padding:4px 11px; }
+  .mc-score-result { font-size:28px; }
 .mc-meta { font-size:14px; gap:8px; }
   .mc-vs { font-size:13px; }
   .mc-body { padding:12px 16px; }
@@ -1461,7 +1480,7 @@ function renderMatches() {
     .filter(m => !calSelected || m.date===calSelected);
   const _msTodo = _msBase.filter(m => m.scoreHome===undefined||m.scoreAway===undefined).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const _msDone = _msBase.filter(m => m.scoreHome!==undefined&&m.scoreAway!==undefined).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  let ms = calSelected ? [..._msTodo, ..._msDone] : [..._msTodo, ..._msDone];
+  let ms = [..._msTodo, ..._msDone];
 
   let evs = allEvents.filter(e => {
     const hasCats = e.cats && e.cats.length > 0;
@@ -1486,14 +1505,15 @@ function renderMatches() {
   }
   if (!ms.length && !evs.length) { c.innerHTML = _bannerHtml+'<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div></div>'; return; }
   const byDate = {};
-  const dateOrder = [];
-  ms.forEach(m => {
-    if (!byDate[m.date]) { byDate[m.date] = []; dateOrder.push(m.date); }
-    byDate[m.date].push({type:'match',data:m});
-  });
-  evs.forEach(e => { const d=e.dateStart||'9999'; if(!byDate[d]){byDate[d]=[];dateOrder.push(d);} byDate[d].push({type:'event',data:e}); });
-  // Use dateOrder to preserve todo-first ordering, deduplicated
-  const orderedDates = [...new Set(dateOrder)];
+  _msTodo.forEach(m => { if (!byDate[m.date]) byDate[m.date]=[]; byDate[m.date].push({type:'match',data:m}); });
+  _msDone.forEach(m => { if (!byDate[m.date]) byDate[m.date]=[]; byDate[m.date].push({type:'match',data:m}); });
+  evs.forEach(e => { const d=e.dateStart||'9999'; if(!byDate[d]) byDate[d]=[]; byDate[d].push({type:'event',data:e}); });
+  // Date future (>= oggi) crescenti in cima, poi date passate decrescenti (più recenti subito dopo)
+  const _todayStr = new Date().toISOString().slice(0,10);
+  const _allDates = [...new Set(Object.keys(byDate))];
+  const _futureDates = _allDates.filter(d => d >= _todayStr).sort((a,b) => a.localeCompare(b));
+  const _pastDates   = _allDates.filter(d => d <  _todayStr).sort((a,b) => b.localeCompare(a));
+  const orderedDates = [..._futureDates, ..._pastDates];
   c.innerHTML = _bannerHtml + orderedDates.map(date => {
     const d = new Date(date+'T12:00:00');
     const label = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
@@ -1624,7 +1644,7 @@ function matchCardHTML(m, showAdmin) {
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
 
     </div>
-    ${hasSc ? `<div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
+    ${hasSc ? `<div class="mc-score-result">${m.scoreHome}<span class="mc-score-dash">–</span>${m.scoreAway}</div>` : ''}
     ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
       Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
         const isHome = g.team === m.home;
@@ -4032,10 +4052,10 @@ function updateHeroStats() {
   const valchL = valchPlayed.length - valchW - valchD;
   const chip = (label, val, accent, textColor) => '<div style="background:' + (accent||'rgba(255,255,255,.15)') + ';border-radius:20px;padding:5px 14px;display:flex;flex-direction:column;align-items:center;gap:1px">'
     + '<span style="font-family:Bricolage Grotesque,sans-serif;font-size:20px;font-weight:800;color:' + (textColor||'white') + ';line-height:1">' + val + '</span>'
-    + '<span style="font-size:10px;color:' + (textColor ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.8)') + ';font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
-  // Mostra chip solo se categoria specifica selezionata o filtro Valchisone attivo
-  const catFiltered = cat !== 'all' || catEx || onlyValch;
-  if (!catFiltered) { statsEl.innerHTML = ''; return; }
+    + '<span style="font-size:10px;color:' + (textColor ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.8)') + ';font-weight:600;text-transform:uppercase;letter-spacing:.5px">' + label + '</span></div>';
+  // Mostra badge solo se UNA categoria specifica è selezionata (non "all", non solo filtro arancione)
+  const oneSingleCat = cat !== 'all' && !catEx;
+  if (!oneSingleCat) { statsEl.innerHTML = ''; return; }
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
   if (valchPlayed.length > 0) {
