@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#074220">
+<title>Oltre il Campo — Guida Accompagnatori</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #074220;
+    --verde-mid: #1D9E75;
+    --verde-light: #EEF9F4;
+    --arancio: #E8621A;
+    --arancio-light: #FFF3E8;
+    --crema: #FDF6EE;
+    --crema-dark: #F0E8DA;
+    --testo: #1a1a1a;
+    --testo-mid: #444;
+    --testo-soft: #777;
+    --bordo: #D5C9B8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--crema);
+    color: var(--testo);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  .hero {
+    background: var(--verde);
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -20px; right: -20px;
+    height: 60px;
+    background: var(--crema);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .hero-logo {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.2);
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    background: rgba(255,255,255,0.1);
+  }
+  .hero-logo span {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800; font-size: 18px;
+    color: var(--arancio);
+  }
+  .hero h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--arancio);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .hero h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+  }
+  .hero-date {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--verde-mid);
+    font-weight: 600;
+  }
+  .hero-sub {
+    margin-top: 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 32px 16px 40px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* INFO PRATICHE CARD */
+  .info-card {
+    background: var(--verde);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 20px rgba(7,66,32,0.15);
+  }
+  .info-card-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .info-card-header .icon {
+    width: 32px; height: 32px;
+    background: var(--arancio);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .info-card-header h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .info-body {
+    background: white;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .info-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--arancio);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .info-value {
+    font-size: 13.5px;
+    color: var(--testo);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .info-value a {
+    color: var(--verde);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .info-divider {
+    height: 1px;
+    background: var(--bordo);
+  }
+
+  /* BOX PASTI */
+  .pasti-box {
+    background: var(--verde-light);
+    border: 1.5px solid var(--verde-mid);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .pasti-box .info-label {
+    color: var(--verde);
+    margin-bottom: 6px;
+  }
+  .pasti-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(29,158,117,0.15);
+  }
+  .pasti-row:last-child { border-bottom: none; }
+  .pasti-nome { font-size: 13px; font-weight: 500; color: var(--testo); }
+  .pasti-prezzo {
+    font-size: 13px; font-weight: 700;
+    color: var(--verde);
+    background: rgba(29,158,117,0.12);
+    padding: 2px 8px; border-radius: 20px;
+  }
+  .pasti-nota {
+    font-size: 11px; color: var(--testo-soft);
+    margin-top: 6px; font-style: italic;
+  }
+
+  /* METEO BOX */
+  .meteo-box {
+    background: var(--arancio-light);
+    border-left: 3px solid var(--arancio);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--testo-mid);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  /* CTA TELEFONO */
+  .tel-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--verde);
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    margin-top: 4px;
+  }
+  .tel-cta .tel-label {
+    font-size: 11px; color: rgba(255,255,255,0.6);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    font-weight: 600;
+  }
+  .tel-cta .tel-num {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: white;
+    margin-top: 1px;
+  }
+  .tel-cta .tel-icon {
+    width: 36px; height: 36px;
+    background: var(--arancio);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  /* DISTANZE CARD */
+  .distanze-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1.5px solid var(--bordo);
+  }
+  .distanze-header {
+    background: var(--crema-dark);
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .distanze-header .icon {
+    font-size: 20px;
+  }
+  .distanze-header h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--verde);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .distanze-body { padding: 8px 0; }
+  .dist-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 18px;
+    border-bottom: 1px solid var(--crema-dark);
+  }
+  .dist-row:last-child { border-bottom: none; }
+  .dist-nome { font-size: 13.5px; font-weight: 500; color: var(--testo); }
+  .dist-sub { font-size: 11px; color: var(--testo-soft); }
+  .dist-min {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 800;
+    color: var(--arancio);
+    background: var(--arancio-light);
+    padding: 3px 10px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  /* SEZIONI FISARMONICA */
+  .section-card {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .section-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    gap: 12px;
+  }
+  .section-trigger .st-left {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-trigger .st-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .section-trigger .st-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    line-height: 1.2;
+  }
+  .section-trigger .st-count {
+    font-size: 11px; font-weight: 600;
+    opacity: 0.7; margin-top: 1px;
+  }
+  .section-trigger .st-arrow {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  /* Avventura */
+  .sec-avventura .section-trigger { background: var(--verde); }
+  .sec-avventura .st-title { color: white; }
+  .sec-avventura .st-count { color: rgba(255,255,255,0.7); }
+  .sec-avventura .st-arrow { color: var(--arancio); }
+  .sec-avventura .st-icon { background: var(--arancio); }
+
+  /* Natura */
+  .sec-natura .section-trigger { background: #0A5C2E; }
+  .sec-natura .st-title { color: white; }
+  .sec-natura .st-count { color: rgba(255,255,255,0.7); }
+  .sec-natura .st-arrow { color: var(--verde-mid); }
+  .sec-natura .st-icon { background: var(--verde-mid); }
+
+  /* Relax */
+  .sec-relax .section-trigger { background: #5C3A0A; }
+  .sec-relax .st-title { color: white; }
+  .sec-relax .st-count { color: rgba(255,255,255,0.7); }
+  .sec-relax .st-arrow { color: #F0A830; }
+  .sec-relax .st-icon { background: #F0A830; }
+
+  /* Accordion content */
+  .section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    background: white;
+  }
+  .section-content.open {
+    max-height: 2000px;
+  }
+
+  /* Attrazione item */
+  .attrazione {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--crema-dark);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: start;
+  }
+  .attrazione:last-child { border-bottom: none; }
+  .att-nome {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--arancio);
+    margin-bottom: 3px;
+    line-height: 1.2;
+  }
+  .att-desc {
+    font-size: 12.5px;
+    color: var(--testo-mid);
+    line-height: 1.5;
+    margin-bottom: 5px;
+  }
+  .att-dist {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: var(--verde-mid);
+    font-weight: 600;
+  }
+  .att-dist span {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    color: var(--arancio);
+  }
+  .att-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .att-link-icon {
+    width: 36px; height: 36px;
+    background: var(--verde);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .att-link-lbl {
+    font-size: 9px;
+    color: var(--testo-soft);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* FOOTER */
+  .footer {
+    background: var(--verde);
+    padding: 24px 20px;
+    text-align: center;
+    margin-top: 8px;
+  }
+  .footer-logo {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 800;
+    color: var(--arancio);
+    margin-bottom: 4px;
+  }
+  .footer-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+  .footer-email {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--verde-mid);
+    text-decoration: none;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo"><span>HP</span></div>
+  <h1>Oltre il Campo</h1>
+  <h2>Hockey Camp Valchisone 2026</h2>
+  <div class="hero-date">31 luglio — 1/2 agosto 2026</div>
+  <p class="hero-sub">Guida per accompagnatori</p>
+</div>
+
+<div class="main">
+
+  <!-- INFO PRATICHE -->
+  <div class="info-card">
+    <div class="info-card-header">
+      <div class="icon">📋</div>
+      <h3>Info Pratiche</h3>
+    </div>
+    <div class="info-body">
+
+      <div class="info-row">
+        <div class="info-label">Dove siamo</div>
+        <div class="info-value">
+          Campo Sandro Michelloné<br>
+          Via Dante Alighieri, 9 — Villar Perosa (TO)
+        </div>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="info-row">
+        <div class="info-label">Orari Camp</div>
+        <div class="info-value">
+          Colazione: <strong>[da definire]</strong><br>
+          Pranzo: <strong>[da definire]</strong><br>
+          Cena: <strong>[da definire]</strong>
+        </div>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="pasti-box">
+        <div class="info-label">🍽 Pasti per accompagnatori</div>
+        <div class="pasti-row">
+          <span class="pasti-nome">Cena</span>
+          <span class="pasti-prezzo">€ 15 / persona</span>
+        </div>
+        <div class="pasti-row">
+          <span class="pasti-nome">Pranzo</span>
+          <span class="pasti-prezzo">prezzo da def.</span>
+        </div>
+        <div class="pasti-nota">Su prenotazione — contattare lo staff al camp.<br>🍺 Il bar è sempre attivo durante il camp.</div>
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="meteo-box">
+        ☀️ Caldo di giorno, fresco la sera... portate sempre un maglione!
+      </div>
+
+      <div class="info-divider"></div>
+
+      <div class="info-row">
+        <div class="info-label">Contatti Staff</div>
+      </div>
+      <a class="tel-cta" href="tel:+393483603920">
+        <div>
+          <div class="tel-label">Referente camp</div>
+          <div class="tel-num">348 360 3920</div>
+        </div>
+        <div class="tel-icon">📞</div>
+      </a>
+
+      <div class="info-row">
+        <div class="info-label">Email</div>
+        <div class="info-value">
+          <a href="mailto:hockeypratovalchisonefemminile@gmail.com">
+            hockeypratovalchisonefemminile@gmail.com
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DISTANZE -->
+  <div class="distanze-card">
+    <div class="distanze-header">
+      <span class="icon">🚗</span>
+      <h3>Distanze da Villar Perosa</h3>
+    </div>
+    <div class="distanze-body">
+      <div class="dist-row">
+        <div><div class="dist-nome">Pinasca</div><div class="dist-sub">Aequilibrium piscina</div></div>
+        <div class="dist-min">5 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Pomaretto</div><div class="dist-sub">Volo del Dahù</div></div>
+        <div class="dist-min">10 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Fenestrelle</div><div class="dist-sub">Forte di Fenestrelle</div></div>
+        <div class="dist-min">20 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Usseaux</div><div class="dist-sub">Lago del Laux · Murales</div></div>
+        <div class="dist-min">25 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Pragelato</div><div class="dist-sub">Parco Naturale Valtroncea</div></div>
+        <div class="dist-min">35 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Prali</div><div class="dist-sub">Scopriminiera · Parco Avventura</div></div>
+        <div class="dist-min">35 min</div>
+      </div>
+      <div class="dist-row">
+        <div><div class="dist-nome">Cumiana</div><div class="dist-sub">Zoom Torino</div></div>
+        <div class="dist-min">35 min</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVVENTURA & ADRENALINA -->
+  <div class="section-card sec-avventura">
+    <button class="section-trigger" onclick="toggleSection('avventura')" aria-expanded="false" aria-controls="content-avventura">
+      <div class="st-left">
+        <div class="st-icon">🧗</div>
+        <div>
+          <div class="st-title">Avventura & Adrenalina</div>
+          <div class="st-count">4 esperienze</div>
+        </div>
+      </div>
+      <div class="st-arrow" id="arrow-avventura">▼</div>
+    </button>
+    <div class="section-content" id="content-avventura">
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Volo del Dahù</div>
+          <div class="att-desc">800 m. nel vuoto a 120 km/h. Un minuto di adrenalina pura.</div>
+          <div class="att-dist">📍 Pomaretto · <span>10 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.ilvolodeldahu.com/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Scopriminiera</div>
+          <div class="att-desc">Nelle viscere della montagna. La più grande miniera di talco d'Europa.</div>
+          <div class="att-dist">📍 Prali · <span>35 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.ecomuseominiere.it/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Forte di Fenestrelle</div>
+          <div class="att-desc">4.000 gradini di storia. La Grande Muraglia Piemontese.</div>
+          <div class="att-dist">📍 Fenestrelle · <span>20 min</span></div>
+        </div>
+        <a class="att-link" href="https://fortedifenestelle.it/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Parco Avventura Prali</div>
+          <div class="att-desc">Percorsi sugli alberi per tutte le età, dai 3 anni.</div>
+          <div class="att-dist">📍 Prali · <span>35 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.praliadventurepark.it/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NATURA & ESCURSIONI -->
+  <div class="section-card sec-natura">
+    <button class="section-trigger" onclick="toggleSection('natura')" aria-expanded="false" aria-controls="content-natura">
+      <div class="st-left">
+        <div class="st-icon">🏔</div>
+        <div>
+          <div class="st-title">Natura & Escursioni</div>
+          <div class="st-count">4 esperienze</div>
+        </div>
+      </div>
+      <div class="st-arrow" id="arrow-natura">▼</div>
+    </button>
+    <div class="section-content" id="content-natura">
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Panchine Giganti</div>
+          <div class="att-desc">Quattro panorami mozzafiato. Cercarle tutte è già un'avventura.</div>
+          <div class="att-dist">📍 Villar Perosa · <span>0 min</span></div>
+        </div>
+        <a class="att-link" href="https://bigbenchcommunityproject.org/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Parco Naturale Valtroncea</div>
+          <div class="att-desc">Marmotte, stambecchi e silenzi alpini. Natura incontaminata.</div>
+          <div class="att-dist">📍 Pragelato · <span>35 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.tripadvisor.it/Attraction_Review-g776926-d2543130-Reviews-Parco_Naturale_Val_Troncea-Pragelato_Province_of_Turin_Piedmont.html" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Sentiero dei 13 Laghi</div>
+          <div class="att-desc">Tredici laghi glaciali a 2.400 m. Panorami infiniti. Per esperti (5-6 ore).</div>
+          <div class="att-dist">📍 Pragelato · <span>35 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.raccontapassi.it/anello-dei-13-lagi-da-prali-e-punta-cialancia/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Rifugio Selleries</div>
+          <div class="att-desc">Pranzo in quota a 2.023 m. con vista sulle Alpi.</div>
+          <div class="att-dist">📍 Roure · <span>30 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.rifugioselleries.it/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RELAX & FAMIGLIA -->
+  <div class="section-card sec-relax">
+    <button class="section-trigger" onclick="toggleSection('relax')" aria-expanded="false" aria-controls="content-relax">
+      <div class="st-left">
+        <div class="st-icon">🌿</div>
+        <div>
+          <div class="st-title">Relax & Famiglia</div>
+          <div class="st-count">4 esperienze</div>
+        </div>
+      </div>
+      <div class="st-arrow" id="arrow-relax">▼</div>
+    </button>
+    <div class="section-content" id="content-relax">
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Aequilibrium Piscina</div>
+          <div class="att-desc">Piscina, solarium e beach volley a 5 minuti dal campo.</div>
+          <div class="att-dist">📍 Pinasca · <span>5 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.aequilibrium.fit/piscina.asp" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Zoom Torino</div>
+          <div class="att-desc">Oltre 200 specie animali in un bioparco nel verde. Perfetto per i più piccoli.</div>
+          <div class="att-dist">📍 Cumiana · <span>35 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.zoomtorino.it/" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Usseaux</div>
+          <div class="att-desc">Un borgo dipinto di murales tra i più belli d'Italia. Alta Val Chisone.</div>
+          <div class="att-dist">📍 Usseaux · <span>25 min</span></div>
+        </div>
+        <a class="att-link" href="https://comune.usseaux.to.it/it-it/home" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+      <div class="attrazione">
+        <div>
+          <div class="att-nome">Lago del Laux</div>
+          <div class="att-desc">Un laghetto smeraldo incastonato tra i boschi. Perfetto per un picnic in famiglia.</div>
+          <div class="att-dist">📍 Usseaux · <span>25 min</span></div>
+        </div>
+        <a class="att-link" href="https://www.tripadvisor.it/Attraction_Review-g1772241-d23570229-Reviews-Lago_del_Laux-Usseaux_Province_of_Turin_Piedmont.html" target="_blank" rel="noopener">
+          <div class="att-link-icon">🔗</div>
+          <div class="att-link-lbl">Sito</div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">HP Valchisone Femminile</div>
+  <div class="footer-sub">
+    Hockey Camp Valchisone 2026<br>
+    Campo Sandro Michelloné — Villar Perosa (TO)
+  </div>
+  <a class="footer-email" href="mailto:hockeypratovalchisonefemminile@gmail.com">
+    hockeypratovalchisonefemminile@gmail.com
+  </a>
+</div>
+
+<script>
+function toggleSection(id) {
+  var content = document.getElementById('content-' + id);
+  var arrow = document.getElementById('arrow-' + id);
+  var btn = arrow.closest('button');
+  var isOpen = content.classList.contains('open');
+  content.classList.toggle('open', !isOpen);
+  arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+}
+</script>
+
+</body>
+</html>
