@@ -1615,7 +1615,7 @@ function matchCardHTML(m, showAdmin) {
   const awayWon = hasSc && m.scoreAway > m.scoreHome;
   const homeClass = (isHomeValch?' valch':'') + (hasSc?(homeWon?' winner':' loser'):'');
   const awayClass = (isAwayValch?' valch':'') + (hasSc?(awayWon?' winner':' loser'):'');
-  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}">
+  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}" onclick="showMatchDetail('${m.id}')" style="cursor:pointer">
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
@@ -1636,13 +1636,13 @@ function matchCardHTML(m, showAdmin) {
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
-      <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
+      <button class="btn-share" onclick="event.stopPropagation();shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
   </div>
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
-    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
+    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
 </div>`;
 }
@@ -2139,6 +2139,8 @@ function showFinalResult() {
 }
 function stopLive() {
   if (!confirm('⚠️ Chiudere il live?\nIl tabellone sarà rimosso per tutti gli utenti.')) return;
+  // Salva ultima live in memoria per permettere il referto anche dopo chiusura
+  if (liveData) window._lastLiveData = JSON.parse(JSON.stringify(liveData));
   // Save final score to match
   if (liveData) {
     const all = [...allMatches, ...allIndoor];
@@ -2147,6 +2149,7 @@ function stopLive() {
     if (allObj[liveData.id]) {
       allObj[liveData.id].scoreHome = liveData.scoreHome||0;
       allObj[liveData.id].scoreAway = liveData.scoreAway||0;
+      if (liveData.goals) allObj[liveData.id].goals = liveData.goals;
     }
     // Save back
     const matchesObj = {}, indoorObj = {};
@@ -2741,8 +2744,8 @@ function removeCorner(side) {
 
 // ─── REFERTO ARBITRALE PDF ───────────────────────────────
 function generateRefertoLive() {
-  if (!liveData) return;
-  const l = liveData;
+  const l = liveData || window._lastLiveData;
+  if (!l) { alert('Nessun dato live disponibile.'); return; }
   const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0)) : [];
   const cat = CATS[l.cat]||{};
   const today = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -2825,11 +2828,7 @@ function generateRefertoLive() {
   <tbody>${goalRows(goalsAway, false)}</tbody>
 </table>
 
-<div class="firma-grid">
-  <div class="firma-box">Arbitro 1</div>
-  <div class="firma-box">Arbitro 2</div>
-  <div class="firma-box">Segnapunti</div>
-</div>
+
 
 <div class="footer">
   <span>HP Valchisone Femminile — app.valchisone</span>
