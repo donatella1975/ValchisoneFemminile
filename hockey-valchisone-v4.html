@@ -1830,11 +1830,6 @@ function renderLivePage() {
         </div>
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
-      ${l.quarterEnded && (l.half||1) < 4 ? `
-        <div style="background:rgba(251,146,60,.18);border-radius:10px;margin:10px 14px 4px;padding:10px 14px;text-align:center">
-          <div style="font-size:13px;font-weight:700;color:#fb923c;margin-bottom:4px">${{1:'⏸ Intervallo — 2 min → 2° Quarto',2:'⏸ Intervallo — 5 min → 3° Quarto',3:'⏸ Intervallo — 2 min → 4° Quarto'}[l.half||1]||''}</div>
-          <div id="interval-countdown-live" style="font-family:'Bricolage Grotesque',sans-serif;font-size:36px;font-weight:800;color:#fb923c;letter-spacing:2px">--:--</div>
-        </div>` : ''}
     </div>
     <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
@@ -1964,7 +1959,7 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
-        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="margin-top:6px;background:rgba(251,146,60,.15);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-size:11px;font-weight:700;color:#fb923c">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div><div id="interval-countdown-admin" style="font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:800;color:#fb923c;letter-spacing:2px;margin-top:2px">--:--</div></div>` : ''}
+        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -2010,11 +2005,11 @@ function renderLiveAdminPanel() {
           </div>
         </div>
       </div>
-      `}
-      <!-- PULSANTE REFERTO — sempre visibile, anche a partita finita -->
+      <!-- PULSANTE PDF -->
       <div style="margin-bottom:8px">
         <button onclick="generateRefertoLive()" style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;touch-action:manipulation">📄 Scarica Referto Arbitrale</button>
       </div>
+      `}
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -2219,7 +2214,6 @@ function timerHalf() {
     ...liveData,
     half: cur, // keep current quarter number until next starts
     quarterEnded: true, // flag: waiting for next quarter to start
-    intervalStart: Date.now(), // timestamp inizio intervallo per countdown
     timerRunning: false,
     timerStart: null,
     timerElapsed: 0,
@@ -2227,23 +2221,6 @@ function timerHalf() {
   };
   window._fbSaveLive(updated);
   playWhistle('single');
-}
-
-// ─── INTERVAL COUNTDOWN ─────────────────────────────────
-// Quando quarterEnded diventa true, salviamo il timestamp di inizio intervallo su Firebase
-// così tutti i client (live pubblica + admin) vedono lo stesso countdown
-
-function getIntervalDuration(half) {
-  // half = quarto appena terminato (1,2,3)
-  return half === 2 ? 5 * 60 : 2 * 60; // secondi
-}
-
-function msToCountdown(ms) {
-  if (ms <= 0) return '00:00';
-  const tot = Math.ceil(ms / 1000);
-  const m = Math.floor(tot / 60);
-  const s = tot % 60;
-  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
 
 function startNextQuarter() {
@@ -2294,18 +2271,6 @@ function startTimerTick() {
       const totalMin = Math.floor(getTotalMs(liveData) / 60000);
       const gi = document.getElementById('goal-minute');
       if (gi && document.activeElement !== gi) gi.value = totalMin;
-    }
-
-    // Countdown intervallo tra quarti
-    if (liveData.quarterEnded && liveData.intervalStart) {
-      const durSec = getIntervalDuration(liveData.half || 1);
-      const elapsed = Date.now() - liveData.intervalStart;
-      const remaining = (durSec * 1000) - elapsed;
-      const cdText = remaining > 0 ? msToCountdown(remaining) : '00:00';
-      const elCd1 = document.getElementById('interval-countdown-live');
-      const elCd2 = document.getElementById('interval-countdown-admin');
-      if (elCd1) elCd1.textContent = cdText;
-      if (elCd2) elCd2.textContent = cdText;
     }
   }, 500);
 }
@@ -2366,8 +2331,7 @@ function openGoalPanel(side) {
       var num = rosaBtn.dataset.num;
       var name = rosaBtn.dataset.name;
       if (document.body.contains(ov)) document.body.removeChild(ov);
-      // Passa teamName direttamente — non dipende da window._goalPanelOv
-      _saveGoal(teamName, num, name);
+      _registerGoalRosa(num + '|' + name);
       return;
     }
     var kpBtn = e.target.closest ? e.target.closest('.keypad-btn') : null;
@@ -2390,9 +2354,8 @@ function _keypadPress(k) {
     var num = parseInt(window._keypadVal||'0');
     if (!num) { disp.style.color='#ef4444'; setTimeout(function(){ disp.style.color='#1a3a22'; },600); return; }
     var ov = window._goalPanelOv;
-    var teamName = ov ? ov._teamName : (liveData ? liveData.home : '');
-    if (ov && document.body.contains(ov)) document.body.removeChild(ov);
-    _registerGoalKeypad(num, teamName);
+    if (ov) document.body.removeChild(ov);
+    _registerGoalKeypad(num, ov ? ov._teamName : '');
     window._keypadVal = '';
     return;
   } else {
@@ -2908,34 +2871,6 @@ function skeletonCards(n) {
   return h;
 }
 
-function shortLocation(location) {
-  if (!location) return '';
-  const loc = location.toUpperCase();
-  const fieldNames = {
-    'MICHELLONET': 'Michellonet · Villar Perosa',
-    'VILLAR': 'Michellonet · Villar Perosa',
-    'TAZZOLI': 'Tazzoli · Torino',
-    'CORSO TAZZOLI': 'Tazzoli · Torino',
-    'LORENZONI': 'Lorenzoni · Bra',
-    'MADONNA DEI FIORI': 'Madonna dei Fiori · Bra',
-    'BRA': 'Bra',
-    'CERNUSCO': 'Boccaccio · Cernusco s/N',
-    'BOCCACCIO': 'Boccaccio · Cernusco s/N',
-    'MONCALVO': 'Micco · Moncalvo',
-    'UMBERTO MICCO': 'Micco · Moncalvo',
-    'TORRAZZA': 'Torrazza',
-    'PALAZZETTO': 'Palazzetto · Bra',
-    'PINASCA': 'Pinasca',
-    'AGOGNA': 'Agogna · Castello d\'Agogna',
-    'SEVENINFINITY': 'Seveninfinity · Gorgonzola',
-    'GORGONZOLA': 'Seveninfinity · Gorgonzola',
-  };
-  for (const [key, label] of Object.entries(fieldNames)) {
-    if (loc.includes(key)) return label;
-  }
-  return location.split(',')[0].trim();
-}
-
 function renderNextMatchBanner() {
   const container = document.getElementById('next-match-banner-wrap');
   if (!container) return;
@@ -2954,15 +2889,15 @@ function renderNextMatchBanner() {
   const diffDays = Math.round(diffMs / 86400000);
   const dateStr = matchDate.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
   const timeStr = m.time ? ' · '+m.time : '';
-  const locStr = m.location ? ' · '+shortLocation(m.location) : '';
+  const locStr = m.location ? ' · '+m.location : '';
   const cat = CATS[m.cat]||{};
   const isToday = diffDays === 0;
   const isTomorrow = diffDays === 1;
   const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
   const hV = m.home.toUpperCase().includes(VALCH);
   const aV = m.away.toUpperCase().includes(VALCH);
-  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,22) + '</span>';
-  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,22) + '</span>';
+  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
+  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
   container.innerHTML =
     '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
