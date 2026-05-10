@@ -2010,11 +2010,11 @@ function renderLiveAdminPanel() {
           </div>
         </div>
       </div>
-      <!-- PULSANTE PDF -->
+      `}
+      <!-- PULSANTE REFERTO — sempre visibile, anche a partita finita -->
       <div style="margin-bottom:8px">
         <button onclick="generateRefertoLive()" style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;touch-action:manipulation">📄 Scarica Referto Arbitrale</button>
       </div>
-      `}
       <div style="border-top:1px solid #f3f4f6;padding-top:10px;margin-bottom:14px;display:flex;gap:8px">
         <button class="btn-live-stop" style="background:#dc2626;padding:10px;font-size:12px;flex:1;border-radius:10px" onclick="finePartita()">🏁 Fine partita</button>
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
@@ -2906,6 +2906,34 @@ function skeletonCards(n) {
   return h;
 }
 
+function shortLocation(location) {
+  if (!location) return '';
+  const loc = location.toUpperCase();
+  const fieldNames = {
+    'MICHELLONET': 'Michellonet · Villar Perosa',
+    'VILLAR': 'Michellonet · Villar Perosa',
+    'TAZZOLI': 'Tazzoli · Torino',
+    'CORSO TAZZOLI': 'Tazzoli · Torino',
+    'LORENZONI': 'Lorenzoni · Bra',
+    'MADONNA DEI FIORI': 'Madonna dei Fiori · Bra',
+    'BRA': 'Bra',
+    'CERNUSCO': 'Boccaccio · Cernusco s/N',
+    'BOCCACCIO': 'Boccaccio · Cernusco s/N',
+    'MONCALVO': 'Micco · Moncalvo',
+    'UMBERTO MICCO': 'Micco · Moncalvo',
+    'TORRAZZA': 'Torrazza',
+    'PALAZZETTO': 'Palazzetto · Bra',
+    'PINASCA': 'Pinasca',
+    'AGOGNA': 'Agogna · Castello d\'Agogna',
+    'SEVENINFINITY': 'Seveninfinity · Gorgonzola',
+    'GORGONZOLA': 'Seveninfinity · Gorgonzola',
+  };
+  for (const [key, label] of Object.entries(fieldNames)) {
+    if (loc.includes(key)) return label;
+  }
+  return location.split(',')[0].trim();
+}
+
 function renderNextMatchBanner() {
   const container = document.getElementById('next-match-banner-wrap');
   if (!container) return;
@@ -2924,15 +2952,15 @@ function renderNextMatchBanner() {
   const diffDays = Math.round(diffMs / 86400000);
   const dateStr = matchDate.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
   const timeStr = m.time ? ' · '+m.time : '';
-  const locStr = m.location ? ' · '+m.location : '';
+  const locStr = m.location ? ' · '+shortLocation(m.location) : '';
   const cat = CATS[m.cat]||{};
   const isToday = diffDays === 0;
   const isTomorrow = diffDays === 1;
   const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
   const hV = m.home.toUpperCase().includes(VALCH);
   const aV = m.away.toUpperCase().includes(VALCH);
-  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
-  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
+  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,22) + '</span>';
+  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,22) + '</span>';
   container.innerHTML =
     '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
