@@ -2366,7 +2366,8 @@ function openGoalPanel(side) {
       var num = rosaBtn.dataset.num;
       var name = rosaBtn.dataset.name;
       if (document.body.contains(ov)) document.body.removeChild(ov);
-      _registerGoalRosa(num + '|' + name);
+      // Passa teamName direttamente — non dipende da window._goalPanelOv
+      _saveGoal(teamName, num, name);
       return;
     }
     var kpBtn = e.target.closest ? e.target.closest('.keypad-btn') : null;
@@ -2389,8 +2390,9 @@ function _keypadPress(k) {
     var num = parseInt(window._keypadVal||'0');
     if (!num) { disp.style.color='#ef4444'; setTimeout(function(){ disp.style.color='#1a3a22'; },600); return; }
     var ov = window._goalPanelOv;
-    if (ov) document.body.removeChild(ov);
-    _registerGoalKeypad(num, ov ? ov._teamName : '');
+    var teamName = ov ? ov._teamName : (liveData ? liveData.home : '');
+    if (ov && document.body.contains(ov)) document.body.removeChild(ov);
+    _registerGoalKeypad(num, teamName);
     window._keypadVal = '';
     return;
   } else {
