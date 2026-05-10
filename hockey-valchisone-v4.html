@@ -368,6 +368,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .goal-overlay.away  { background:rgba(30,30,60,.82); }
 .goal-text { font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(60px,18vw,120px); font-weight:800; color:white; text-align:center; animation:goalPop .4s cubic-bezier(.17,.67,.35,1.3) both; line-height:1; }
 .goal-hearts { font-size:clamp(30px,8vw,56px); animation:heartFloat 1.2s ease-out both; display:flex; gap:12px; margin-top:8px; }
+@keyframes blink-countdown{0%,100%{opacity:1}50%{opacity:0}}
 @keyframes goalPop { 0%{transform:scale(0) rotate(-8deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
 @keyframes heartFloat { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-60px);opacity:0} }
 @keyframes fadeOverlay { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
@@ -1324,7 +1325,7 @@ function renderGiornate(sport) {
       html += '<div class="giornata-match'+(isValch?' valch':'')+'">';
       html += '<div class="giornata-match-teams">';
       html += abbrevTeam(m.home,20)+' <span style="color:#9ca3af;font-weight:400">vs</span> '+abbrevTeam(m.away,20);
-      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+m.location:'')+'</div>';
+      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+shortLocation(m.location):'')+'</div>';
       html += '</div>';
       html += scoreHtml;
       html += '</div>';
@@ -1830,6 +1831,7 @@ function renderLivePage() {
         </div>
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
+      ${l.quarterEnded && (l.half||1) < 4 ? `<div style="background:rgba(251,146,60,.18);border-radius:10px;margin:10px 14px 4px;padding:10px 14px;text-align:center"><div style="font-size:13px;font-weight:700;color:#fb923c;margin-bottom:4px">${{1:'⏸ Intervallo — 2 min → 2° Quarto',2:'⏸ Intervallo — 5 min → 3° Quarto',3:'⏸ Intervallo — 2 min → 4° Quarto'}[l.half||1]||''}</div><div id="interval-countdown-live" style="font-family:'Bricolage Grotesque',sans-serif;font-size:36px;font-weight:800;color:#fb923c;letter-spacing:2px">--:--</div></div>` : ''}
     </div>
     <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
@@ -1959,7 +1961,7 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
-        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
+        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="margin-top:6px;background:rgba(251,146,60,.15);border-radius:8px;padding:8px 12px;text-align:center"><div style="font-size:11px;font-weight:700;color:#fb923c">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div><div id="interval-countdown-admin" style="font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;color:#fb923c;letter-spacing:2px;margin-top:2px">--:--</div></div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -2217,6 +2219,7 @@ function timerHalf() {
     ...liveData,
     half: cur, // keep current quarter number until next starts
     quarterEnded: true, // flag: waiting for next quarter to start
+    intervalStart: Date.now(),
     timerRunning: false,
     timerStart: null,
     timerElapsed: 0,
@@ -2275,6 +2278,20 @@ function startTimerTick() {
       const gi = document.getElementById('goal-minute');
       if (gi && document.activeElement !== gi) gi.value = totalMin;
     }
+    // Countdown intervallo
+    if (liveData.quarterEnded && liveData.intervalStart) {
+      const durMs = (liveData.half === 2 ? 5 : 2) * 60000;
+      const rem = Math.max(0, durMs - (Date.now() - liveData.intervalStart));
+      const tot = Math.ceil(rem / 1000);
+      const cdText = String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
+      const done = rem === 0;
+      ['interval-countdown-live','interval-countdown-admin'].forEach(function(id){
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = cdText;
+        el.style.animation = done ? 'blink-countdown 0.6s step-end infinite' : 'none';
+      });
+    }
   }, 500);
 }
 
@@ -2284,7 +2301,8 @@ function openGoalPanel(side) {
   const isHome = side === 'home';
   const teamName = isHome ? liveData.home : liveData.away;
   const isValch = teamName.toUpperCase().includes(VALCH);
-  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(function(a,b){ return a.num-b.num; });
+  const _rbc = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
+  const rosa = (_rbc.length > 0 ? _rbc : rosaValchisone).sort(function(a,b){ return a.num-b.num; });
 
   var ov = document.createElement('div');
   ov.className = 'goal-panel-overlay';
@@ -2870,6 +2888,21 @@ function skeletonCards(n) {
   return h;
 }
 
+function shortLocation(location) {
+  if (!location) return '';
+  const loc = location.toUpperCase();
+  const m = {
+    'MICHELLONET':'Michellonet · Villar Perosa','VILLAR':'Michellonet · Villar Perosa',
+    'TAZZOLI':'Tazzoli · Torino','LORENZONI':'Lorenzoni · Bra',
+    'MADONNA DEI FIORI':'Madonna dei Fiori · Bra','BRA':'Bra',
+    'CERNUSCO':'Boccaccio · Cernusco s/N','BOCCACCIO':'Boccaccio · Cernusco s/N',
+    'MONCALVO':'Micco · Moncalvo','GORGONZOLA':'Seveninfinity · Gorgonzola',
+    'PINASCA':'Pinasca','TORRAZZA':'Torrazza'
+  };
+  for (const [k,v] of Object.entries(m)) { if (loc.includes(k)) return v; }
+  return location.split(',')[0].trim();
+}
+
 function renderNextMatchBanner() {
   const container = document.getElementById('next-match-banner-wrap');
   if (!container) return;
@@ -2895,8 +2928,8 @@ function renderNextMatchBanner() {
   const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
   const hV = m.home.toUpperCase().includes(VALCH);
   const aV = m.away.toUpperCase().includes(VALCH);
-  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
-  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
+  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + m.home + '</span>';
+  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + m.away + '</span>';
   container.innerHTML =
     '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
