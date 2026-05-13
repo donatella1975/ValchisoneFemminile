@@ -1081,6 +1081,7 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
+let _rawMatches = {}; // oggetto originale Firebase — preserva tutte le categorie
 let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
@@ -1124,6 +1125,7 @@ window.addEventListener('load', () => {
     }
   
     window._fbListen(data => {
+      _rawMatches = data || {}; // conserva oggetto originale completo
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
@@ -3338,9 +3340,8 @@ function saveMatch() {
   };
   if (sh !== '' && sa !== '') { m.scoreHome = parseInt(sh); m.scoreAway = parseInt(sa); }
   if (!m.date||!m.home||!m.away) { alert('Compila data, casa e ospite!'); return; }
-  const all = [...allMatches, ...allIndoor];
-  const obj = {};
-  all.forEach(x => { obj[x.id] = x; });
+  // Usa _rawMatches per preservare tutte le categorie
+  const obj = Object.assign({}, _rawMatches);
   obj[id] = m;
   window._fbSave(obj);
   cancelMatchEdit(); // also returns to list view
@@ -3487,7 +3488,10 @@ function resetResult(id) {
   allMatches.forEach(m => { matchesObj[m.id] = m.id===id ? updated : m; });
   allIndoor.forEach(m => { indoorObj[m.id] = m.id===id ? updated : m; });
   if (window._fbSave) {
-    window._fbSave(Object.assign({}, matchesObj, indoorObj));
+    // Usa _rawMatches per preservare tutte le categorie
+    const rawCopy = Object.assign({}, _rawMatches);
+    rawCopy[id] = updated;
+    window._fbSave(rawCopy);
     setTimeout(function() { filterAdminList(); }, 800);
   }
 }
@@ -3496,7 +3500,9 @@ function deleteMatch(id) {
   const mDel = allDel.find(x=>x.id===id);
   const label = mDel ? abbrevTeam(mDel.home,15)+' vs '+abbrevTeam(mDel.away,15) : 'questa partita';
   if (!confirm('⚠️ Eliminare "'+label+'"?\n\nQuesta azione non può essere annullata.')) return;
-  const obj = {}; allDel.forEach(m => { if(m.id!==id) obj[m.id]=m; });
+  // Usa _rawMatches per preservare tutte le categorie
+  const obj = Object.assign({}, _rawMatches);
+  delete obj[id];
   window._fbSave(obj);
 }
 
@@ -3567,10 +3573,9 @@ function saveResult() {
     });
   });
   match.goals = goals;
-  const matchesObj = {}, indoorObj = {};
-  allMatches.forEach(m => { matchesObj[m.id] = m; });
-  allIndoor.forEach(m => { indoorObj[m.id] = m; });
-  window._fbSave(Object.assign({}, matchesObj, indoorObj))
+  // Aggiorna _rawMatches con la partita modificata (preserva tutte le categorie)
+  _rawMatches[match.id] = match;
+  window._fbSave(_rawMatches)
     .catch(function(e) { alert('Errore salvataggio: ' + e.message); });
   document.getElementById('result-modal').classList.remove('open');
 }
