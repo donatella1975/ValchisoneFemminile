@@ -40,7 +40,7 @@
     flex-direction:column;
     justify-content:flex-end;
     overflow:hidden;
-    background:linear-gradient(180deg, #0A5A2C 0%, #074220 45%, #063418 100%);
+    background:linear-gradient(180deg, rgba(10,90,44,.55) 0%, rgba(7,66,32,.75) 55%, rgba(6,52,24,.92) 100%), url('images/friday-3.jpg') center 35%/cover;
   }
   .hero-sun{
     position:absolute;
@@ -455,11 +455,9 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-stars"></div>
-    <div class="hero-sun"></div>
-    <!-- mountains silhouette -->
-    <svg class="hero-mountains" viewBox="0 0 1440 260" preserveAspectRatio="none" style="position:absolute;bottom:0;">
-      <polygon points="0,260 0,140 180,60 340,150 520,40 700,160 900,70 1100,170 1300,90 1440,150 1440,260" fill="#063418" opacity="0.9"/>
-      <polygon points="0,260 0,190 220,120 460,200 680,110 900,200 1150,130 1440,200 1440,260" fill="#16281F"/>
+    <!-- mountains silhouette (subtle fade at base, real mountains now in the photo) -->
+    <svg class="hero-mountains" viewBox="0 0 1440 260" preserveAspectRatio="none" style="position:absolute;bottom:0;opacity:0.5;">
+      <polygon points="0,260 0,190 220,120 460,200 680,110 900,200 1150,130 1440,200 1440,260" fill="#063418"/>
     </svg>
     <div class="hero-tents">
       <span class="tent-icon">
