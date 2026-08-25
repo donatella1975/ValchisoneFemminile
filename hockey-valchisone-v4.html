@@ -4,12 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1a7a30">
-<link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Valchisone">
 <meta name="description" content="Calendario, risultati e classifica di HP Valchisone Femminile — Hockey su prato e indoor">
 <meta property="og:title" content="HP Valchisone Femminile — Campionato 2025/26">
 <meta property="og:description" content="Calendario partite, risultati live e classifica">
@@ -374,7 +368,6 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .goal-overlay.away  { background:rgba(30,30,60,.82); }
 .goal-text { font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(60px,18vw,120px); font-weight:800; color:white; text-align:center; animation:goalPop .4s cubic-bezier(.17,.67,.35,1.3) both; line-height:1; }
 .goal-hearts { font-size:clamp(30px,8vw,56px); animation:heartFloat 1.2s ease-out both; display:flex; gap:12px; margin-top:8px; }
-@keyframes blink-countdown{0%,100%{opacity:1}50%{opacity:0}}
 @keyframes goalPop { 0%{transform:scale(0) rotate(-8deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
 @keyframes heartFloat { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-60px);opacity:0} }
 @keyframes fadeOverlay { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
@@ -1081,7 +1074,6 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
-let _rawMatches = {}; // oggetto originale Firebase — preserva tutte le categorie
 let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
@@ -1125,7 +1117,6 @@ window.addEventListener('load', () => {
     }
   
     window._fbListen(data => {
-      _rawMatches = data || {}; // conserva oggetto originale completo
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
@@ -1333,7 +1324,7 @@ function renderGiornate(sport) {
       html += '<div class="giornata-match'+(isValch?' valch':'')+'">';
       html += '<div class="giornata-match-teams">';
       html += abbrevTeam(m.home,20)+' <span style="color:#9ca3af;font-weight:400">vs</span> '+abbrevTeam(m.away,20);
-      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+shortLocation(m.location):'')+'</div>';
+      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+m.location:'')+'</div>';
       html += '</div>';
       html += scoreHtml;
       html += '</div>';
@@ -1624,7 +1615,7 @@ function matchCardHTML(m, showAdmin) {
   const awayWon = hasSc && m.scoreAway > m.scoreHome;
   const homeClass = (isHomeValch?' valch':'') + (hasSc?(homeWon?' winner':' loser'):'');
   const awayClass = (isAwayValch?' valch':'') + (hasSc?(awayWon?' winner':' loser'):'');
-  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}" onclick="showMatchDetail('${m.id}')" style="cursor:pointer">
+  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}">
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
@@ -1645,13 +1636,13 @@ function matchCardHTML(m, showAdmin) {
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
-      <button class="btn-share" onclick="event.stopPropagation();shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
+      <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
   </div>
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
-    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
+    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
 </div>`;
 }
@@ -1839,7 +1830,6 @@ function renderLivePage() {
         </div>
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
-      ${l.quarterEnded && (l.half||1) < 4 ? `<div style="background:rgba(251,146,60,.18);border-radius:10px;margin:10px 14px 4px;padding:10px 14px;text-align:center"><div style="font-size:13px;font-weight:700;color:#fb923c;margin-bottom:4px">${{1:'⏸ Intervallo — 2 min → 2° Quarto',2:'⏸ Intervallo — 5 min → 3° Quarto',3:'⏸ Intervallo — 2 min → 4° Quarto'}[l.half||1]||''}</div><div id="interval-countdown-live" style="font-family:'Bricolage Grotesque',sans-serif;font-size:36px;font-weight:800;color:#fb923c;letter-spacing:2px">--:--</div></div>` : ''}
     </div>
     <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
@@ -1969,7 +1959,7 @@ function renderLiveAdminPanel() {
           <span style="font-size:32px;font-weight:800;font-family:'Bricolage Grotesque',sans-serif;min-width:80px;text-align:center">${l.scoreHome||0}–${l.scoreAway||0}</span>
           <span style="font-size:12px;font-weight:700;max-width:100px;text-align:left;opacity:.9">${l.away}</span>
         </div>
-        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="margin-top:6px;background:rgba(251,146,60,.15);border-radius:8px;padding:8px 12px;text-align:center"><div style="font-size:11px;font-weight:700;color:#fb923c">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div><div id="interval-countdown-admin" style="font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;color:#fb923c;letter-spacing:2px;margin-top:2px">--:--</div></div>` : ''}
+        ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${{1:'⏸ Intervallo 2 min → 2° Quarto',2:'⏸ Intervallo 5 min → 3° Quarto',3:'⏸ Intervallo 2 min → 4° Quarto'}[liveData.half||1]||''}</div>` : ''}
       </div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -2149,8 +2139,6 @@ function showFinalResult() {
 }
 function stopLive() {
   if (!confirm('⚠️ Chiudere il live?\nIl tabellone sarà rimosso per tutti gli utenti.')) return;
-  // Salva ultima live in memoria per permettere il referto anche dopo chiusura
-  if (liveData) window._lastLiveData = JSON.parse(JSON.stringify(liveData));
   // Save final score to match
   if (liveData) {
     const all = [...allMatches, ...allIndoor];
@@ -2159,7 +2147,6 @@ function stopLive() {
     if (allObj[liveData.id]) {
       allObj[liveData.id].scoreHome = liveData.scoreHome||0;
       allObj[liveData.id].scoreAway = liveData.scoreAway||0;
-      if (liveData.goals) allObj[liveData.id].goals = liveData.goals;
     }
     // Save back
     const matchesObj = {}, indoorObj = {};
@@ -2227,7 +2214,6 @@ function timerHalf() {
     ...liveData,
     half: cur, // keep current quarter number until next starts
     quarterEnded: true, // flag: waiting for next quarter to start
-    intervalStart: Date.now(),
     timerRunning: false,
     timerStart: null,
     timerElapsed: 0,
@@ -2286,20 +2272,6 @@ function startTimerTick() {
       const gi = document.getElementById('goal-minute');
       if (gi && document.activeElement !== gi) gi.value = totalMin;
     }
-    // Countdown intervallo
-    if (liveData.quarterEnded && liveData.intervalStart) {
-      const durMs = (liveData.half === 2 ? 5 : 2) * 60000;
-      const rem = Math.max(0, durMs - (Date.now() - liveData.intervalStart));
-      const tot = Math.ceil(rem / 1000);
-      const cdText = String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
-      const done = rem === 0;
-      ['interval-countdown-live','interval-countdown-admin'].forEach(function(id){
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = cdText;
-        el.style.animation = done ? 'blink-countdown 0.6s step-end infinite' : 'none';
-      });
-    }
   }, 500);
 }
 
@@ -2309,8 +2281,7 @@ function openGoalPanel(side) {
   const isHome = side === 'home';
   const teamName = isHome ? liveData.home : liveData.away;
   const isValch = teamName.toUpperCase().includes(VALCH);
-  const _rbc = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
-  const rosa = (_rbc.length > 0 ? _rbc : rosaValchisone).sort(function(a,b){ return a.num-b.num; });
+  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(function(a,b){ return a.num-b.num; });
 
   var ov = document.createElement('div');
   ov.className = 'goal-panel-overlay';
@@ -2770,8 +2741,8 @@ function removeCorner(side) {
 
 // ─── REFERTO ARBITRALE PDF ───────────────────────────────
 function generateRefertoLive() {
-  const l = liveData || window._lastLiveData;
-  if (!l) { alert('Nessun dato live disponibile.'); return; }
+  if (!liveData) return;
+  const l = liveData;
   const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0)) : [];
   const cat = CATS[l.cat]||{};
   const today = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -2854,7 +2825,11 @@ function generateRefertoLive() {
   <tbody>${goalRows(goalsAway, false)}</tbody>
 </table>
 
-
+<div class="firma-grid">
+  <div class="firma-box">Arbitro 1</div>
+  <div class="firma-box">Arbitro 2</div>
+  <div class="firma-box">Segnapunti</div>
+</div>
 
 <div class="footer">
   <span>HP Valchisone Femminile — app.valchisone</span>
@@ -2896,21 +2871,6 @@ function skeletonCards(n) {
   return h;
 }
 
-function shortLocation(location) {
-  if (!location) return '';
-  const loc = location.toUpperCase();
-  const m = {
-    'MICHELLONET':'Michellonet · Villar Perosa','VILLAR':'Michellonet · Villar Perosa',
-    'TAZZOLI':'Tazzoli · Torino','LORENZONI':'Lorenzoni · Bra',
-    'MADONNA DEI FIORI':'Madonna dei Fiori · Bra','BRA':'Bra',
-    'CERNUSCO':'Boccaccio · Cernusco s/N','BOCCACCIO':'Boccaccio · Cernusco s/N',
-    'MONCALVO':'Micco · Moncalvo','GORGONZOLA':'Seveninfinity · Gorgonzola',
-    'PINASCA':'Pinasca','TORRAZZA':'Torrazza'
-  };
-  for (const [k,v] of Object.entries(m)) { if (loc.includes(k)) return v; }
-  return location.split(',')[0].trim();
-}
-
 function renderNextMatchBanner() {
   const container = document.getElementById('next-match-banner-wrap');
   if (!container) return;
@@ -2936,8 +2896,8 @@ function renderNextMatchBanner() {
   const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
   const hV = m.home.toUpperCase().includes(VALCH);
   const aV = m.away.toUpperCase().includes(VALCH);
-  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + m.home + '</span>';
-  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + m.away + '</span>';
+  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
+  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
   container.innerHTML =
     '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
@@ -3340,8 +3300,9 @@ function saveMatch() {
   };
   if (sh !== '' && sa !== '') { m.scoreHome = parseInt(sh); m.scoreAway = parseInt(sa); }
   if (!m.date||!m.home||!m.away) { alert('Compila data, casa e ospite!'); return; }
-  // Usa _rawMatches per preservare tutte le categorie
-  const obj = Object.assign({}, _rawMatches);
+  const all = [...allMatches, ...allIndoor];
+  const obj = {};
+  all.forEach(x => { obj[x.id] = x; });
   obj[id] = m;
   window._fbSave(obj);
   cancelMatchEdit(); // also returns to list view
@@ -3488,10 +3449,7 @@ function resetResult(id) {
   allMatches.forEach(m => { matchesObj[m.id] = m.id===id ? updated : m; });
   allIndoor.forEach(m => { indoorObj[m.id] = m.id===id ? updated : m; });
   if (window._fbSave) {
-    // Usa _rawMatches per preservare tutte le categorie
-    const rawCopy = Object.assign({}, _rawMatches);
-    rawCopy[id] = updated;
-    window._fbSave(rawCopy);
+    window._fbSave(Object.assign({}, matchesObj, indoorObj));
     setTimeout(function() { filterAdminList(); }, 800);
   }
 }
@@ -3500,9 +3458,7 @@ function deleteMatch(id) {
   const mDel = allDel.find(x=>x.id===id);
   const label = mDel ? abbrevTeam(mDel.home,15)+' vs '+abbrevTeam(mDel.away,15) : 'questa partita';
   if (!confirm('⚠️ Eliminare "'+label+'"?\n\nQuesta azione non può essere annullata.')) return;
-  // Usa _rawMatches per preservare tutte le categorie
-  const obj = Object.assign({}, _rawMatches);
-  delete obj[id];
+  const obj = {}; allDel.forEach(m => { if(m.id!==id) obj[m.id]=m; });
   window._fbSave(obj);
 }
 
@@ -3573,9 +3529,10 @@ function saveResult() {
     });
   });
   match.goals = goals;
-  // Aggiorna _rawMatches con la partita modificata (preserva tutte le categorie)
-  _rawMatches[match.id] = match;
-  window._fbSave(_rawMatches)
+  const matchesObj = {}, indoorObj = {};
+  allMatches.forEach(m => { matchesObj[m.id] = m; });
+  allIndoor.forEach(m => { indoorObj[m.id] = m; });
+  window._fbSave(Object.assign({}, matchesObj, indoorObj))
     .catch(function(e) { alert('Errore salvataggio: ' + e.message); });
   document.getElementById('result-modal').classList.remove('open');
 }
@@ -3597,6 +3554,90 @@ function saveEvent() {
   const obj = {}; allEvents.forEach(x => { obj[x.id]=x; }); obj[id]=e;
   window._fbSaveEvents(obj);
   cancelEventEdit();
+}
+
+
+function editEvent(id) {
+  const e = allEvents.find(x => x.id === id);
+  if (!e) return;
+  // Popola il form evento con i dati esistenti
+  document.getElementById('ev-id').value        = e.id;
+  document.getElementById('ev-type').value      = e.type || 'Finale';
+  document.getElementById('ev-title').value     = e.title || '';
+  document.getElementById('ev-date-start').value= e.dateStart || '';
+  document.getElementById('ev-date-end').value  = e.dateEnd || '';
+  document.getElementById('ev-loc').value       = e.location || '';
+  document.getElementById('ev-desc').value      = e.desc || '';
+  // Checkbox categorie
+  ['af','a1f','rf','rfi','alf','alfi'].forEach(c => {
+    const el = document.getElementById('ev-cat-'+c);
+    if (el) el.checked = (e.cats||[]).includes(c);
+  });
+  document.getElementById('form-event-title').textContent = 'Modifica Evento';
+  document.getElementById('btn-cancel-ev').style.display = '';
+  // Vai al form evento
+  switchFormTab('event');
+  setTimeout(() => {
+    const fe = document.getElementById('form-event');
+    if (fe) fe.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+function deleteEvent(id) {
+  const e = allEvents.find(x => x.id === id);
+  if (!e) return;
+  if (!confirm('Eliminare l\'evento "' + e.title + '"?')) return;
+  const obj = {};
+  allEvents.forEach(x => { if (x.id !== id) obj[x.id] = x; });
+  window._fbSaveEvents(obj);
+}
+
+function renderEventList() {
+  const el = document.getElementById('admin-event-list');
+  if (!el) return;
+  if (!allEvents || allEvents.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:13px">Nessun evento salvato</div>';
+    return;
+  }
+  const sorted = [...allEvents].sort((a,b) => (a.dateStart||'').localeCompare(b.dateStart||''));
+  const today = new Date().toISOString().slice(0,10);
+  const futuri = sorted.filter(e => (e.dateEnd||e.dateStart||'') >= today);
+  const passati = sorted.filter(e => (e.dateEnd||e.dateStart||'') < today).reverse();
+
+  function _ev(e) {
+    const typeIcons = { Finale:'🏆', Torneo:'🏆', Concentramento:'📍', Coppa:'🥇', Altro:'📅' };
+    const icon = typeIcons[e.type] || '📅';
+    const catLabels = { af:'⚡ A2', rf:'🟣 U16', alf:'🩵 U14', a1f:'🔥 A1', rfi:'🟣 U16i', alfi:'🩵 U14i' };
+    const cats = (e.cats||[]).map(c => catLabels[c]||c).join(' · ');
+    let dateStr = '';
+    if (!e.dateEnd || e.dateEnd === e.dateStart) {
+      dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+    } else {
+      const d1 = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long'});
+      const d2 = new Date(e.dateEnd+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+      dateStr = d1 + ' — ' + d2;
+    }
+    return '<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;border:1px solid #f3f4f6">'
+      + '<div style="display:flex;align-items:flex-start;gap:8px">'
+      + '<span style="font-size:18px;flex-shrink:0">' + icon + '</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-weight:700;font-size:13px;color:#1a1a1a">' + (e.title||'') + '</div>'
+      + '<div style="font-size:11px;color:#6b7280;margin-top:2px">📅 ' + dateStr + (e.location ? '  📍 ' + e.location : '') + '</div>'
+      + (cats ? '<div style="font-size:11px;color:#6b7280;margin-top:1px">' + cats + '</div>' : '')
+      + '</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      + '<button onclick="editEvent('' + e.id + '')" style="background:#f0faf2;color:#1a7a30;border:1px solid #86efac;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">✏️ Modifica</button>'
+      + '<button onclick="deleteEvent('' + e.id + '')" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">🗑️ Elimina</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function _sep(t) { return '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:8px 4px 4px">' + t + '</div>'; }
+  let rows = '';
+  if (futuri.length)  rows += _sep('Prossimi eventi') + futuri.map(_ev).join('');
+  if (passati.length) rows += _sep('Eventi passati')  + passati.map(_ev).join('');
+  el.innerHTML = rows;
 }
 
 function cancelEventEdit() {
