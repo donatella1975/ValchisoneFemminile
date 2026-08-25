@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aggiorna Partite — HP Valchisone</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
+  const db = getDatabase(app);
+  window._fbListen  = (cb) => onValue(ref(db,'matches'), snap => cb(snap.val()));
+  window._fbSave    = (data) => set(ref(db,'matches'), data);
+  window._fbReady   = true;
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<style>
+:root {
+  --green:  #1a7a30;
+  --green2: #25a040;
+  --green3: #4dc76a;
+  --green4: #d4f5dc;
+  --orange: #e8620a;
+  --orange2:#fff7ed;
+  --ink:    #1a1a1a;
+  --ink2:   #374151;
+  --ink3:   #6b7280;
+  --cream:  #f5f5f0;
+  --white:  #ffffff;
+  --r:      14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+header {
+  background: linear-gradient(135deg, #1a3a22 0%, #1a7a2e 60%, #25a040 100%);
+  padding: 18px 20px 16px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+}
+.header-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.header-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 800; color: white; line-height: 1.1; }
+.header-title span { display: block; font-size: 11px; font-weight: 400; opacity: .75; margin-top: 2px; font-family: 'DM Sans', sans-serif; }
+
+.main { max-width: 700px; margin: 0 auto; padding: 20px 16px 80px; }
+
+.status-bar {
+  background: white; border-radius: var(--r); padding: 12px 16px; margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  font-size: 13px; color: var(--ink3);
+}
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: #e5e7eb; flex-shrink: 0; }
+.status-dot.ok { background: var(--green3); }
+.status-dot.loading { background: var(--orange); animation: blink 1s infinite; }
+.status-dot.err { background: #ef4444; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.card { background: white; border-radius: var(--r); box-shadow: 0 2px 10px rgba(0,0,0,.06); margin-bottom: 16px; overflow: hidden; }
+.card-header { padding: 14px 18px; border-bottom: 1px solid #f3f4f6; }
+.card-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 800; color: #1a3a22; }
+.card-sub { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+.card-body { padding: 16px 18px; }
+
+/* UPLOAD */
+.upload-area {
+  border: 2px dashed #e5e7eb; border-radius: 12px; padding: 32px; text-align: center;
+  cursor: pointer; transition: all .15s; position: relative; margin-bottom: 14px;
+}
+.upload-area:hover, .upload-area.drag { border-color: var(--orange); background: var(--orange2); }
+.upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-icon { font-size: 36px; margin-bottom: 8px; }
+.upload-text { font-size: 13px; color: var(--ink3); line-height: 1.5; }
+.upload-text strong { color: var(--orange); }
+.preview-img { max-width: 100%; border-radius: 10px; margin-bottom: 14px; border: 1px solid #e5e7eb; display: none; }
+
+.btn-analyze {
+  background: var(--orange); color: white; border: none; border-radius: 10px;
+  padding: 11px 24px; font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all .15s; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-analyze:hover { background: #c2510a; }
+.btn-analyze:disabled { background: #9ca3af; cursor: not-allowed; }
+
+/* RISULTATI AI */
+.ai-section { display: none; }
+.ai-section.visible { display: block; }
+.ai-header { font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+
+.match-row {
+  border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; background: white; transition: all .15s;
+}
+.match-row.new-match { border-color: #86efac; background: #f0faf2; }
+.match-row.existing { border-color: #fbbf24; background: #fffbeb; }
+.match-row.skip { opacity: .45; }
+
+.match-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.match-status-icon { font-size: 16px; flex-shrink: 0; }
+.match-status-label { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+.label-new { background: var(--green4); color: var(--green); }
+.label-existing { background: #fef3c7; color: #92400e; }
+.label-skip { background: #f3f4f6; color: var(--ink3); }
+
+.match-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.field-group { display: flex; flex-direction: column; gap: 3px; }
+.field-group label { font-size: 10px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; }
+.field-group input, .field-group select {
+  border: 1.5px solid #e5e7eb; border-radius: 7px; padding: 6px 8px;
+  font-size: 12px; font-family: 'DM Sans', sans-serif; outline: none; transition: border .15s;
+}
+.field-group input:focus, .field-group select:focus { border-color: var(--green); }
+.field-group input[type=date] { min-width: 0; }
+
+.match-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-action {
+  border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .12s;
+}
+.btn-save-row { background: var(--green); color: white; }
+.btn-save-row:hover { background: #15622a; }
+.btn-overwrite { background: #fef3c7; color: #92400e; }
+.btn-overwrite:hover { background: #fde68a; }
+.btn-skip-row { background: #f3f4f6; color: var(--ink3); }
+.btn-skip-row:hover { background: #e5e7eb; }
+.btn-undo { background: #f0faf2; color: var(--green); }
+
+/* SAVE ALL */
+.save-all-wrap { margin-top: 16px; }
+.btn-save-all {
+  width: 100%; padding: 13px; border-radius: 12px; background: var(--green);
+  color: white; border: none; font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-save-all:hover { background: #15622a; }
+.btn-save-all:disabled { background: #9ca3af; cursor: not-allowed; }
+
+/* SPINNER */
+.spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a3a22; color: white; padding: 11px 22px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+.toast.err { background: #7f1d1d; }
+
+/* STATS BAR */
+.stats-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.stat-chip { background: white; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 700; border: 1.5px solid #e5e7eb; }
+.stat-chip.green { background: var(--green4); border-color: var(--green3); color: var(--green); }
+.stat-chip.orange { background: #fff7ed; border-color: #fed7aa; color: var(--orange); }
+.stat-chip.gray { background: #f9fafb; color: var(--ink3); }
+
+@media (max-width: 480px) {
+  .match-fields { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div style="font-size:28px">📸</div>
+    <div class="header-title">
+      Aggiorna Partite
+      <span>HP Valchisone Femminile — da screenshot federazione</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <div class="status-dot loading" id="status-dot"></div>
+    <span id="status-text">Connessione a Firebase...</span>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📷 Carica Screenshot Federazione</div>
+      <div class="card-sub">L'AI legge il calendario o i risultati e propone le partite da aggiornare</div>
+    </div>
+    <div class="card-body">
+      <div class="upload-area" id="upload-area">
+        <input type="file" id="file-input" accept="image/*" onchange="onFileChange(event)">
+        <div class="upload-icon">📱</div>
+        <div class="upload-text">
+          Tocca per scegliere lo screenshot<br>
+          <strong>Calendario o risultati dal sito federazione</strong>
+        </div>
+      </div>
+      <img class="preview-img" id="preview-img" alt="Anteprima screenshot">
+
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px">Tipo dati</label>
+          <select id="data-type" style="border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;background:white">
+            <option value="future">📅 Partite future (calendario)</option>
+            <option value="results">🏆 Risultati partite giocate</option>
+            <option value="both">📅🏆 Entrambi</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px">Categoria</label>
+          <select id="match-cat" style="border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;background:white">
+            <option value="af">⚡ A2 Femminile</option>
+            <option value="rf">🟣 Ragazze U16</option>
+            <option value="alf">🩵 Allieve U14</option>
+            <option value="a1f">🔥 A1 Indoor</option>
+            <option value="rfi">🟣 Ragazze Indoor</option>
+            <option value="alfi">🩵 Allieve Indoor</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-analyze" id="btn-analyze" onclick="analyzeScreenshot()" disabled>
+        <span id="analyze-label">🤖 Analizza con AI</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- RISULTATI AI -->
+  <div class="ai-section" id="ai-section">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="ai-header">Partite estratte — revisiona e salva</div>
+    <div id="matches-extracted"></div>
+    <div class="save-all-wrap" id="save-all-wrap" style="display:none">
+      <button class="btn-save-all" id="btn-save-all" onclick="saveAllNew()">
+        <span id="save-all-label">💾 Salva tutte le nuove partite</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────
+let allMatches = {};
+let imageBase64 = null;
+let extractedMatches = [];
+
+const CATS = {
+  af:   { label:'A2 Femminile',      icon:'⚡', short:'A2'   },
+  rf:   { label:'Ragazze (U16)',      icon:'🟣', short:'U16'  },
+  alf:  { label:'Allieve (U14)',      icon:'🩵', short:'U14'  },
+  a1f:  { label:'A1 Femminile Indoor',icon:'🔥', short:'A1'   },
+  rfi:  { label:'Ragazze U16 Indoor', icon:'🟣', short:'U16i' },
+  alfi: { label:'Allieve U14 Indoor', icon:'🩵', short:'U14i' },
+};
+
+// ── FIREBASE ──────────────────────────────────────────────
+function waitFB(fn) {
+  if (window._fbReady) fn();
+  else window.addEventListener('fb-ready', fn, { once: true });
+}
+
+waitFB(() => {
+  setStatus('loading', 'Caricamento partite...');
+  window._fbListen(data => {
+    allMatches = data || {};
+    const n = Object.keys(allMatches).length;
+    setStatus('ok', `Connesso · ${n} partite in archivio`);
+  });
+});
+
+function setStatus(state, text) {
+  document.getElementById('status-dot').className = 'status-dot ' + state;
+  document.getElementById('status-text').textContent = text;
+}
+
+// ── FILE INPUT ────────────────────────────────────────────
+function onFileChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const full = ev.target.result;
+    imageBase64 = full.split(',')[1];
+    const img = document.getElementById('preview-img');
+    img.src = full; img.style.display = 'block';
+    document.getElementById('btn-analyze').disabled = false;
+    showToast('📷 Screenshot caricato — premi Analizza');
+  };
+  reader.readAsDataURL(file);
+}
+
+const ua = document.getElementById('upload-area');
+ua.addEventListener('dragover', e => { e.preventDefault(); ua.classList.add('drag'); });
+ua.addEventListener('dragleave', () => ua.classList.remove('drag'));
+ua.addEventListener('drop', e => {
+  e.preventDefault(); ua.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('file-input').files = dt.files;
+    onFileChange({ target: { files: [file] } });
+  }
+});
+
+// ── AI ANALYZE ────────────────────────────────────────────
+async function analyzeScreenshot() {
+  if (!imageBase64) { showToast('Carica prima uno screenshot', true); return; }
+  const btn = document.getElementById('btn-analyze');
+  const lbl = document.getElementById('analyze-label');
+  btn.disabled = true;
+  lbl.innerHTML = '<div class="spinner"></div> AI in elaborazione...';
+
+  const cat = document.getElementById('match-cat').value;
+  const dataType = document.getElementById('data-type').value;
+
+  const typePrompt = {
+    future: 'Estrai le partite future (non ancora giocate). Per ogni partita: data, ora, squadra casa, squadra ospite, campo/luogo, giornata/turno se visibile. NON includere risultati.',
+    results: 'Estrai le partite con risultati già definiti. Per ogni partita: data, squadra casa, squadra ospite, punteggio casa, punteggio ospite. Includi solo partite con risultato.',
+    both: 'Estrai tutte le partite visibili: sia future (senza risultato) che giocate (con risultato). Per ogni partita includi tutti i dati disponibili.',
+  }[dataType];
+
+  const catLabel = CATS[cat] ? CATS[cat].label : cat;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+            { type: 'text', text: `Questo è uno screenshot del calendario/risultati della Federazione Italiana Hockey per la categoria ${catLabel}.
+
+${typePrompt}
+
+Rispondi SOLO con un array JSON valido, senza testo prima o dopo, senza backtick, senza markdown.
+Ogni elemento dell'array deve avere questi campi:
+- date: stringa in formato YYYY-MM-DD (es. "2026-03-15")
+- time: stringa HH:MM o "" se non visibile (es. "15:00")
+- home: nome squadra casa IN MAIUSCOLO
+- away: nome squadra ospite IN MAIUSCOLO
+- location: campo/città o "" se non visibile
+- round: giornata/turno o "" (es. "Giornata 5")
+- scoreHome: numero intero se disponibile, null se partita futura
+- scoreAway: numero intero se disponibile, null se partita futura
+
+Se non riesci a leggere nulla, rispondi con array vuoto: []` }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    let matches = [];
+    try {
+      matches = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch(e) {
+      throw new Error('Formato risposta AI non valido. Riprova con uno screenshot più nitido.');
+    }
+
+    if (!Array.isArray(matches) || matches.length === 0) {
+      showToast('⚠️ AI non ha trovato partite. Prova con uno screenshot più chiaro.', true);
+      btn.disabled = false;
+      lbl.textContent = '🤖 Analizza con AI';
+      return;
+    }
+
+    // Aggiungi cat e id temporaneo
+    extractedMatches = matches.map((m, i) => ({
+      ...m,
+      cat,
+      _tmpId: 'm' + Date.now() + '_' + i,
+      _action: null,
+    }));
+
+    renderExtracted();
+    showToast(`🤖 AI ha trovato ${matches.length} partite`);
+
+  } catch(e) {
+    showToast('❌ ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    lbl.textContent = '🤖 Analizza con AI';
+  }
+}
+
+// ── RENDER ESTRATTI ───────────────────────────────────────
+function renderExtracted() {
+  const section = document.getElementById('ai-section');
+  const container = document.getElementById('matches-extracted');
+  const statsBar = document.getElementById('stats-bar');
+  section.classList.add('visible');
+
+  let nNew = 0, nExisting = 0;
+
+  container.innerHTML = extractedMatches.map((m, i) => {
+    // Controlla se esiste già (stesso giorno + stesse squadre)
+    const existing = findExisting(m);
+    const isExisting = !!existing;
+    if (isExisting) nExisting++; else nNew++;
+
+    const rowClass = m._action === 'skip' ? 'skip' : (isExisting ? 'existing' : 'new-match');
+    const statusIcon = isExisting ? '⚠️' : '✨';
+    const statusLabel = isExisting
+      ? '<span class="match-status-label label-existing">Già presente</span>'
+      : '<span class="match-status-label label-new">Nuova</span>';
+
+    const hasScore = m.scoreHome !== null && m.scoreHome !== undefined && m.scoreAway !== null && m.scoreAway !== undefined;
+
+    return `<div class="match-row ${rowClass}" id="row-${i}">
+      <div class="match-row-header">
+        <span class="match-status-icon">${statusIcon}</span>
+        ${statusLabel}
+        ${isExisting ? '<span class="match-status-label label-existing" style="margin-left:4px">Sovrascrive dati esistenti</span>' : ''}
+        ${m._action === 'skip' ? '<span class="match-status-label label-skip">Saltata</span>' : ''}
+      </div>
+      <div class="match-fields">
+        <div class="field-group" style="grid-column:span 2">
+          <label>Casa</label>
+          <input type="text" id="m-home-${i}" value="${esc(m.home)}" placeholder="Squadra casa">
+        </div>
+        <div class="field-group" style="grid-column:span 2">
+          <label>Ospite</label>
+          <input type="text" id="m-away-${i}" value="${esc(m.away)}" placeholder="Squadra ospite">
+        </div>
+        <div class="field-group">
+          <label>Data</label>
+          <input type="date" id="m-date-${i}" value="${m.date||''}">
+        </div>
+        <div class="field-group">
+          <label>Ora</label>
+          <input type="time" id="m-time-${i}" value="${m.time||''}">
+        </div>
+        <div class="field-group" style="grid-column:span 2">
+          <label>Campo</label>
+          <input type="text" id="m-loc-${i}" value="${esc(m.location||'')}">
+        </div>
+        <div class="field-group">
+          <label>Giornata</label>
+          <input type="text" id="m-round-${i}" value="${esc(m.round||'')}">
+        </div>
+        <div class="field-group">
+          <label>Categoria</label>
+          <select id="m-cat-${i}">
+            ${Object.entries(CATS).map(([k,v]) => `<option value="${k}" ${m.cat===k?'selected':''}>${v.icon} ${v.short}</option>`).join('')}
+          </select>
+        </div>
+        ${hasScore ? `
+        <div class="field-group">
+          <label>Reti casa</label>
+          <input type="number" id="m-sh-${i}" value="${m.scoreHome}" min="0" max="99" style="width:80px">
+        </div>
+        <div class="field-group">
+          <label>Reti ospiti</label>
+          <input type="number" id="m-sa-${i}" value="${m.scoreAway}" min="0" max="99" style="width:80px">
+        </div>` : ''}
+      </div>
+      <div class="match-row-actions">
+        ${isExisting
+          ? `<button class="btn-action btn-overwrite" onclick="saveRow(${i}, true)">🔄 Aggiorna</button>
+             <button class="btn-action btn-skip-row" onclick="skipRow(${i})">Salta</button>`
+          : m._action === 'skip'
+            ? `<button class="btn-action btn-undo" onclick="undoRow(${i})">↩ Ripristina</button>`
+            : `<button class="btn-action btn-save-row" onclick="saveRow(${i}, false)">+ Aggiungi</button>
+               <button class="btn-action btn-skip-row" onclick="skipRow(${i})">Salta</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+
+  // Stats bar
+  statsBar.innerHTML = `
+    <div class="stat-chip green">✨ ${nNew} nuove</div>
+    <div class="stat-chip orange">⚠️ ${nExisting} già presenti</div>
+    <div class="stat-chip gray">📋 ${extractedMatches.length} totali</div>
+  `;
+
+  // Mostra pulsante salva tutto se ci sono nuove
+  document.getElementById('save-all-wrap').style.display = nNew > 0 ? 'block' : 'none';
+  document.getElementById('btn-save-all').textContent = `💾 Aggiungi tutte le ${nNew} nuove partite`;
+}
+
+function findExisting(m) {
+  return Object.values(allMatches).find(ex =>
+    ex.date === m.date &&
+    ex.home.toUpperCase() === (m.home||'').toUpperCase() &&
+    ex.away.toUpperCase() === (m.away||'').toUpperCase()
+  );
+}
+
+function readRow(i) {
+  const m = { ...extractedMatches[i] };
+  m.home     = (document.getElementById(`m-home-${i}`)?.value || '').trim().toUpperCase();
+  m.away     = (document.getElementById(`m-away-${i}`)?.value || '').trim().toUpperCase();
+  m.date     = document.getElementById(`m-date-${i}`)?.value || '';
+  m.time     = document.getElementById(`m-time-${i}`)?.value || '';
+  m.location = document.getElementById(`m-loc-${i}`)?.value || '';
+  m.round    = document.getElementById(`m-round-${i}`)?.value || '';
+  m.cat      = document.getElementById(`m-cat-${i}`)?.value || m.cat;
+  const sh   = document.getElementById(`m-sh-${i}`)?.value;
+  const sa   = document.getElementById(`m-sa-${i}`)?.value;
+  if (sh !== null && sh !== undefined && sh !== '' && sa !== null && sa !== undefined && sa !== '') {
+    m.scoreHome = parseInt(sh);
+    m.scoreAway = parseInt(sa);
+  } else {
+    delete m.scoreHome; delete m.scoreAway;
+  }
+  return m;
+}
+
+function saveRow(i, overwrite) {
+  const m = readRow(i);
+  if (!m.date || !m.home || !m.away) { showToast('Compila almeno data, casa e ospite', true); return; }
+
+  const existing = findExisting(m);
+  const id = (overwrite && existing) ? existing.id : ('m' + Date.now() + '_' + i);
+  const toSave = { id, cat: m.cat, date: m.date, time: m.time, home: m.home, away: m.away, location: m.location, round: m.round };
+  if (m.scoreHome !== undefined) { toSave.scoreHome = m.scoreHome; toSave.scoreAway = m.scoreAway; }
+  if (existing && existing.goals) toSave.goals = existing.goals;
+
+  allMatches[id] = toSave;
+  window._fbSave(allMatches).then(() => {
+    extractedMatches[i]._action = overwrite ? 'updated' : 'saved';
+    const row = document.getElementById(`row-${i}`);
+    if (row) {
+      row.classList.add('skip');
+      row.querySelector('.match-row-actions').innerHTML = `<span style="font-size:12px;color:var(--green);font-weight:700">${overwrite ? '✅ Aggiornata' : '✅ Aggiunta'}</span>`;
+    }
+    showToast(`✅ ${m.home} vs ${m.away} salvata`);
+    updateSaveAllBtn();
+  }).catch(e => showToast('❌ Errore: ' + e.message, true));
+}
+
+function skipRow(i) {
+  extractedMatches[i]._action = 'skip';
+  renderExtracted();
+}
+function undoRow(i) {
+  extractedMatches[i]._action = null;
+  renderExtracted();
+}
+
+async function saveAllNew() {
+  const btn = document.getElementById('btn-save-all');
+  const lbl = document.getElementById('save-all-label');
+  btn.disabled = true;
+  lbl.innerHTML = '<div class="spinner"></div> Salvataggio...';
+
+  let saved = 0;
+  for (let i = 0; i < extractedMatches.length; i++) {
+    const m = extractedMatches[i];
+    if (m._action) continue;
+    const existing = findExisting(readRow(i));
+    if (existing) continue; // skip esistenti
+    const rm = readRow(i);
+    if (!rm.date || !rm.home || !rm.away) continue;
+    const id = 'm' + Date.now() + '_' + i;
+    const toSave = { id, cat: rm.cat, date: rm.date, time: rm.time, home: rm.home, away: rm.away, location: rm.location, round: rm.round };
+    if (rm.scoreHome !== undefined) { toSave.scoreHome = rm.scoreHome; toSave.scoreAway = rm.scoreAway; }
+    allMatches[id] = toSave;
+    extractedMatches[i]._action = 'saved';
+    saved++;
+  }
+
+  try {
+    await window._fbSave(allMatches);
+    showToast(`💾 ${saved} partite salvate su Firebase!`);
+    renderExtracted();
+  } catch(e) {
+    showToast('❌ ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    lbl.textContent = '💾 Aggiungi tutte le nuove partite';
+  }
+}
+
+function updateSaveAllBtn() {
+  const remaining = extractedMatches.filter((m, i) => !m._action && !findExisting(readRow(i))).length;
+  const btn = document.getElementById('btn-save-all');
+  if (remaining === 0) { document.getElementById('save-all-wrap').style.display = 'none'; }
+  else { btn.textContent = `💾 Aggiungi le ${remaining} nuove partite rimanenti`; }
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer = null;
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
