@@ -74,6 +74,9 @@ header {
   font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all .15s; text-align: center; color: var(--ink3);
 }
+.cat-tab.da  { --c: #6b7280; }
+.cat-tab.af  { --c: #d97706; }
+.cat-tab.jf  { --c: #d97706; }
 .cat-tab.rf  { --c: var(--purple); }
 .cat-tab.alf { --c: var(--cyan); }
 .cat-tab.active { background: var(--c); border-color: var(--c); color: white; }
@@ -310,9 +313,12 @@ input:focus { border-color: var(--green); }
   </div>
 
   <!-- CAT TABS -->
-  <div class="cat-tabs">
-    <button class="cat-tab rf active" onclick="setCat('rf')">🟣 Ragazze U16</button>
-    <button class="cat-tab alf" onclick="setCat('alf')">🩵 Allieve U14</button>
+  <div class="cat-tabs" style="flex-wrap:wrap">
+    <button class="cat-tab da active" onclick="setCat('da')">📋 Da assegnare</button>
+    <button class="cat-tab af"  onclick="setCat('af')">⚡ Senior/A2</button>
+    <button class="cat-tab jf"  onclick="setCat('jf')">🔶 Juniores</button>
+    <button class="cat-tab rf"  onclick="setCat('rf')">🟣 Ragazze</button>
+    <button class="cat-tab alf" onclick="setCat('alf')">🩵 Allieve</button>
   </div>
 
   <!-- ROSA CARD -->
@@ -331,7 +337,7 @@ input:focus { border-color: var(--green); }
     <div class="add-form" id="add-form">
       <div class="form-group">
         <label>N° maglia</label>
-        <input type="number" id="new-num" placeholder="es. 7" min="1" max="99" style="width:72px">
+        <input type="number" id="new-num" placeholder="—" min="0" max="99" style="width:72px">
       </div>
       <div class="form-group" style="flex:1;min-width:160px">
         <label>Nome e cognome</label>
@@ -369,6 +375,9 @@ input:focus { border-color: var(--green); }
         <div class="form-group">
           <label>Categoria</label>
           <select id="distinta-cat">
+            <option value="da">📋 Da assegnare</option>
+            <option value="af">⚡ Senior/A2</option>
+            <option value="jf">🔶 Juniores</option>
             <option value="rf">🟣 Ragazze U16</option>
             <option value="alf">🩵 Allieve U14</option>
           </select>
@@ -432,7 +441,7 @@ input:focus { border-color: var(--green); }
 let allLists = {};       // intero oggetto lists da Firebase
 let rosaValchisone = []; // array completo tutte le categorie
 let originalRosa = [];   // copia per detect modifiche
-let currentCat = 'rf';
+let currentCat = 'da';
 let editingIdx = -1;     // indice globale in rosaValchisone
 let imageBase64 = null;
 let pendingChanges = 0;
@@ -472,7 +481,7 @@ function setCat(cat) {
 
 // ── RENDER ROSA ──────────────────────────────────────────
 function renderRosa() {
-  const labels = { rf: '🟣 Ragazze U16 — Prato', alf: '🩵 Allieve U14 — Prato' };
+  const labels = { da:'📋 Da assegnare', af:'⚡ Senior/A2', jf:'🔶 Juniores Indoor', rf:'🟣 Ragazze U16', alf:'🩵 Allieve U14' };
   document.getElementById('rosa-card-title').textContent = labels[currentCat] || currentCat;
   document.getElementById('rosa-card').className = 'card cat-' + currentCat;
 
@@ -491,7 +500,7 @@ function renderRosa() {
 
   list.innerHTML = filtered.map(p => `
     <div class="player-row">
-      <div class="player-num">${p.num}</div>
+      <div class="player-num">${p.num || "—"}</div>
       <div class="player-name">${escHtml(p.name)}</div>
       <div class="player-badges">
         ${p.gk  ? '<span class="badge badge-gk">GK</span>' : ''}
@@ -511,12 +520,13 @@ function escHtml(s) {
 
 // ── ADD PLAYER ───────────────────────────────────────────
 function addPlayer() {
-  const num  = parseInt(document.getElementById('new-num').value);
+  const numRaw = document.getElementById('new-num').value;
+  const num  = numRaw !== '' ? parseInt(numRaw) : 0;
   const name = document.getElementById('new-name').value.trim();
   const gk   = document.getElementById('new-gk').checked;
   const cap  = document.getElementById('new-cap').checked;
-  if (!num || num < 1 || num > 99) { showToast('Inserisci un numero maglia valido (1-99)', true); return; }
   if (!name) { showToast('Inserisci il nome della giocatrice', true); return; }
+  if (numRaw !== '' && (isNaN(num) || num < 0 || num > 99)) { showToast('Numero maglia non valido (0-99)', true); return; }
 
   const existing = rosaValchisone.findIndex(p => p.num === num && p.cat === currentCat);
   if (existing >= 0) {
