@@ -1184,7 +1184,7 @@ function showPage(name, btn) {
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (name === 'classifica') { renderStandings(); renderResults(); syncAllSportControls(classSport); }
+  if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
@@ -1237,7 +1237,6 @@ function setClassSport(sport) {
   classSport = sport;
   syncAllSportControls(sport);
   renderStandings();
-  renderResults();
 }
 
 // ─── VIEW TABS (Calendario / Giornate) ──────────────────
@@ -2992,7 +2991,6 @@ function renderStandings() {
     html += '</tbody></table></div>';
   });
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
-  renderResults();
   renderStandingsGiornate();
 }
 
