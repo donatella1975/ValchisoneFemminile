@@ -30,6 +30,7 @@
   window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
   window._fbSaveArchivio = (stagione, data) => set(ref(db,'archivio/'+stagione), data);
   window._fbListenArchivio = (cb) => onValue(ref(db,'archivio'), snap => cb(snap.val()));
+  window._fbSaveSeason    = (s)  => set(ref(db,'config/season'), s);
   window._fbGetArchivioStagione = (stagione, cb) => onValue(ref(db,'archivio/'+stagione), snap => cb(snap.val()), {onlyOnce:true});
   window._fbListenEvents= (cb)   => onValue(ref(db,'events'), snap => cb(snap.val()));
   window._fbSaveLive    = (data) => set(ref(db,'live'), data);
@@ -1062,18 +1063,21 @@ const VALCH = 'VALCHISONE';
 const FEMALE_CATS = ['af','rf','alf'];
 const INDOOR_CATS = ['a1f','rfi','alfi'];
 const CATS = {
-  af:   { label:'A2 Femminile',        icon:'⚡', short:'A2',   sport:'prato'  },
-  rf:   { label:'Ragazze (U16)',        icon:'🟣', short:'U16',  sport:'prato'  },
-  alf:  { label:'Allieve (U14)',        icon:'🩵', short:'U14',  sport:'prato'  },
-  a1f:  { label:'A1 Femminile Indoor', icon:'🔥', short:'A1',   sport:'indoor' },
-  rfi:  { label:'Ragazze U16 Indoor',  icon:'🟣', short:'U16i', sport:'indoor' },
-  alfi: { label:'Allieve U14 Indoor',  icon:'🩵', short:'U14i', sport:'indoor' },
+  af:   { label:'A2 Femminile',           icon:'⚡', short:'A2',    sport:'prato'  },
+  cffb: { label:'Coppa Fed. Femm. B',     icon:'🥈', short:'CFFB',  sport:'prato'  },
+  jf:   { label:'Juniores Femminile',     icon:'🔶', short:'Jun.F', sport:'indoor' },
+  rf:   { label:'Ragazze (U16)',           icon:'🟣', short:'U16',   sport:'prato'  },
+  alf:  { label:'Allieve (U14)',           icon:'🩵', short:'U14',   sport:'prato'  },
+  a1f:  { label:'A1 Femminile Indoor',    icon:'🔥', short:'A1',    sport:'indoor' },
+  rfi:  { label:'Ragazze U16 Indoor',     icon:'🟣', short:'U16i',  sport:'indoor' },
+  alfi: { label:'Allieve U14 Indoor',     icon:'🩵', short:'U14i',  sport:'indoor' },
 };
 const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
+let _rawMatches = {};
 let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
@@ -1117,6 +1121,7 @@ window.addEventListener('load', () => {
     }
   
     window._fbListen(data => {
+      _rawMatches = data || {};
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
@@ -1615,7 +1620,7 @@ function matchCardHTML(m, showAdmin) {
   const awayWon = hasSc && m.scoreAway > m.scoreHome;
   const homeClass = (isHomeValch?' valch':'') + (hasSc?(homeWon?' winner':' loser'):'');
   const awayClass = (isAwayValch?' valch':'') + (hasSc?(awayWon?' winner':' loser'):'');
-  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}">
+  return `<div class="match-card cat-card-${m.cat}${isValch?' valch-match':''}" onclick="showMatchDetail('${m.id}')" style="cursor:pointer">
   <div class="mc-time"><span class="t-hour">${m.time||'—'}</span><span class="t-dow">${dow}</span></div>
   <div class="mc-body">
     <div class="mc-teams">
@@ -1636,13 +1641,13 @@ function matchCardHTML(m, showAdmin) {
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
-      <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
+      <button class="btn-share" onclick="event.stopPropagation();shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
   </div>
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
-    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
+    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
 </div>`;
 }
@@ -2139,6 +2144,7 @@ function showFinalResult() {
 }
 function stopLive() {
   if (!confirm('⚠️ Chiudere il live?\nIl tabellone sarà rimosso per tutti gli utenti.')) return;
+  if (liveData) window._lastLiveData = JSON.parse(JSON.stringify(liveData));
   // Save final score to match
   if (liveData) {
     const all = [...allMatches, ...allIndoor];
@@ -2147,6 +2153,7 @@ function stopLive() {
     if (allObj[liveData.id]) {
       allObj[liveData.id].scoreHome = liveData.scoreHome||0;
       allObj[liveData.id].scoreAway = liveData.scoreAway||0;
+      if (liveData.goals) allObj[liveData.id].goals = liveData.goals;
     }
     // Save back
     const matchesObj = {}, indoorObj = {};
@@ -2281,7 +2288,8 @@ function openGoalPanel(side) {
   const isHome = side === 'home';
   const teamName = isHome ? liveData.home : liveData.away;
   const isValch = teamName.toUpperCase().includes(VALCH);
-  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(function(a,b){ return a.num-b.num; });
+  const _rbc = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); });
+  const rosa = (_rbc.length > 0 ? _rbc : rosaValchisone).sort(function(a,b){ return a.num-b.num; });
 
   var ov = document.createElement('div');
   ov.className = 'goal-panel-overlay';
@@ -2741,8 +2749,8 @@ function removeCorner(side) {
 
 // ─── REFERTO ARBITRALE PDF ───────────────────────────────
 function generateRefertoLive() {
-  if (!liveData) return;
-  const l = liveData;
+  const l = liveData || window._lastLiveData;
+  if (!l) { alert('Nessun dato live disponibile.'); return; }
   const goals = l.goals ? Object.values(l.goals).sort((a,b)=>(a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0)) : [];
   const cat = CATS[l.cat]||{};
   const today = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -2825,11 +2833,7 @@ function generateRefertoLive() {
   <tbody>${goalRows(goalsAway, false)}</tbody>
 </table>
 
-<div class="firma-grid">
-  <div class="firma-box">Arbitro 1</div>
-  <div class="firma-box">Arbitro 2</div>
-  <div class="firma-box">Segnapunti</div>
-</div>
+
 
 <div class="footer">
   <span>HP Valchisone Femminile — app.valchisone</span>
@@ -3300,9 +3304,7 @@ function saveMatch() {
   };
   if (sh !== '' && sa !== '') { m.scoreHome = parseInt(sh); m.scoreAway = parseInt(sa); }
   if (!m.date||!m.home||!m.away) { alert('Compila data, casa e ospite!'); return; }
-  const all = [...allMatches, ...allIndoor];
-  const obj = {};
-  all.forEach(x => { obj[x.id] = x; });
+  const obj = Object.assign({}, _rawMatches);
   obj[id] = m;
   window._fbSave(obj);
   cancelMatchEdit(); // also returns to list view
@@ -3449,7 +3451,9 @@ function resetResult(id) {
   allMatches.forEach(m => { matchesObj[m.id] = m.id===id ? updated : m; });
   allIndoor.forEach(m => { indoorObj[m.id] = m.id===id ? updated : m; });
   if (window._fbSave) {
-    window._fbSave(Object.assign({}, matchesObj, indoorObj));
+    const rawCopy = Object.assign({}, _rawMatches);
+    rawCopy[id] = updated;
+    window._fbSave(rawCopy);
     setTimeout(function() { filterAdminList(); }, 800);
   }
 }
@@ -3458,7 +3462,8 @@ function deleteMatch(id) {
   const mDel = allDel.find(x=>x.id===id);
   const label = mDel ? abbrevTeam(mDel.home,15)+' vs '+abbrevTeam(mDel.away,15) : 'questa partita';
   if (!confirm('⚠️ Eliminare "'+label+'"?\n\nQuesta azione non può essere annullata.')) return;
-  const obj = {}; allDel.forEach(m => { if(m.id!==id) obj[m.id]=m; });
+  const obj = Object.assign({}, _rawMatches);
+  delete obj[id];
   window._fbSave(obj);
 }
 
@@ -3529,10 +3534,8 @@ function saveResult() {
     });
   });
   match.goals = goals;
-  const matchesObj = {}, indoorObj = {};
-  allMatches.forEach(m => { matchesObj[m.id] = m; });
-  allIndoor.forEach(m => { indoorObj[m.id] = m; });
-  window._fbSave(Object.assign({}, matchesObj, indoorObj))
+  _rawMatches[match.id] = match;
+  window._fbSave(_rawMatches)
     .catch(function(e) { alert('Errore salvataggio: ' + e.message); });
   document.getElementById('result-modal').classList.remove('open');
 }
@@ -3554,90 +3557,6 @@ function saveEvent() {
   const obj = {}; allEvents.forEach(x => { obj[x.id]=x; }); obj[id]=e;
   window._fbSaveEvents(obj);
   cancelEventEdit();
-}
-
-
-function editEvent(id) {
-  const e = allEvents.find(x => x.id === id);
-  if (!e) return;
-  // Popola il form evento con i dati esistenti
-  document.getElementById('ev-id').value        = e.id;
-  document.getElementById('ev-type').value      = e.type || 'Finale';
-  document.getElementById('ev-title').value     = e.title || '';
-  document.getElementById('ev-date-start').value= e.dateStart || '';
-  document.getElementById('ev-date-end').value  = e.dateEnd || '';
-  document.getElementById('ev-loc').value       = e.location || '';
-  document.getElementById('ev-desc').value      = e.desc || '';
-  // Checkbox categorie
-  ['af','a1f','rf','rfi','alf','alfi'].forEach(c => {
-    const el = document.getElementById('ev-cat-'+c);
-    if (el) el.checked = (e.cats||[]).includes(c);
-  });
-  document.getElementById('form-event-title').textContent = 'Modifica Evento';
-  document.getElementById('btn-cancel-ev').style.display = '';
-  // Vai al form evento
-  switchFormTab('event');
-  setTimeout(() => {
-    const fe = document.getElementById('form-event');
-    if (fe) fe.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
-}
-
-function deleteEvent(id) {
-  const e = allEvents.find(x => x.id === id);
-  if (!e) return;
-  if (!confirm('Eliminare l\'evento "' + e.title + '"?')) return;
-  const obj = {};
-  allEvents.forEach(x => { if (x.id !== id) obj[x.id] = x; });
-  window._fbSaveEvents(obj);
-}
-
-function renderEventList() {
-  const el = document.getElementById('admin-event-list');
-  if (!el) return;
-  if (!allEvents || allEvents.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:13px">Nessun evento salvato</div>';
-    return;
-  }
-  const sorted = [...allEvents].sort((a,b) => (a.dateStart||'').localeCompare(b.dateStart||''));
-  const today = new Date().toISOString().slice(0,10);
-  const futuri = sorted.filter(e => (e.dateEnd||e.dateStart||'') >= today);
-  const passati = sorted.filter(e => (e.dateEnd||e.dateStart||'') < today).reverse();
-
-  function _ev(e) {
-    const typeIcons = { Finale:'🏆', Torneo:'🏆', Concentramento:'📍', Coppa:'🥇', Altro:'📅' };
-    const icon = typeIcons[e.type] || '📅';
-    const catLabels = { af:'⚡ A2', rf:'🟣 U16', alf:'🩵 U14', a1f:'🔥 A1', rfi:'🟣 U16i', alfi:'🩵 U14i' };
-    const cats = (e.cats||[]).map(c => catLabels[c]||c).join(' · ');
-    let dateStr = '';
-    if (!e.dateEnd || e.dateEnd === e.dateStart) {
-      dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
-    } else {
-      const d1 = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long'});
-      const d2 = new Date(e.dateEnd+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
-      dateStr = d1 + ' — ' + d2;
-    }
-    return '<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;border:1px solid #f3f4f6">'
-      + '<div style="display:flex;align-items:flex-start;gap:8px">'
-      + '<span style="font-size:18px;flex-shrink:0">' + icon + '</span>'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-weight:700;font-size:13px;color:#1a1a1a">' + (e.title||'') + '</div>'
-      + '<div style="font-size:11px;color:#6b7280;margin-top:2px">📅 ' + dateStr + (e.location ? '  📍 ' + e.location : '') + '</div>'
-      + (cats ? '<div style="font-size:11px;color:#6b7280;margin-top:1px">' + cats + '</div>' : '')
-      + '</div>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-      + '<button onclick="editEvent(\'' + e.id + '\')" style="background:#f0faf2;color:#1a7a30;border:1px solid #86efac;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">\u270f\ufe0f Modifica</button>'
-      + '<button onclick="deleteEvent(\'' + e.id + '\')" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1\ufe0f Elimina</button>'
-      + '</div>'
-      + '</div>';
-  }
-
-  function _sep(t) { return '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:8px 4px 4px">' + t + '</div>'; }
-  let rows = '';
-  if (futuri.length)  rows += _sep('Prossimi eventi') + futuri.map(_ev).join('');
-  if (passati.length) rows += _sep('Eventi passati')  + passati.map(_ev).join('');
-  el.innerHTML = rows;
 }
 
 function cancelEventEdit() {
@@ -4341,16 +4260,20 @@ function eseguiNuovaStagione() {
 
   // Salva archivio su Firebase
   window._fbSaveArchivio(stagOld, archivioData).then(function() {
-    // Cancella partite ed eventi correnti
+    // Cancella partite ed eventi correnti (usa _rawMatches vuoto)
     window._fbSave({});
     window._fbSaveEvents({});
-    // Aggiorna titolo stagione nel DOM
-    const h1 = document.querySelector('.hero h1');
+    // Salva nuova stagione nella config Firebase
+    if (window._fbSaveSeason) window._fbSaveSeason(stagNew);
+    document.getElementById('nuova-stagione-modal').classList.remove('open');
+    // Aggiorna titolo nel DOM
+    const h1 = document.querySelector('.hero h1, .scoreboard h1');
     if (h1) h1.textContent = 'Stagione ' + stagNew.replace('-', '/20');
     const logoSpan = document.querySelector('.logo-text span');
     if (logoSpan) logoSpan.textContent = 'Femminile — ' + stagNew;
-    document.getElementById('nuova-stagione-modal').classList.remove('open');
-    alert('Stagione ' + stagOld + ' archiviata! Benvenuta nella stagione ' + stagNew + ' 🏑');
+    // Aggiorna titolo pagina
+    document.title = 'H.P. Valchisone Femminile — Campionato ' + stagNew.replace('-','/20');
+    alert('✅ Stagione ' + stagOld + ' archiviata!\nBenvenuta nella stagione ' + stagNew + ' 🏑');
   }).catch(function(e) {
     alert("Errore durante l'archiviazione: " + e.message);
   });
