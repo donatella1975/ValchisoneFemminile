@@ -1177,6 +1177,12 @@ window.addEventListener('load', () => {
       renderAdminList();
       checkMissingResults();
     });
+    // Precarica archivio in memoria all'avvio
+    if (window._fbListenArchivio) {
+      window._fbListenArchivio(function(data) {
+        if (data) _archivioData = data;
+      });
+    }
     window._fbListenEvents(data => {
       allEvents = data ? Object.values(data) : [];
       renderMatches(); renderIndoor();
@@ -4466,25 +4472,36 @@ let _archivioData = null;
 let _archivioCurrentSeason = null;
 
 function renderArchivioPage() {
-  if (!window._fbListenArchivio) {
-    document.getElementById('archivio-empty').style.display = '';
-    return;
-  }
-  window._fbListenArchivio(function(data) {
+  function _renderWithData(data) {
     _archivioData = data;
     const listEl = document.getElementById('archivio-season-list');
+    if (!listEl) return;
     if (!data || !Object.keys(data).length) {
       listEl.innerHTML = '';
       document.getElementById('archivio-empty').style.display = '';
       document.getElementById('archivio-content-page').style.display = 'none';
       return;
     }
+    document.getElementById('archivio-empty').style.display = 'none';
     const seasons = Object.keys(data).sort().reverse();
     listEl.innerHTML = seasons.map(function(s) {
       return '<button onclick="loadArchivioSeason(\''+s+'\')"        style="padding:8px 18px;border-radius:20px;border:2px solid #e5e7eb;background:white;        font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;        color:#1a3a22;transition:all .15s" id="sbtn-'+s+'">'+s.replace('-','/20')+'</button>';
     }).join('');
-    // Carica automaticamente la prima
     if (seasons.length > 0) loadArchivioSeason(seasons[0]);
+  }
+
+  // Se abbiamo già i dati in memoria, usali subito
+  if (_archivioData && Object.keys(_archivioData).length) {
+    _renderWithData(_archivioData);
+    return;
+  }
+  // Altrimenti carica da Firebase
+  if (!window._fbListenArchivio) {
+    document.getElementById('archivio-empty').style.display = '';
+    return;
+  }
+  window._fbListenArchivio(function(data) {
+    _renderWithData(data);
   });
 }
 
