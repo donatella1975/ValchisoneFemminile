@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carica Rosa 2026/27 — HP Valchisone</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
+  const db = getDatabase(app);
+  window._fbGetLists   = () => get(ref(db,'lists'));
+  window._fbSaveSeason = (s) => set(ref(db,'config/season'), s);
+  window._fbSaveLists = (data) => set(ref(db,'lists'), data);
+  window._fbReady = true;
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:#f5f5f0; color:#1a1a1a; min-height:100vh; }
+.wrap { max-width:600px; margin:0 auto; padding:24px 16px; }
+h1 { font-family:'Bricolage Grotesque',sans-serif; font-size:22px; color:#1a3a22; margin-bottom:4px; }
+.sub { font-size:13px; color:#6b7280; margin-bottom:24px; }
+.card { background:white; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.07); padding:20px; margin-bottom:16px; }
+.card h2 { font-size:14px; font-weight:700; color:#1a3a22; margin-bottom:12px; }
+.stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.stat { background:#f0faf2; border-radius:10px; padding:12px; text-align:center; }
+.stat .n { font-family:'Bricolage Grotesque',sans-serif; font-size:28px; font-weight:800; color:#1a7a30; }
+.stat .l { font-size:11px; color:#6b7280; margin-top:2px; }
+.cat-list { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.cat-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f9fafb; border-radius:8px; font-size:13px; }
+.cat-row .badge { font-weight:700; background:#d4f5dc; color:#1a7a30; border-radius:12px; padding:2px 10px; font-size:12px; }
+.btn { width:100%; padding:13px; border-radius:12px; border:none; font-size:15px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+.btn-green { background:#1a7a30; color:white; }
+.btn-green:hover { background:#15622a; }
+.btn-green:disabled { background:#9ca3af; cursor:not-allowed; }
+.btn-red { background:#dc2626; color:white; margin-top:8px; }
+.btn-red:hover { background:#b91c1c; }
+.status { display:flex; align-items:center; gap:8px; font-size:13px; color:#6b7280; margin-bottom:16px; }
+.dot { width:8px; height:8px; border-radius:50%; background:#e5e7eb; flex-shrink:0; }
+.dot.ok { background:#4dc76a; }
+.dot.loading { background:#e8620a; animation:blink 1s infinite; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.toast { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#1a3a22; color:white; padding:11px 22px; border-radius:12px; font-size:13px; font-weight:600; z-index:999; opacity:0; transition:opacity .25s; pointer-events:none; }
+.toast.show { opacity:1; }
+.toast.err { background:#7f1d1d; }
+.warn { background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 14px; font-size:12px; color:#9a3412; margin-bottom:16px; line-height:1.6; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏑 Carica Rosa 2026/27</h1>
+  <div class="sub">HP Valchisone Femminile — 29 atlete, 47 schede</div>
+
+  <div class="card">
+    <div class="status">
+      <div class="dot loading" id="dot"></div>
+      <span id="status-txt">Connessione a Firebase...</span>
+    </div>
+
+    <h2>Riepilogo rosa da caricare</h2>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">29</div><div class="l">Atlete uniche</div></div>
+      <div class="stat"><div class="n">43</div><div class="l">Schede categoria</div></div>
+    </div>
+    <div class="cat-list">
+      <div class="cat-row"><span>⚡ Senior/A2</span><span class="badge">13</span></div>
+      <div class="cat-row"><span>🔶 Juniores</span><span class="badge">11</span></div>
+      <div class="cat-row"><span>🟣 Ragazze</span><span class="badge">12</span></div>
+      <div class="cat-row"><span>🩵 Allieve</span><span class="badge">7</span></div>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>Attenzione:</strong> questa operazione <strong>sostituisce</strong> la rosa esistente su Firebase con le 47 schede pre-configurate. I numeri di maglia sono tutti a 0 — da aggiornare con il <em>rosa-manager</em> quando disponibili.
+    </div>
+
+    <button class="btn btn-green" id="btn-carica" onclick="caricaRosa()" disabled>
+      💾 Carica rosa su Firebase
+    </button>
+    <button class="btn btn-red" id="btn-aggiungi" onclick="aggiungiRosa()" disabled>
+      ➕ Aggiungi senza sovrascrivere esistenti
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROSA = [
+  {
+    "num": 0,
+    "name": "Paola",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Shannon Kinley",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Monica",
+    "cat": "af",
+    "gk": true,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Azzurra",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Elisa",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sofia",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Corinne",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Francesca",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Martina Ro.",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Dana",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Gaia",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Yamila",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Yamila",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Martina",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Martina Ra.",
+    "cat": "af",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Alessia",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Alessia",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sofia Fe.",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sofia Fe.",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Giorgia",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Giorgia",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Anais",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Anais",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Emilia",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Emilia",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Evelyn",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Evelyn",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sharon",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sharon",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Arianna",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Arianna",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sofia Ro.",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Sofia Ro.",
+    "cat": "jf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Amelie",
+    "cat": "alf",
+    "gk": true,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Amelie",
+    "cat": "rf",
+    "gk": true,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Margherita",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Margherita",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Bianca",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Bianca",
+    "cat": "rf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Nina",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Viola",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Emily",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  },
+  {
+    "num": 0,
+    "name": "Alyssa",
+    "cat": "alf",
+    "gk": false,
+    "cap": false
+  }
+];
+
+function waitFB(fn) {
+  if (window._fbReady) fn();
+  else window.addEventListener('fb-ready', fn, { once:true });
+}
+
+waitFB(() => {
+  document.getElementById('dot').className = 'dot ok';
+  document.getElementById('status-txt').textContent = 'Connesso a Firebase — pronto';
+  document.getElementById('btn-carica').disabled = false;
+  document.getElementById('btn-aggiungi').disabled = false;
+});
+
+async function caricaRosa() {
+  if (!confirm('Sovrascrivere tutta la rosa esistente con le 47 schede 2026/27?')) return;
+  const btn = document.getElementById('btn-carica');
+  btn.innerHTML = '<span class="spinner"></span> Caricamento...';
+  btn.disabled = true;
+  try {
+    const snap = await window._fbGetLists();
+    const lists = snap.val() || {};
+    lists.rosaValchisone = ROSA;
+    await window._fbSaveLists(lists);
+    // Salva stagione 2026-27
+    if (window._fbSaveSeason) await window._fbSaveSeason('2026-27');
+    showToast('✅ Rosa 2026/27 caricata! 47 schede su Firebase');
+    btn.textContent = '✅ Caricata!';
+  } catch(e) {
+    showToast('❌ Errore: ' + e.message, true);
+    btn.textContent = '💾 Carica rosa su Firebase';
+    btn.disabled = false;
+  }
+}
+
+async function aggiungiRosa() {
+  if (!confirm('Aggiungere le 47 schede senza sovrascrivere quelle esistenti?')) return;
+  const btn = document.getElementById('btn-aggiungi');
+  btn.innerHTML = '<span class="spinner"></span> Caricamento...';
+  btn.disabled = true;
+  try {
+    const snap = await window._fbGetLists();
+    const lists = snap.val() || {};
+    const existing = lists.rosaValchisone || [];
+    // Aggiungi solo schede non già presenti (stesso name+cat)
+    let added = 0;
+    for (const p of ROSA) {
+      const dup = existing.find(e => e.name === p.name && e.cat === p.cat);
+      if (!dup) { existing.push(p); added++; }
+    }
+    lists.rosaValchisone = existing;
+    await window._fbSaveLists(lists);
+    showToast(`✅ Aggiunte ${added} nuove schede (${existing.length} totali)`);
+    btn.textContent = `✅ Aggiunte ${added} schede`;
+  } catch(e) {
+    showToast('❌ Errore: ' + e.message, true);
+    btn.textContent = '➕ Aggiungi senza sovrascrivere esistenti';
+    btn.disabled = false;
+  }
+}
+
+let tt;
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (err?' err':'');
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
