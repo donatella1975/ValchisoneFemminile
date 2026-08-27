@@ -29,6 +29,8 @@
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
   window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
   window._fbSaveArchivio = (stagione, data) => set(ref(db,'archivio/'+stagione), data);
+  window._fbSaveSeason    = (s) => set(ref(db,'config/season'), s);
+  window._fbListenSeason  = (cb) => onValue(ref(db,'config/season'), snap => cb(snap.val()));
   window._fbListenArchivio = (cb) => onValue(ref(db,'archivio'), snap => cb(snap.val()));
   window._fbGetArchivioStagione = (stagione, cb) => onValue(ref(db,'archivio/'+stagione), snap => cb(snap.val()), {onlyOnce:true});
   window._fbListenEvents= (cb)   => onValue(ref(db,'events'), snap => cb(snap.val()));
@@ -1181,6 +1183,22 @@ window.addEventListener('load', () => {
     if (window._fbListenArchivio) {
       window._fbListenArchivio(function(data) {
         if (data) _archivioData = data;
+        // Renderizza archivio se pagina attiva
+        if (typeof renderArchivioPage === 'function' && document.getElementById('page-archivio') && document.getElementById('page-archivio').classList.contains('active')) {
+          renderArchivioPage();
+        }
+      });
+    }
+    // Carica titolo stagione da Firebase
+    if (window._fbListenSeason) {
+      window._fbListenSeason(function(season) {
+        if (!season) return;
+        const s = season.replace('-','/20');
+        const h1 = document.querySelector('.hero h1');
+        if (h1) h1.textContent = 'Stagione ' + s;
+        const ls = document.querySelector('.logo-text span');
+        if (ls) ls.textContent = 'Femminile — ' + season;
+        document.title = 'H.P. Valchisone Femminile — Campionato ' + s;
       });
     }
     window._fbListenEvents(data => {
@@ -4438,6 +4456,9 @@ window.showNuovaStagione = function() {
   window._fbSaveArchivio(stagOld, archivioData).then(function() {
     window._fbSave({});
     window._fbSaveEvents({});
+    // Salva nuova stagione su Firebase
+    if (window._fbSaveSeason) window._fbSaveSeason(stagNew);
+    if (window._fbSaveSeason) window._fbSaveSeason(stagNew);
     const h1 = document.querySelector('.hero h1');
     if (h1) h1.textContent = 'Stagione ' + stagNew.replace('-', '/20');
     const ls = document.querySelector('.logo-text span');
@@ -4495,7 +4516,9 @@ function renderArchivioPage() {
     _renderWithData(_archivioData);
     return;
   }
-  // Altrimenti carica da Firebase
+  // Altrimenti mostra loading e carica da Firebase
+  const listEl2 = document.getElementById('archivio-season-list');
+  if (listEl2) listEl2.innerHTML = '<div class="loading">Caricamento...</div>';
   if (!window._fbListenArchivio) {
     document.getElementById('archivio-empty').style.display = '';
     return;
