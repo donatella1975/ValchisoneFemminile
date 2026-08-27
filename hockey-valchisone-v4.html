@@ -787,14 +787,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="font-size:11px;color:#9a3412">Condividi con chi aggiorna il live</div>
         </div>
       </button>
-      <button onclick="showNuovaStagione()" style="width:100%;margin-top:10px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+      <button onclick="window.showNuovaStagione()" style="width:100%;margin-top:10px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
         <span style="font-size:20px">📦</span>
         <div>
           <div style="font-weight:700;font-size:13px;color:#0369a1">Nuova Stagione</div>
           <div style="font-size:11px;color:#0284c7">Archivia e riparte da zero</div>
         </div>
       </button>
-      <button onclick="showArchivio()" style="width:100%;margin-top:10px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+      <button onclick="window.showArchivio()" style="width:100%;margin-top:10px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
         <span style="font-size:20px">🗂️</span>
         <div>
           <div style="font-weight:700;font-size:13px;color:#475569">Archivio Stagioni</div>
@@ -4316,43 +4316,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // ─── NUOVA STAGIONE & ARCHIVIO ──────────────────────────────
-function showNuovaStagione() {
-  document.getElementById('nuova-stagione-modal').classList.add('open');
-}
 
-function eseguiNuovaStagione() {
-  const stagOld = document.getElementById('ns-stagione-old').value.trim();
-  const stagNew = document.getElementById('ns-stagione-new').value.trim();
-  if (!stagOld || !stagNew) { alert('Inserisci entrambe le stagioni'); return; }
-  if (!confirm('Sei assolutamente sicura? Stai per archiviare la stagione ' + stagOld + ' e resettare tutto.')) return;
 
-  // Costruisci oggetto archivio
-  const archivioData = {
-    stagione: stagOld,
-    archiviato: new Date().toISOString(),
-    matches: {},
-    events: {}
-  };
-  allMatches.forEach(function(m) { archivioData.matches[m.id] = m; });
-  allIndoor.forEach(function(m) { archivioData.matches[m.id] = m; });
-  allEvents.forEach(function(e) { archivioData.events[e.id] = e; });
 
-  // Salva archivio su Firebase
-  window._fbSaveArchivio(stagOld, archivioData).then(function() {
-    // Cancella partite ed eventi correnti
-    window._fbSave({});
-    window._fbSaveEvents({});
-    // Aggiorna titolo stagione nel DOM
-    const h1 = document.querySelector('.hero h1');
-    if (h1) h1.textContent = 'Stagione ' + stagNew.replace('-', '/20');
-    const logoSpan = document.querySelector('.logo-text span');
-    if (logoSpan) logoSpan.textContent = 'Femminile — ' + stagNew;
-    document.getElementById('nuova-stagione-modal').classList.remove('open');
-    alert('Stagione ' + stagOld + ' archiviata! Benvenuta nella stagione ' + stagNew + ' 🏑');
-  }).catch(function(e) {
-    alert("Errore durante l'archiviazione: " + e.message);
-  });
-}
 
 function showArchivio_inner() {
   document.getElementById('archivio-modal').classList.add('open');
@@ -4389,10 +4355,62 @@ function visualizzaArchivio(stagione) {
   alert('Funzione in arrivo: visualizzazione completa stagione ' + stagione + ' 🏑\nPer ora consulta i dati direttamente su Firebase Console.');
 }
 
-// Esponi funzioni admin su window
-window.showNuovaStagione   = function() { document.getElementById('nuova-stagione-modal').classList.add('open'); };
-window.eseguiNuovaStagione = eseguiNuovaStagione;
-window.showArchivio        = function() { showArchivio_inner(); };
+window.showNuovaStagione = function() {
+  const stagOld = prompt('Stagione da ARCHIVIARE (es. 2025-26):', '2025-26');
+  if (!stagOld) return;
+  const stagNew = prompt('NUOVA stagione (es. 2026-27):', '2026-27');
+  if (!stagNew) return;
+
+  const nMatch = (allMatches ? allMatches.length : 0) + (allIndoor ? allIndoor.length : 0);
+  const nEv = allEvents ? allEvents.length : 0;
+
+  if (!confirm(
+    'ARCHIVIAZIONE STAGIONE ' + stagOld + '\n\n' +
+    'Verranno archiviate:\n' +
+    '  - ' + nMatch + ' partite\n' +
+    '  - ' + nEv + ' eventi\n\n' +
+    'Il calendario verra azzerato e ripartira dalla stagione ' + stagNew + '.\n\n' +
+    'ATTENZIONE: questa operazione NON si puo annullare.\n\n' +
+    'Vuoi procedere?'
+  )) return;
+
+  const archivioData = { stagione: stagOld, archiviato: new Date().toISOString(), matches: {}, events: {} };
+  (allMatches||[]).forEach(function(m){ archivioData.matches[m.id] = m; });
+  (allIndoor||[]).forEach(function(m){ archivioData.matches[m.id] = m; });
+  (allEvents||[]).forEach(function(e){ archivioData.events[e.id] = e; });
+
+  if (!window._fbSaveArchivio) { alert('Errore: connessione Firebase non disponibile.'); return; }
+
+  window._fbSaveArchivio(stagOld, archivioData).then(function() {
+    window._fbSave({});
+    window._fbSaveEvents({});
+    const h1 = document.querySelector('.hero h1');
+    if (h1) h1.textContent = 'Stagione ' + stagNew.replace('-', '/20');
+    const ls = document.querySelector('.logo-text span');
+    if (ls) ls.textContent = 'Femminile - ' + stagNew;
+    document.title = 'H.P. Valchisone Femminile - Campionato ' + stagNew.replace('-','/20');
+    alert('FATTO!\n\nStagione ' + stagOld + ' archiviata.\nOra sei nella stagione ' + stagNew + '.');
+  }).catch(function(e) {
+    alert('Errore durante archiviazione: ' + e.message);
+  });
+};
+
+// ARCHIVIO STAGIONI - versione senza modal
+window.showArchivio = function() {
+  if (!window._fbListenArchivio) { alert('Archivio non disponibile.'); return; }
+  window._fbListenArchivio(function(data) {
+    if (!data || !Object.keys(data).length) { alert('Nessuna stagione archiviata.'); return; }
+    let msg = 'STAGIONI ARCHIVIATE\n\n';
+    Object.keys(data).sort().reverse().forEach(function(k) {
+      const s = data[k];
+      const nm = s.matches ? Object.keys(s.matches).length : 0;
+      const ne = s.events ? Object.keys(s.events).length : 0;
+      const d = s.archiviato ? new Date(s.archiviato).toLocaleDateString('it-IT') : '';
+      msg += '- ' + k + ': ' + nm + ' partite, ' + ne + ' eventi' + (d ? ' (archiviata il ' + d + ')' : '') + '\n';
+    });
+    alert(msg);
+  });
+};
 
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
 
@@ -4438,31 +4456,8 @@ function updateMobileLiveIndicator(hasLive){
 }
 </script>
 
-<!-- MODAL NUOVA STAGIONE -->
-<div class="modal-overlay" id="nuova-stagione-modal" role="dialog" aria-modal="true">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-title">📦 Nuova Stagione</div>
-    <p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6">
-      Questa operazione <strong>archivia</strong> tutte le partite e gli eventi della stagione corrente
-      e prepara l'app per la nuova stagione. I dati archiviati resteranno consultabili.
-    </p>
-    <div class="form-field">
-      <label>Stagione da archiviare</label>
-      <input type="text" id="ns-stagione-old" value="2025-26" placeholder="es. 2025-26">
-    </div>
-    <div class="form-field">
-      <label>Nuova stagione</label>
-      <input type="text" id="ns-stagione-new" value="2026-27" placeholder="es. 2026-27">
-    </div>
-    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:12px;color:#9a3412;margin-bottom:16px">
-      ⚠️ Attenzione: le partite correnti verranno cancellate dopo l'archiviazione. Questa azione non si può annullare.
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('nuova-stagione-modal').classList.remove('open')">Annulla</button>
-      <button class="btn btn-green" onclick="eseguiNuovaStagione()">📦 Archivia e Riparte</button>
-    </div>
-  </div>
-</div>
+<!-- Modal Nuova Stagione rimosso: ora usa dialoghi nativi -->
+
 
 <!-- MODAL ARCHIVIO -->
 <div class="modal-overlay" id="archivio-modal" role="dialog" aria-modal="true">
