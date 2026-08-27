@@ -369,6 +369,23 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .goal-text { font-family:'Bricolage Grotesque',sans-serif; font-size:clamp(60px,18vw,120px); font-weight:800; color:white; text-align:center; animation:goalPop .4s cubic-bezier(.17,.67,.35,1.3) both; line-height:1; }
 .goal-hearts { font-size:clamp(30px,8vw,56px); animation:heartFloat 1.2s ease-out both; display:flex; gap:12px; margin-top:8px; }
 @keyframes blink-cd{0%,100%{opacity:1}50%{opacity:0}}
+
+.archivio-tab {
+  padding: 8px 16px; border-radius: 20px; border: 2px solid #e5e7eb;
+  background: white; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  font-weight: 600; cursor: pointer; color: #6b7280; transition: all .15s;
+}
+.archivio-tab.active-atab { background: #1a7a30; border-color: #1a7a30; color: white; }
+.archivio-tab:hover:not(.active-atab) { border-color: #1a7a30; color: #1a7a30; }
+.arch-match-card {
+  background: white; border-radius: 12px; padding: 12px 16px;
+  margin-bottom: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  display: flex; align-items: center; gap: 12px;
+}
+.arch-score { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 800; color: #1a7a30; }
+.arch-teams { flex: 1; font-size: 13px; font-weight: 600; }
+.arch-meta { font-size: 11px; color: #9ca3af; }
+
 @keyframes goalPop { 0%{transform:scale(0) rotate(-8deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
 @keyframes heartFloat { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-60px);opacity:0} }
 @keyframes fadeOverlay { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
@@ -584,6 +601,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
       <button class="nav-pill" id="nav-live-btn" onclick="showPage('live',this)">🔴 Live</button>
       <button class="nav-pill" onclick="showPage('classifica',this)">Classifica</button>
       <button class="nav-pill" onclick="showPage('eventi',this)">📅 Eventi</button>
+      <button class="nav-pill" id="nav-pill-archivio" onclick="showPage('archivio',this)">📦 Archivio</button>
       <button class="nav-pill nav-admin" id="nav-admin-btn" onclick="showPage('admin',this)" title="Admin" style="position:relative">⚙️<span id="admin-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;line-height:16px;text-align:center">!</span></button>
     </nav>
   </div>
@@ -979,6 +997,35 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 </div><!-- /container -->
 
+
+<!-- PAGINA ARCHIVIO -->
+<div class="page" id="page-archivio" style="display:none">
+  <div style="max-width:700px;margin:0 auto;padding:16px">
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:#1a3a22;margin-bottom:16px">
+      📦 Archivio Stagioni
+    </div>
+    <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Seleziona stagione</div>
+      <div id="archivio-season-list"><div class="loading">Caricamento...</div></div>
+    </div>
+    <div id="archivio-content-page" style="display:none">
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:12px" id="archivio-season-title"></div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="showArchivioTab('partite')" id="atab-partite" class="archivio-tab active-atab">📅 Partite</button>
+        <button onclick="showArchivioTab('classifica')" id="atab-classifica" class="archivio-tab">🏆 Classifica</button>
+        <button onclick="showArchivioTab('eventi')" id="atab-eventi" class="archivio-tab">🎯 Eventi</button>
+      </div>
+      <div id="archivio-tab-partite"></div>
+      <div id="archivio-tab-classifica" style="display:none"></div>
+      <div id="archivio-tab-eventi" style="display:none"></div>
+    </div>
+    <div id="archivio-empty" style="text-align:center;padding:40px;color:#9ca3af;display:none">
+      <div style="font-size:40px;margin-bottom:12px">📦</div>
+      <div>Nessuna stagione archiviata</div>
+    </div>
+  </div>
+</div>
+
 <!-- MODALI -->
 <div class="modal-overlay" id="result-modal" role="dialog" aria-modal="true" aria-label="Inserisci risultato">
   <div class="modal" style="max-width:400px">
@@ -1187,6 +1234,7 @@ function showPage(name, btn) {
   if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
+  if (name === 'archivio')   { renderArchivioPage(); }
   if (name === 'admin')      showAdminLogin();
   updateHeroStats();
 }
@@ -4411,6 +4459,154 @@ window.showArchivio = function() {
     alert(msg);
   });
 };
+
+
+// ─── ARCHIVIO STAGIONI ───────────────────────────────────────────
+let _archivioData = null;
+let _archivioCurrentSeason = null;
+
+function renderArchivioPage() {
+  if (!window._fbListenArchivio) {
+    document.getElementById('archivio-empty').style.display = '';
+    return;
+  }
+  window._fbListenArchivio(function(data) {
+    _archivioData = data;
+    const listEl = document.getElementById('archivio-season-list');
+    if (!data || !Object.keys(data).length) {
+      listEl.innerHTML = '';
+      document.getElementById('archivio-empty').style.display = '';
+      document.getElementById('archivio-content-page').style.display = 'none';
+      return;
+    }
+    const seasons = Object.keys(data).sort().reverse();
+    listEl.innerHTML = seasons.map(function(s) {
+      return '<button onclick="loadArchivioSeason(\''+s+'\')"        style="padding:8px 18px;border-radius:20px;border:2px solid #e5e7eb;background:white;        font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer;        color:#1a3a22;transition:all .15s" id="sbtn-'+s+'">'+s.replace('-','/20')+'</button>';
+    }).join('');
+    // Carica automaticamente la prima
+    if (seasons.length > 0) loadArchivioSeason(seasons[0]);
+  });
+}
+
+function loadArchivioSeason(season) {
+  _archivioCurrentSeason = season;
+  // Aggiorna bottoni
+  document.querySelectorAll('[id^="sbtn-"]').forEach(function(b) {
+    b.style.background = 'white'; b.style.color = '#1a3a22'; b.style.borderColor = '#e5e7eb';
+  });
+  const activeBtn = document.getElementById('sbtn-'+season);
+  if (activeBtn) { activeBtn.style.background = '#1a7a30'; activeBtn.style.color = 'white'; activeBtn.style.borderColor = '#1a7a30'; }
+
+  document.getElementById('archivio-content-page').style.display = '';
+  document.getElementById('archivio-empty').style.display = 'none';
+  document.getElementById('archivio-season-title').textContent = 'Stagione '+season.replace('-','/20');
+  showArchivioTab('partite');
+}
+
+function showArchivioTab(tab) {
+  ['partite','classifica','eventi'].forEach(function(t) {
+    document.getElementById('archivio-tab-'+t).style.display = t===tab ? '' : 'none';
+    const btn = document.getElementById('atab-'+t);
+    if (btn) { btn.classList.toggle('active-atab', t===tab); }
+  });
+  if (!_archivioData || !_archivioCurrentSeason) return;
+  const season = _archivioData[_archivioCurrentSeason];
+  if (!season) return;
+
+  if (tab === 'partite') renderArchivioPartite(season);
+  if (tab === 'classifica') renderArchivioClassifica(season);
+  if (tab === 'eventi') renderArchivioEventi(season);
+}
+
+function renderArchivioPartite(season) {
+  const el = document.getElementById('archivio-tab-partite');
+  const matches = season.matches ? Object.values(season.matches) : [];
+  if (!matches.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#9ca3af">Nessuna partita archiviata</div>'; return; }
+
+  const sorted = matches.sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+  const cats = {};
+  sorted.forEach(function(m) { if (!cats[m.cat]) cats[m.cat] = []; cats[m.cat].push(m); });
+
+  const CATS_L = {af:'⚡ A2 Femminile',cffb:'🥈 Coppa Fed. B',jf:'🔶 Juniores',rf:'🟣 Ragazze U16',alf:'🩵 Allieve U14',a1f:'🔥 A1 Indoor',rfi:'🟣 Ragazze Indoor',alfi:'🩵 Allieve Indoor'};
+  const VALCH = 'VALCHISONE';
+
+  let html2 = '';
+  Object.keys(cats).forEach(function(cat) {
+    html2 += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:12px 4px 6px">'+(CATS_L[cat]||cat)+'</div>';
+    cats[cat].forEach(function(m) {
+      const hasScore = m.scoreHome !== undefined && m.scoreAway !== undefined;
+      const isValch = (m.home||'').toUpperCase().includes(VALCH) || (m.away||'').toUpperCase().includes(VALCH);
+      const date = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) : '';
+      html2 += '<div class="arch-match-card" style="'+(isValch?'border-left:3px solid #1a7a30':'')+'">'
+        + '<div style="min-width:40px;text-align:center"><div class="arch-meta">'+date+'</div>'+(m.time?'<div class="arch-meta">'+m.time+'</div>':'')+'</div>'
+        + '<div class="arch-teams"><div>'+(m.home||'')+'</div><div style="color:#9ca3af;font-size:11px;margin:2px 0">vs</div><div>'+(m.away||'')+'</div></div>'
+        + (hasScore ? '<div class="arch-score">'+m.scoreHome+'-'+m.scoreAway+'</div>' : '<div style="font-size:11px;color:#9ca3af">—</div>')
+        + '</div>';
+    });
+  });
+  el.innerHTML = html2;
+}
+
+function renderArchivioClassifica(season) {
+  const el = document.getElementById('archivio-tab-classifica');
+  const matches = season.matches ? Object.values(season.matches).filter(function(m){ return m.scoreHome!==undefined && m.scoreAway!==undefined; }) : [];
+  if (!matches.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#9ca3af">Nessun risultato disponibile</div>'; return; }
+
+  // Calcola classifica per ogni categoria
+  const cats = {};
+  matches.forEach(function(m) {
+    if (!cats[m.cat]) cats[m.cat] = {};
+    function addTeam(team) { if (!cats[m.cat][team]) cats[m.cat][team] = {g:0,v:0,p:0,s:0,gf:0,gs:0,pt:0}; }
+    addTeam(m.home); addTeam(m.away);
+    const t = cats[m.cat];
+    t[m.home].g++; t[m.away].g++;
+    t[m.home].gf += m.scoreHome; t[m.home].gs += m.scoreAway;
+    t[m.away].gf += m.scoreAway; t[m.away].gs += m.scoreHome;
+    if (m.scoreHome > m.scoreAway) { t[m.home].v++; t[m.home].pt+=3; t[m.away].s++; }
+    else if (m.scoreHome < m.scoreAway) { t[m.away].v++; t[m.away].pt+=3; t[m.home].s++; }
+    else { t[m.home].p++; t[m.home].pt++; t[m.away].p++; t[m.away].pt++; }
+  });
+
+  const CATS_L = {af:'⚡ A2 Femminile',cffb:'🥈 Coppa Fed. B',jf:'🔶 Juniores',rf:'🟣 Ragazze U16',alf:'🩵 Allieve U14',a1f:'🔥 A1 Indoor',rfi:'🟣 Ragazze Indoor',alfi:'🩵 Allieve Indoor'};
+  const VALCH = 'VALCHISONE';
+  let html2 = '';
+
+  Object.keys(cats).forEach(function(cat) {
+    const teams = Object.entries(cats[cat]).sort(function(a,b){ return b[1].pt-a[1].pt || b[1].gf-b[1].gs-(a[1].gf-a[1].gs); });
+    html2 += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af;padding:12px 4px 6px">'+(CATS_L[cat]||cat)+'</div>';
+    html2 += '<div style="background:white;border-radius:12px;overflow:hidden;margin-bottom:12px">';
+    html2 += '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;padding:8px 12px;background:#f9fafb;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase">'+
+      '<div>Squadra</div><div style="text-align:center">G</div><div style="text-align:center">V</div><div style="text-align:center">P</div><div style="text-align:center">S</div><div style="text-align:center">Pt</div></div>';
+    teams.forEach(function(entry, idx) {
+      const name = entry[0]; const s = entry[1];
+      const isValch = name.toUpperCase().includes(VALCH);
+      html2 += '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;padding:9px 12px;font-size:12px;border-top:1px solid #f3f4f6;'+(isValch?'background:#f0faf2;font-weight:700':'')+'">'+
+        '<div>'+(idx===0?'🥇 ':idx===1?'🥈 ':idx===2?'🥉 ':'')+name+'</div>'+
+        '<div style="text-align:center">'+s.g+'</div>'+
+        '<div style="text-align:center">'+s.v+'</div>'+
+        '<div style="text-align:center">'+s.p+'</div>'+
+        '<div style="text-align:center">'+s.s+'</div>'+
+        '<div style="text-align:center;font-weight:700;color:#1a7a30">'+s.pt+'</div></div>';
+    });
+    html2 += '</div>';
+  });
+  el.innerHTML = html2;
+}
+
+function renderArchivioEventi(season) {
+  const el = document.getElementById('archivio-tab-eventi');
+  const events = season.events ? Object.values(season.events) : [];
+  if (!events.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#9ca3af">Nessun evento archiviato</div>'; return; }
+  const sorted = events.sort(function(a,b){ return (a.dateStart||'').localeCompare(b.dateStart||''); });
+  el.innerHTML = sorted.map(function(e) {
+    const date = e.dateStart ? new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'}) : '';
+    return '<div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 6px rgba(0,0,0,.06)">'+
+      '<div style="font-weight:700;font-size:14px">🏆 '+(e.title||'')+'</div>'+
+      '<div style="font-size:12px;color:#6b7280;margin-top:4px">'+date+(e.location?' · 📍 '+e.location:'')+'</div>'+
+      '</div>';
+  }).join('');
+}
+
 
 // ─── MOBILE NAV ────────────────────────────────────────────────────────────
 
