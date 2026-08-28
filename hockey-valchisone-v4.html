@@ -754,9 +754,12 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         style="border:1.5px solid #d1d5db;border-radius:10px;padding:8px 12px;font-size:13px;font-family:DM Sans,sans-serif;background:white;color:#1a1a1a;cursor:pointer">
         <option value="">Tutte le categorie</option>
         <option value="af">⚡ A2 Femminile</option>
+        <option value="cffb">🏆 Coppa Fed. Femminile B</option>
+        <option value="jf">🔶 Juniores U21</option>
         <option value="rf">🟣 Ragazze U16</option>
         <option value="alf">🩵 Allieve U14</option>
         <option value="a1f">🔥 A1 Indoor</option>
+        <option value="jfi">🔶 Juniores Indoor U21</option>
         <option value="rfi">🟣 Ragazze U16 Indoor</option>
         <option value="alfi">🩵 Allieve U14 Indoor</option>
       </select>
@@ -1090,15 +1093,18 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <script>
 // ─── CONSTANTS ─────────────────────────────────────────
 const VALCH = 'VALCHISONE';
-const FEMALE_CATS = ['af','rf','alf'];
-const INDOOR_CATS = ['a1f','rfi','alfi'];
+const FEMALE_CATS = ['af','cffb','jf','rf','alf'];
+const INDOOR_CATS = ['a1f','jfi','rfi','alfi'];
 const CATS = {
-  af:   { label:'A2 Femminile',        icon:'⚡', short:'A2',   sport:'prato'  },
-  rf:   { label:'Ragazze (U16)',        icon:'🟣', short:'U16',  sport:'prato'  },
-  alf:  { label:'Allieve (U14)',        icon:'🩵', short:'U14',  sport:'prato'  },
-  a1f:  { label:'A1 Femminile Indoor', icon:'🔥', short:'A1',   sport:'indoor' },
-  rfi:  { label:'Ragazze U16 Indoor',  icon:'🟣', short:'U16i', sport:'indoor' },
-  alfi: { label:'Allieve U14 Indoor',  icon:'🩵', short:'U14i', sport:'indoor' },
+  af:   { label:'A2 Femminile',           icon:'⚡', short:'A2',   sport:'prato'  },
+  cffb: { label:'Coppa Fed. Femminile B', icon:'🏆', short:'CFFB', sport:'prato'  },
+  jf:   { label:'Juniores (U21)',         icon:'🔶', short:'U21',  sport:'prato'  },
+  rf:   { label:'Ragazze (U16)',          icon:'🟣', short:'U16',  sport:'prato'  },
+  alf:  { label:'Allieve (U14)',          icon:'🩵', short:'U14',  sport:'prato'  },
+  a1f:  { label:'A1 Femminile Indoor',   icon:'🔥', short:'A1',   sport:'indoor' },
+  jfi:  { label:'Juniores Indoor (U21)', icon:'🔶', short:'U21i', sport:'indoor' },
+  rfi:  { label:'Ragazze U16 Indoor',    icon:'🟣', short:'U16i', sport:'indoor' },
+  alfi: { label:'Allieve U14 Indoor',    icon:'🩵', short:'U14i', sport:'indoor' },
 };
 const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
