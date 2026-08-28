@@ -1110,11 +1110,12 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 // ─── CONSTANTS ─────────────────────────────────────────
 const VALCH = 'VALCHISONE';
 const FEMALE_CATS = ['af','rf','alf'];
-const INDOOR_CATS = ['a1f','rfi','alfi'];
+const INDOOR_CATS = ['a1f','jfi','rfi','alfi'];
 const CATS = {
   af:   { label:'A2 Femminile (2006 e prima)',    icon:'⚡', short:'A2',    sport:'prato'  },
   cffb: { label:'Coppa Fed. B (2006 e prima)',    icon:'🥈', short:'CFFB',  sport:'prato'  },
   jf:   { label:'Juniores (2007-2012)',            icon:'🔶', short:'Jun.F', sport:'prato'  },
+  jfi:  { label:'Juniores Indoor (2007-2012)',     icon:'🔶', short:'Jun.i', sport:'indoor' },
   rf:   { label:'Ragazze (2011-2015)',             icon:'🟣', short:'U16',   sport:'prato'  },
   alf:  { label:'Allieve (2013-2017)',             icon:'💙', short:'U14',   sport:'prato'  },
   a1f:  { label:'A1 Indoor (2006 e prima)',        icon:'🔥', short:'A1',    sport:'indoor' },
@@ -1530,7 +1531,7 @@ function selectCalDay(ds) { calSelected = calSelected===ds ? null : ds; renderCa
 // ─── RENDER MATCHES ─────────────────────────────────────
 function renderMatches() {
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  const pratoIds = ['af','rf','alf'], indoorIds = ['a1f','rfi','alfi'];
+  const pratoIds = ['af','rf','alf'], indoorIds = ['a1f','jfi','rfi','alfi'];
   const _msBase = allMatches
     .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
@@ -1617,7 +1618,7 @@ function selectCalIndoorDay(ds) {
 
 function renderIndoor() {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','rf','alf'];
+  const indoorIds=['a1f','jfi','rfi','alfi'], pratoIds=['af','rf','alf'];
   const _miBase = allIndoor
     .filter(m => fIndoor==='all' || m.cat===fIndoor || (fIndoorExtra && m.cat===fIndoorExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
@@ -3202,7 +3203,7 @@ function showAdminListView() {
 
 function populateDataLists() {
   const cat = document.getElementById('m-cat')?.value || 'af';
-  const isIndoor = ['a1f','rfi','alfi'].includes(cat);
+  const isIndoor = ['a1f','jfi','rfi','alfi'].includes(cat);
   const teams = isIndoor ? teamsListIndoor : teamsListPrato;
   const tl = document.getElementById('teams-list');
   const fl = document.getElementById('fields-list');
@@ -3457,7 +3458,7 @@ function filterAdminList() {
   const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
   const pratoIds = ['af','rf','alf'];
-  const indoorIds = ['a1f','rfi','alfi'];
+  const indoorIds = ['a1f','jfi','rfi','alfi'];
   const filtered = all.filter(m => {
     if (_adminSport === 'prato' && !pratoIds.includes(m.cat)) return false;
     if (_adminSport === 'indoor' && !indoorIds.includes(m.cat)) return false;
@@ -3661,7 +3662,7 @@ function editEvent(id) {
   set('ev-id',e.id); set('ev-type',e.type||'Finale'); set('ev-title',e.title||'');
   set('ev-date-start',e.dateStart||''); set('ev-date-end',e.dateEnd||'');
   set('ev-loc',e.location||''); set('ev-desc',e.desc||'');
-  ['af','a1f','rf','rfi','alf','alfi','cffb','jf'].forEach(c => {
+  ['af','a1f','rf','rfi','alf','alfi','cffb','jf','jfi'].forEach(c => {
     const el=document.getElementById('ev-cat-'+c); if(el) el.checked=(e.cats||[]).includes(c);
   });
   const t=document.getElementById('form-event-title'); if(t) t.textContent='Modifica Evento';
@@ -3761,7 +3762,7 @@ function quickPrint(section, mode, format, isRefresh) {
   const catExtra2 = isIndoor ? fIndoorExtra : fPartiteExtra;
   const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const indoorCats = ['a1f','rfi','alfi'];
+  const indoorCats = ['a1f','jfi','rfi','alfi'];
   const pratoIds   = ['af','rf','alf'];
 
   const catExtra = isIndoor ? fIndoorExtra : fPartiteExtra;
@@ -3798,7 +3799,7 @@ function quickPrint(section, mode, format, isRefresh) {
   if (format === 'pocket')      { printListPocket(section, sport, catName, today, ms, evs); return; }
   printList(section, sport, catName, today, ms, evs);
   // Populate cat filter chips in toolbar
-  const indoorCats2 = ['a1f','rfi','alfi'];
+  const indoorCats2 = ['a1f','jfi','rfi','alfi'];
   const availCats2 = Object.entries(CATS).filter(([k,v]) => isIndoor ? indoorCats2.includes(k) : !indoorCats2.includes(k));
   const ppCats = document.getElementById('pp-cat-filters');
   if (ppCats) {
@@ -3825,7 +3826,7 @@ function openPrintDialog(section, mode) {
   const sport=isIndoor?'🏑 Indoor':'🏑 Prato';
   const modeLabel=mode==='list'?'📋 Elenco':'📅 Calendario';
   document.getElementById('pd-title').textContent=modeLabel+' — '+sport;
-  const indoorCats=['a1f','rfi','alfi'];
+  const indoorCats=['a1f','jfi','rfi','alfi'];
   const availCats=Object.entries(CATS).filter(([k,v])=>isIndoor?indoorCats.includes(k):!indoorCats.includes(k));
   document.getElementById('pd-cats').innerHTML='<button class="pd-chip active" data-val="all" onclick="pdToggleCat(this)">Tutte</button>'+availCats.map(([k,v])=>`<button class="pd-chip" data-val="${k}" onclick="pdToggleCat(this)">${v.icon} ${v.label}</button>`).join('');
   const pool=isIndoor?allIndoor:allMatches;
@@ -3853,7 +3854,7 @@ function confirmPrint() {
   const sport=isIndoor?'🏑 Indoor':'🏑 Hockey Prato';
   const catName=selCat==='all'?'Tutte le categorie':(CATS[selCat]?.label||selCat);
   const today=new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const indoorCats=['a1f','rfi','alfi'];
+  const indoorCats=['a1f','jfi','rfi','alfi'];
   let ms=(isIndoor?allIndoor:allMatches).filter(m=>selCat==='all'||m.cat===selCat).filter(m=>selMo==='all'||m.date.startsWith(selMo)).filter(m=>!selValch||(m.home.toUpperCase().includes('VALCHISONE')||m.away.toUpperCase().includes('VALCHISONE'))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   let evs=allEvents.filter(e=>{ if(!e.cats||e.cats.length===0) return true; if(isIndoor) return e.cats.some(c=>indoorCats.includes(c)); return e.cats.some(c=>!indoorCats.includes(c)); }).filter(e=>selCat==='all'||!e.cats||e.cats.length===0||e.cats.includes(selCat)).filter(e=>selMo==='all'||(e.dateStart||'').startsWith(selMo));
   if (_pdMode==='list') printList(_pdSection,sport,catName,today,ms,evs);
@@ -4004,7 +4005,7 @@ function printStandings() {
   if (ppCatFilters) ppCatFilters.innerHTML = '';
 
   // Rebuild standings HTML from data (not from DOM)
-  const indoorCats = ['a1f','rfi','alfi'];
+  const indoorCats = ['a1f','jfi','rfi','alfi'];
   const catGroups = classSport==='indoor'
     ? [['a1f','🔥 A1 Femminile Indoor'],['rfi','🟣 Ragazze U16 Indoor'],['alfi','🩵 Allieve U14 Indoor']]
     : [['af','⚡ A2 Femminile'],['rf','🟣 Ragazze U16'],['alf','🩵 Allieve U14']];
