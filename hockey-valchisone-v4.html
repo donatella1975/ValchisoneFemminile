@@ -4391,6 +4391,16 @@ function visualizzaArchivio(stagione) {
         + '</div>';
     });
 
+    // Classifiche finali in admin
+    var classifiche = calcolaClassificaArchivio(matches);
+    var classHtml = renderClassificaArchivioHTML(classifiche);
+    if (classHtml) {
+      html += '<div style="margin-top:20px;padding-top:16px;border-top:2px solid #e2e8f0">'
+        + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:14px;font-weight:800;color:#1a3a22;margin-bottom:4px">🏆 Classifiche finali</div>'
+        + '<div style="font-size:11px;color:#9ca3af;margin-bottom:10px">Calcolate dai risultati · CFFB esclusa</div>'
+        + classHtml + '</div>';
+    }
+
     el.innerHTML = html;
   });
 }
@@ -4487,6 +4497,82 @@ function saveArchivioEdit(stagione, matchId) {
   });
 }
 
+// ─── ARCHIVIO: calcola classifica da array partite ─────────────────────────
+function calcolaClassificaArchivio(matches) {
+  // Escludi CFFB (coppa, non classifica)
+  var catsConClassifica = ['af','jf','rf','alf','a1f','jfi','rfi','alfi'];
+  var result = {};
+
+  catsConClassifica.forEach(function(catKey) {
+    var ms = matches.filter(function(m){
+      return m.cat === catKey && m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null && m.scoreAway !== null;
+    });
+    if (!ms.length) return;
+
+    var table = {};
+    ms.forEach(function(m) {
+      [m.home, m.away].forEach(function(t){ if (t && !table[t]) table[t] = {name:t,g:0,v:0,pe:0,pa:0,n:0,gf:0,gs:0,pts:0}; });
+    });
+    ms.forEach(function(m) {
+      var h = table[m.home], a = table[m.away];
+      if (!h || !a) return;
+      var sh = parseInt(m.scoreHome), sa = parseInt(m.scoreAway);
+      h.g++; a.g++; h.gf+=sh; h.gs+=sa; a.gf+=sa; a.gs+=sh;
+      if (sh > sa)      { h.v++; h.pts+=3; a.pe++; }
+      else if (sh < sa) { a.v++; a.pts+=3; h.pe++; }
+      else              { h.n++; h.pts+=1; a.n++; a.pts+=1; }
+    });
+    var rows = Object.values(table).sort(function(a,b){
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      var drA = a.gf - a.gs, drB = b.gf - b.gs;
+      if (drA !== drB) return drB - drA;
+      return b.gf - a.gf;
+    });
+    result[catKey] = rows;
+  });
+  return result;
+}
+
+function renderClassificaArchivioHTML(classifiche) {
+  var html = '';
+  Object.keys(classifiche).forEach(function(catKey) {
+    var rows = classifiche[catKey];
+    if (!rows || !rows.length) return;
+    var cat = CATS[catKey] || {};
+    html += '<div style="margin-top:20px">'
+      + '<div style="font-size:12px;font-weight:700;color:#1a3a22;margin-bottom:8px;display:flex;align-items:center;gap:6px">'
+      + (cat.icon||'') + ' Classifica finale — ' + (cat.label||catKey) + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="background:#f1f5f9;color:#64748b">'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">#</th>'
+      + '<th style="padding:5px 8px;text-align:left;font-weight:600">Squadra</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">Pt</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">G</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">V</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">P</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">S</th>'
+      + '<th style="padding:5px 8px;text-align:center;font-weight:600">DR</th>'
+      + '</tr></thead><tbody>';
+    rows.forEach(function(r, i) {
+      var dr = r.gf - r.gs;
+      var isV = r.name.toUpperCase().includes('VALCHISONE');
+      html += '<tr style="border-bottom:1px solid #f1f5f9' + (isV ? ';background:#f0fdf4' : '') + '">'
+        + '<td style="padding:5px 8px;text-align:center;color:#9ca3af;font-size:11px">' + (i+1) + '</td>'
+        + '<td style="padding:5px 8px;font-weight:' + (isV?'700':'400') + ';color:' + (isV?'#1a7a30':'#1a1a1a') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">'
+        + (isV ? '🏑 ' : '') + abbrevTeam(r.name, 24) + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;font-weight:800;color:var(--green);font-family:Bricolage Grotesque,sans-serif">' + r.pts + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;color:#374151">' + r.g + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;color:#374151">' + r.v + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;color:#374151">' + r.pe + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;color:#374151">' + r.pa + '</td>'
+        + '<td style="padding:5px 8px;text-align:center;color:' + (dr>=0?'#16a34a':'#dc2626') + ';font-weight:600">' + (dr>0?'+':'') + dr + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  return html || '';
+}
+
 // ─── ARCHIVIO PUBBLICO ──────────────────────────────────────────────────────
 var _archivioPublicLoaded = false;
 
@@ -4567,7 +4653,21 @@ function renderArchivioPublic() {
 
     var tot = matches.length;
     var conRis = matches.filter(function(m){ return m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null; }).length;
-    html = '<div style="font-size:12px;color:#64748b;margin-bottom:12px">' + tot + ' partite · ' + conRis + ' con risultato</div>' + html;
+
+    // Classifiche finali (solo se nessun filtro categoria attivo)
+    var classHtml = '';
+    if (!catFilter) {
+      var classifiche = calcolaClassificaArchivio(Object.values(d.matches));
+      classHtml = renderClassificaArchivioHTML(classifiche);
+      if (classHtml) {
+        classHtml = '<div style="margin-top:24px;padding-top:16px;border-top:2px solid #e2e8f0">'
+          + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:4px">🏆 Classifiche finali</div>'
+          + '<div style="font-size:11px;color:#9ca3af;margin-bottom:12px">Calcolate dai risultati archiviati · CFFB esclusa</div>'
+          + classHtml + '</div>';
+      }
+    }
+
+    html = '<div style="font-size:12px;color:#64748b;margin-bottom:12px">' + tot + ' partite · ' + conRis + ' con risultato</div>' + html + classHtml;
     content.innerHTML = html;
   });
 }
