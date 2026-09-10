@@ -9,6 +9,11 @@
 <meta property="og:description" content="Calendario partite, risultati live e classifica">
 <meta property="og:type" content="website">
 <title>H.P. Valchisone Femminile — Campionato 2025/26</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <!-- v4.1 -->
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 
@@ -1179,6 +1184,7 @@ window.addEventListener('load', () => {
       allEvents = data ? Object.values(data) : [];
       renderMatches(); renderIndoor();
       if (currentPage === 'eventi') renderEventiPage();
+      renderAdminEventList();
     });
     window._fbListenLists(data => {
       teamsListPrato  = data?.teamsPrato  ? data.teamsPrato  : [...DEFAULT_TEAMS_PRATO];
@@ -3288,6 +3294,7 @@ function doLogin() {
     document.getElementById('admin-panel').style.display = '';
     showAdminDashboard();
     renderLiveAdminPanel();
+    renderAdminEventList();
     populateDataLists();
     setTimeout(showMissingResultsAlert, 300);
   } else {
@@ -3650,6 +3657,53 @@ function cancelEventEdit() {
   document.getElementById('btn-cancel-ev').style.display = 'none';
 }
 
+function renderAdminEventList() {
+  const el = document.getElementById('admin-event-list');
+  if (!el) return;
+  if (!allEvents.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessun evento salvato</div>'; return; }
+  const sorted = [...allEvents].sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
+  el.innerHTML = sorted.map(function(e){
+    const dates = e.dateEnd && e.dateEnd !== e.dateStart ? fmtDate(e.dateStart)+' → '+fmtDate(e.dateEnd) : fmtDate(e.dateStart);
+    const catBadges = (e.cats||[]).map(function(c){ const cat=CATS[c]||{}; return '<span class="cat-badge cat-'+c+'" style="font-size:9px;padding:2px 5px">'+(cat.icon||'')+' '+(cat.short||'')+'</span>'; }).join(' ');
+    const ris = (e.placement || e.result) ? '<div style="font-size:11px;font-weight:700;color:#1a7a2e;margin-top:2px">'+(e.placement?e.placement+' ':'')+(e.result?'🏑 '+e.result:'')+'</div>' : '';
+    return '<div style="background:#f9fafb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;margin-bottom:6px">'
+      + '<div style="display:flex;align-items:center;gap:6px;min-width:0">'
+      + catBadges
+      + '<span style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+(e.title||'')+'</span>'
+      + '</div>'
+      + '<div style="font-size:11px;color:#6b7280">📅 '+dates+(e.location?' · 📍 '+e.location:'')+'</div>'
+      + ris
+      + '<div style="display:flex;gap:4px;justify-content:flex-end">'
+      + '<button onclick="editEvent(\''+e.id+'\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica">&#9999;</button>'
+      + '<button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px" title="Elimina">&#128465;</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function editEvent(id) {
+  const e = allEvents.find(x => x.id === id); if (!e) return;
+  document.getElementById('ev-id').value = e.id;
+  document.getElementById('ev-type').value = e.type || 'Finale';
+  document.getElementById('ev-title').value = e.title || '';
+  document.getElementById('ev-date-start').value = e.dateStart || '';
+  document.getElementById('ev-date-end').value = e.dateEnd || '';
+  document.getElementById('ev-loc').value = e.location || '';
+  document.getElementById('ev-result').value = e.result || '';
+  document.getElementById('ev-placement').value = e.placement || '';
+  document.getElementById('ev-desc').value = e.desc || '';
+  ['af','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked = (e.cats||[]).includes(c); });
+  document.getElementById('form-event-title').textContent = 'Modifica Evento';
+  document.getElementById('btn-cancel-ev').style.display = '';
+  switchFormTab('event');
+  setTimeout(function(){ document.getElementById('form-event').scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+}
+
+function deleteEvent(id) {
+  if (!confirm('⚠️ Eliminare questo evento?')) return;
+  const obj = {}; allEvents.forEach(x => { if (x.id !== id) obj[x.id] = x; });
+  window._fbSaveEvents(obj);
+}
 
 
 let _ppLayout = 'list';
