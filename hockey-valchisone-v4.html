@@ -906,6 +906,19 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
         <div class="form-field"><label>Data fine</label><input type="date" id="ev-date-end"></div>
       </div>
       <div class="form-field"><label>Luogo</label><input type="text" id="ev-loc" placeholder="es. Campo Comunale, Roma"></div>
+      <div class="form-row">
+        <div class="form-field"><label>Risultato finale (facoltativo)</label><input type="text" id="ev-result" placeholder="es. Valchisone 3-1 Bra"></div>
+        <div class="form-field"><label>Piazzamento (facoltativo)</label>
+          <select id="ev-placement">
+            <option value="">— Nessuno —</option>
+            <option value="🥇 1° posto">🥇 1° posto</option>
+            <option value="🥈 2° posto">🥈 2° posto</option>
+            <option value="🥉 3° posto">🥉 3° posto</option>
+            <option value="4° posto">4° posto</option>
+            <option value="Eliminato">Eliminato</option>
+          </select>
+        </div>
+      </div>
       <div class="form-field">
         <label>Categorie coinvolte</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
@@ -1641,11 +1654,11 @@ const MAP_COORDS = {
   'Genova': '44.4280086,8.9193129',
   'SUPERBA': '44.4280086,8.9193129',
   'ARNALDI': '44.4280086,8.9193129',
-  'Villar Perosa': '44.9195976,7.2465786',
-  'VILLAR': '44.9195976,7.2465786',
-  'MICHELLONET': '44.9195976,7.2465786',
-  'campo da hockey villar': '44.9195976,7.2465786',
-  'campo hockey villar': '44.9195976,7.2465786',
+  'Villar Perosa': '44.9197234,7.2455373',
+  'VILLAR': '44.9197234,7.2455373',
+  'MICHELLONET': '44.9197234,7.2455373',
+  'campo da hockey villar': '44.9197234,7.2455373',
+  'campo hockey villar': '44.9197234,7.2455373',
   'Moncalvo': '45.0517832,8.2568811',
   'UMBERTO MICCO': '45.0517832,8.2568811',
 };
@@ -1736,6 +1749,7 @@ function eventCardHTML(e) {
   <div class="ev-title">${e.title}</div>
   <div class="ev-dates">📅 ${dateStr}</div>
   ${e.location ? `<div class="ev-meta">📍 ${e.location}</div>` : ''}
+  ${(e.result || e.placement) ? `<div class="ev-meta" style="font-weight:700;color:var(--green)">${e.placement ? e.placement + ' ' : ''}${e.result ? (e.placement ? '· ' : '') + '🏑 ' + e.result : ''}</div>` : ''}
   ${e.desc ? `<div class="ev-desc">${e.desc}</div>` : ''}
   <div class="ev-cats">${catBadges}${noCatWarning}</div>
 </div>`;
@@ -3616,6 +3630,8 @@ function saveEvent() {
     dateStart: document.getElementById('ev-date-start').value,
     dateEnd: document.getElementById('ev-date-end').value,
     location: document.getElementById('ev-loc').value.trim(),
+    result: document.getElementById('ev-result').value.trim(),
+    placement: document.getElementById('ev-placement').value,
     desc: document.getElementById('ev-desc').value.trim(),
     cats
   };
@@ -3626,7 +3642,8 @@ function saveEvent() {
 }
 
 function cancelEventEdit() {
-  ['ev-id','ev-title','ev-date-start','ev-date-end','ev-loc','ev-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['ev-id','ev-title','ev-date-start','ev-date-end','ev-loc','ev-result','ev-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const evPlacement = document.getElementById('ev-placement'); if (evPlacement) evPlacement.value = '';
   document.getElementById('ev-type').value = 'Finale';
   ['af','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked=false; });
   document.getElementById('form-event-title').textContent = 'Aggiungi Evento';
@@ -3989,7 +4006,7 @@ function printMatchRow(m, hideTime){
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
   </div>
 </div>`;}
-function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}</div></div>`;}
+function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}${(e.placement||e.result)?' · '+(e.placement?e.placement+' ':'')+(e.result?'🏑 '+e.result:''):''}</div></div>`;}
 function printCalView(section,sport,catName,today,ms,evs){
   const allDts=[...ms.map(m=>m.date),...evs.map(e=>e.dateStart||'').filter(Boolean)];if(!allDts.length){alert('Nessuna partita da stampare');return;}
   allDts.sort();const firstDate=new Date(allDts[0]+'T12:00:00'),lastDate=new Date(allDts[allDts.length-1]+'T12:00:00');
@@ -4685,6 +4702,18 @@ function renderArchivioPublic() {
     var tot = matches.length;
     var conRis = matches.filter(function(m){ return m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null; }).length;
 
+    // Eventi archiviati (finali, tornei, concentramenti) — con risultato e piazzamento se presenti
+    var events = d.events ? Object.values(d.events) : [];
+    if (catFilter) events = events.filter(function(e){ return !e.cats || e.cats.length===0 || e.cats.indexOf(catFilter) !== -1; });
+    events.sort(function(a,b){ return (a.dateStart||'').localeCompare(b.dateStart||''); });
+    var eventsHtml = '';
+    if (events.length) {
+      eventsHtml = '<div style="margin-top:24px;padding-top:16px;border-top:2px solid #e2e8f0">'
+        + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:16px;font-weight:800;color:#1a3a22;margin-bottom:10px">🏆 Finali ed Eventi</div>'
+        + events.map(function(e){ return eventCardHTML(e); }).join('')
+        + '</div>';
+    }
+
     // Classifiche finali (solo se nessun filtro categoria attivo)
     var classHtml = '';
     if (!catFilter) {
@@ -4698,7 +4727,7 @@ function renderArchivioPublic() {
       }
     }
 
-    html = '<div style="font-size:12px;color:#64748b;margin-bottom:12px">' + tot + ' partite · ' + conRis + ' con risultato</div>' + html + classHtml;
+    html = '<div style="font-size:12px;color:#64748b;margin-bottom:12px">' + tot + ' partite · ' + conRis + ' con risultato</div>' + html + eventsHtml + classHtml;
     content.innerHTML = html;
   });
 }
