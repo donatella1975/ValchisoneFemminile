@@ -1667,7 +1667,7 @@ function getMapCoords(location) {
 }
 function getMapUrl(location) {
   const coords = getMapCoords(location);
-  if (coords) return `https://www.google.com/maps/dir/?api=1&destination=${coords}`;
+  if (coords) return `https://www.google.com/maps/search/?api=1&query=${coords}`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(location))}`;
 }
 
