@@ -1630,6 +1630,24 @@ const MAP_ADDRESSES = {
   'Agogna': 'Via Milano, 65, 27030 Castello d Agogna PV',
   'Seveninfinity': 'Via Toscana, 7, 20064 Gorgonzola MI',
   'Gorgonzola': 'Via Toscana, 7, 20064 Gorgonzola MI',
+  'Genova': 'Via Bartolomeo Bianco, 16127 Genova GE',
+  'SUPERBA': 'Via Bartolomeo Bianco, 16127 Genova GE',
+  'ARNALDI': 'Via Bartolomeo Bianco, 16127 Genova GE',
+};
+// Coordinate GPS precise (verificate) per i campi dove la sola ricerca per indirizzo
+// non porta esattamente al cancello del campo. Se una location trova corrispondenza
+// qui, il pulsante "Naviga" usa queste coordinate al posto della ricerca testuale.
+const MAP_COORDS = {
+  'Genova': '44.4280086,8.9193129',
+  'SUPERBA': '44.4280086,8.9193129',
+  'ARNALDI': '44.4280086,8.9193129',
+  'Villar Perosa': '44.9195976,7.2465786',
+  'VILLAR': '44.9195976,7.2465786',
+  'MICHELLONET': '44.9195976,7.2465786',
+  'campo da hockey villar': '44.9195976,7.2465786',
+  'campo hockey villar': '44.9195976,7.2465786',
+  'Moncalvo': '45.0517832,8.2568811',
+  'UMBERTO MICCO': '45.0517832,8.2568811',
 };
 function getMapAddress(location) {
   if (!location) return '';
@@ -1638,6 +1656,19 @@ function getMapAddress(location) {
     if (loc.includes(key.toUpperCase())) return addr;
   }
   return 'campo hockey ' + location;
+}
+function getMapCoords(location) {
+  if (!location) return null;
+  const loc = location.toUpperCase();
+  for (const [key, coords] of Object.entries(MAP_COORDS)) {
+    if (loc.includes(key.toUpperCase())) return coords;
+  }
+  return null;
+}
+function getMapUrl(location) {
+  const coords = getMapCoords(location);
+  if (coords) return `https://www.google.com/maps/dir/?api=1&destination=${coords}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(location))}`;
 }
 
 // ─── MATCH CARD HTML ────────────────────────────────────
@@ -1672,7 +1703,7 @@ function matchCardHTML(m, showAdmin) {
       }).join('')
     }</div>` : ''}
     <div class="mc-meta">
-      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(m.location))}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
+      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
       <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
     </div>
