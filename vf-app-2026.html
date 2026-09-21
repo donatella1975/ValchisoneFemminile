@@ -595,7 +595,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 </div>
 <script>
   (function() {
-    if (!SITE_GATE_ENABLED) return;
+    if (!SITE_GATE_ENABLED) {
+      document.getElementById('site-gate').style.display = 'none';
+      return;
+    }
     try {
       if (localStorage.getItem('hockeySiteGateOk') === '1') {
         document.getElementById('site-gate').style.display = 'none';
