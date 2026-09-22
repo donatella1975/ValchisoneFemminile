@@ -3500,7 +3500,7 @@ function filterAdminList() {
   if (!el || !isAdminOpen) return;
   const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
-  const pratoIds = ['af','rf','alf'];
+  const pratoIds = ['af','cffb','rf','alf'];
   const indoorIds = ['a1f','rfi','alfi'];
   const filtered = all.filter(m => {
     if (_adminSport === 'prato' && !pratoIds.includes(m.cat)) return false;
