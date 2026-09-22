@@ -3479,9 +3479,9 @@ function setAdminSport(btn) {
   // Update cat filter chips based on sport
   const catFilters = document.getElementById('admin-cat-filters');
   if (catFilters) {
-    const pratoCats = [['all','Tutte'],['af','⚡ A2'],['rf','🟣 Ragazze'],['alf','🩵 Allieve']];
+    const pratoCats = [['all','Tutte'],['af','⚡ A2'],['cffb','🏆 CFFB'],['rf','🟣 Ragazze'],['alf','🩵 Allieve']];
     const indoorCats = [['all','Tutte'],['a1f','🔥 A1'],['rfi','🟣 Ragazze I'],['alfi','🩵 Allieve I']];
-    const allCats = [['all','Tutte'],['af','⚡ A2'],['rf','🟣 R.Prato'],['alf','🩵 A.Prato'],['a1f','🔥 A1'],['rfi','🟣 R.Indoor'],['alfi','🩵 A.Indoor']];
+    const allCats = [['all','Tutte'],['af','⚡ A2'],['cffb','🏆 CFFB'],['rf','🟣 R.Prato'],['alf','🩵 A.Prato'],['a1f','🔥 A1'],['rfi','🟣 R.Indoor'],['alfi','🩵 A.Indoor']];
     const cats = _adminSport==='prato' ? pratoCats : _adminSport==='indoor' ? indoorCats : allCats;
     catFilters.innerHTML = cats.map(([cat,lbl],i) => `<button class="admin-fchip${i===0?' active':''}" data-cat="${cat}" onclick="setAdminCat(this)">${lbl}</button>`).join('');
   }
@@ -3505,7 +3505,7 @@ function filterAdminList() {
   const filtered = all.filter(m => {
     if (_adminSport === 'prato' && !pratoIds.includes(m.cat)) return false;
     if (_adminSport === 'indoor' && !indoorIds.includes(m.cat)) return false;
-    if (_adminCat !== 'all' && m.cat !== _adminCat && !(_adminCat === 'af' && m.cat === 'cffb')) return false;
+    if (_adminCat !== 'all' && m.cat !== _adminCat) return false;
     if (!q) return true;
     const dateIT = fmtDate(m.date);
     return m.home.toLowerCase().includes(q) ||
