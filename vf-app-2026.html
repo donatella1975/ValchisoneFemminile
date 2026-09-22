@@ -823,7 +823,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 <div class="page" id="page-admin">
   <div id="login-wrap" style="display:none">
     <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;margin-bottom:16px">🔐 Admin</h2>
-    <div class="form-field"><label>Password</label><input type="password" id="pwd-input" onkeydown="if(event.key==='Enter')doLogin()" aria-label="Password amministratore" autocomplete="current-password" placeholder="Password admin o PIN 4 cifre" style="letter-spacing:2px"></div>
+    <div class="form-field"><label>Password</label><input type="password" id="pwd-input" onkeydown="if(event.key==='Enter')doLogin()" aria-label="Password amministratore" autocomplete="off" placeholder="Password admin o PIN 4 cifre" style="letter-spacing:2px"></div>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px"><input type="checkbox" id="remember-admin" style="width:16px;height:16px"><label for="remember-admin" style="font-size:12px;color:#6b7280;cursor:pointer">Ricordami su questo dispositivo</label></div>
     <button class="btn btn-green" onclick="doLogin()">Accedi</button>
   </div>
@@ -3505,7 +3505,7 @@ function filterAdminList() {
   const filtered = all.filter(m => {
     if (_adminSport === 'prato' && !pratoIds.includes(m.cat)) return false;
     if (_adminSport === 'indoor' && !indoorIds.includes(m.cat)) return false;
-    if (_adminCat !== 'all' && m.cat !== _adminCat) return false;
+    if (_adminCat !== 'all' && m.cat !== _adminCat && !(_adminCat === 'af' && m.cat === 'cffb')) return false;
     if (!q) return true;
     const dateIT = fmtDate(m.date);
     return m.home.toLowerCase().includes(q) ||
