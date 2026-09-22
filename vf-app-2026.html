@@ -973,6 +973,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="background:#f4f9f3;border:1.5px solid #b9dfc0;border-radius:10px;padding:8px 10px">
             <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#1a7a2e;margin-bottom:6px">🏑 Prato</div>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-af" value="af"> ⚡ A2 Femminile</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-cffb" value="cffb"> 🏆 CFFB (Coppa Fed. Girone B)</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-rf" value="rf"> 🟣 Ragazze U16</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer"><input type="checkbox" id="ev-cat-alf" value="alf"> 🩵 Allieve U14</label>
           </div>
@@ -1554,7 +1555,7 @@ function selectCalDay(ds) { calSelected = calSelected===ds ? null : ds; renderCa
 // ─── RENDER MATCHES ─────────────────────────────────────
 function renderMatches() {
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  const pratoIds = ['af','rf','alf'], indoorIds = ['a1f','rfi','alfi'];
+  const pratoIds = ['af','cffb','rf','alf'], indoorIds = ['a1f','rfi','alfi'];
   const _msBase = allMatches
     .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
@@ -1641,7 +1642,7 @@ function selectCalIndoorDay(ds) {
 
 function renderIndoor() {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','rf','alf'];
+  const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','cffb','rf','alf'];
   const _miBase = allIndoor
     .filter(m => fIndoor==='all' || m.cat===fIndoor || (fIndoorExtra && m.cat===fIndoorExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
@@ -1782,7 +1783,7 @@ function matchCardHTML(m, showAdmin) {
 function eventCardHTML(e) {
   const typeIcons = { Finale:'🏆', Torneo:'🏆', Concentramento:'📍', Coppa:'🥇', Altro:'📅' };
   const icon = typeIcons[e.type]||'📅';
-  const catLabels = { af:'⚡ A2', rf:'🟣 U16', alf:'🩵 U14', a1f:'🔥 A1', rfi:'🟣 U16i', alfi:'🩵 U14i' };
+  const catLabels = { af:'⚡ A2', cffb:'🏆 CFFB', rf:'🟣 U16', alf:'🩵 U14', a1f:'🔥 A1', rfi:'🟣 U16i', alfi:'🩵 U14i' };
   let dateStr = '';
   if (e.dateStart === e.dateEnd || !e.dateEnd) {
     dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
@@ -3031,7 +3032,7 @@ function renderNextMatchBanner() {
   const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
   const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
   container.innerHTML =
-    '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
+    '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','cffb','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
     + '<div class="nmb-label">🏑 Prossima partita ' + (cat.short||'') + '</div>'
     + '<div class="nmb-teams">' + homeHtml + ' <span style="color:rgba(255,255,255,.4)">vs</span> ' + awayHtml + '</div>'
@@ -3681,7 +3682,7 @@ function saveResult() {
 // ─── EVENTS ADMIN ───────────────────────────────────────
 function saveEvent() {
   const id = document.getElementById('ev-id').value || 'e' + Date.now();
-  const cats = ['af','a1f','rf','rfi','alf','alfi'].filter(c => { const el=document.getElementById('ev-cat-'+c); return el&&el.checked; });
+  const cats = ['af','cffb','a1f','rf','rfi','alf','alfi'].filter(c => { const el=document.getElementById('ev-cat-'+c); return el&&el.checked; });
   const e = {
     id, type: document.getElementById('ev-type').value,
     title: document.getElementById('ev-title').value.trim(),
@@ -3703,7 +3704,7 @@ function cancelEventEdit() {
   ['ev-id','ev-title','ev-date-start','ev-date-end','ev-loc','ev-result','ev-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   const evPlacement = document.getElementById('ev-placement'); if (evPlacement) evPlacement.value = '';
   document.getElementById('ev-type').value = 'Finale';
-  ['af','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked=false; });
+  ['af','cffb','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked=false; });
   document.getElementById('form-event-title').textContent = 'Aggiungi Evento';
   document.getElementById('btn-cancel-ev').style.display = 'none';
 }
@@ -3743,7 +3744,7 @@ function editEvent(id) {
   document.getElementById('ev-result').value = e.result || '';
   document.getElementById('ev-placement').value = e.placement || '';
   document.getElementById('ev-desc').value = e.desc || '';
-  ['af','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked = (e.cats||[]).includes(c); });
+  ['af','cffb','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked = (e.cats||[]).includes(c); });
   document.getElementById('form-event-title').textContent = 'Modifica Evento';
   document.getElementById('btn-cancel-ev').style.display = '';
   switchFormTab('event');
@@ -3799,7 +3800,7 @@ function quickPrint(section, mode, format, isRefresh) {
   const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const indoorCats = ['a1f','rfi','alfi'];
-  const pratoIds   = ['af','rf','alf'];
+  const pratoIds   = ['af','cffb','rf','alf'];
 
   const catExtra = isIndoor ? fIndoorExtra : fPartiteExtra;
   let ms = (isIndoor ? allIndoor : allMatches)
