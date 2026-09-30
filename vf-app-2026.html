@@ -980,6 +980,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:8px 10px">
             <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#c2410c;margin-bottom:6px">🏑 Indoor</div>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-a1f" value="a1f"> 🔥 A1 Femminile</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-jfi" value="jfi"> 🔶 Juniores U20</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer;margin-bottom:5px"><input type="checkbox" id="ev-cat-rfi" value="rfi"> 🟣 Ragazze U16</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer"><input type="checkbox" id="ev-cat-alfi" value="alfi"> 🩵 Allieve U14</label>
           </div>
@@ -3682,7 +3683,7 @@ function saveResult() {
 // ─── EVENTS ADMIN ───────────────────────────────────────
 function saveEvent() {
   const id = document.getElementById('ev-id').value || 'e' + Date.now();
-  const cats = ['af','cffb','a1f','rf','rfi','alf','alfi'].filter(c => { const el=document.getElementById('ev-cat-'+c); return el&&el.checked; });
+  const cats = ['af','cffb','a1f','jfi','rf','rfi','alf','alfi'].filter(c => { const el=document.getElementById('ev-cat-'+c); return el&&el.checked; });
   const e = {
     id, type: document.getElementById('ev-type').value,
     title: document.getElementById('ev-title').value.trim(),
@@ -3704,7 +3705,7 @@ function cancelEventEdit() {
   ['ev-id','ev-title','ev-date-start','ev-date-end','ev-loc','ev-result','ev-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   const evPlacement = document.getElementById('ev-placement'); if (evPlacement) evPlacement.value = '';
   document.getElementById('ev-type').value = 'Finale';
-  ['af','cffb','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked=false; });
+  ['af','cffb','a1f','jfi','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked=false; });
   document.getElementById('form-event-title').textContent = 'Aggiungi Evento';
   document.getElementById('btn-cancel-ev').style.display = 'none';
 }
@@ -3744,7 +3745,7 @@ function editEvent(id) {
   document.getElementById('ev-result').value = e.result || '';
   document.getElementById('ev-placement').value = e.placement || '';
   document.getElementById('ev-desc').value = e.desc || '';
-  ['af','cffb','a1f','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked = (e.cats||[]).includes(c); });
+  ['af','cffb','a1f','jfi','rf','rfi','alf','alfi'].forEach(c => { const el=document.getElementById('ev-cat-'+c); if(el) el.checked = (e.cats||[]).includes(c); });
   document.getElementById('form-event-title').textContent = 'Modifica Evento';
   document.getElementById('btn-cancel-ev').style.display = '';
   switchFormTab('event');
