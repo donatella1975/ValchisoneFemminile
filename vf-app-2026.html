@@ -2424,6 +2424,9 @@ function openGoalPanel(side) {
   const isValch = teamName.toUpperCase().includes(VALCH);
   const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(_rosaSort);
 
+  // Squadra avversaria: si registra solo il gol, senza chiedere chi ha segnato
+  if (!isValch) { _saveGoal(teamName, '', ''); return; }
+
   var ov = document.createElement('div');
   ov.className = 'goal-panel-overlay';
 
@@ -2431,7 +2434,8 @@ function openGoalPanel(side) {
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
     + '<div class="goal-panel-title">' + (isValch ? '🏑' : '⚔️') + ' ' + teamName + '</div>'
     + '<button id="_gp_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button>'
-    + '</div>';
+    + '</div>'
+    + '<button id="_gp_nogoal" style="width:100%;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation;margin-bottom:12px">⚽ GOL — marcatrice da definire</button>';
 
   if (isValch && rosa.length > 0) {
     // Griglia giocatrici
@@ -2482,6 +2486,12 @@ function openGoalPanel(side) {
   });
   var manualBtn = document.getElementById('_gp_manual');
   if (manualBtn) manualBtn.addEventListener('click', function(){ _showGoalManual(teamName); });
+  var noGoalBtn = document.getElementById('_gp_nogoal');
+  if (noGoalBtn) noGoalBtn.addEventListener('click', function(){
+    if (document.body.contains(ov)) document.body.removeChild(ov);
+    window._goalPanelOv = null;
+    _saveGoal(teamName, '', '');
+  });
   window._goalPanelOv = ov;
   window._keypadVal = '';
 }
@@ -2683,18 +2693,57 @@ function addGoal() {
   if (playerEl2) playerEl2.value = '';
 }
 
+function _applyGoalPlayer(goalId, jersey, name) {
+  const goals = liveData && liveData.goals ? liveData.goals : {};
+  const g = goals[goalId];
+  if (!g) return;
+  const updated_g = Object.assign({}, g);
+  if (jersey && String(jersey) !== '0') updated_g.jersey = String(jersey); else delete updated_g.jersey;
+  if (name) updated_g.player = name; else delete updated_g.player;
+  const ng = Object.assign({}, goals); ng[goalId] = updated_g;
+  window._fbSaveLive(Object.assign({}, liveData, { goals: ng }));
+}
+
 function editGoalPlayer(goalId) {
   const goals = liveData && liveData.goals ? liveData.goals : {};
   const g = goals[goalId];
   if (!g) return;
+  const isValch = String(g.team || '').toUpperCase().includes(VALCH);
+  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(_rosaSort);
+  // Solo per Valchisone con rosa: si sceglie la giocatrice dall'elenco
+  if (isValch && rosa.length > 0) {
+    var ov = document.createElement('div');
+    ov.className = 'goal-panel-overlay';
+    var inner = '<div class="goal-panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+      + '<div class="goal-panel-title">Chi ha segnato?</div>'
+      + '<button id="_eg_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button></div>'
+      + '<div class="rosa-grid">';
+    rosa.forEach(function(p, i) {
+      inner += '<button class="rosa-btn" data-i="'+i+'"><div class="num">'+(p.num?'#'+p.num:'–')+'</div><div class="name">'+p.name.split(' ')[0]+(p.gk?' <span class="gk-badge">GK</span>':'')+'</div></button>';
+    });
+    inner += '</div><button id="_eg_clear" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:13px;color:#6b7280;cursor:pointer;touch-action:manipulation;margin-top:8px">Marcatrice da definire</button></div>';
+    ov.innerHTML = inner;
+    document.body.appendChild(ov);
+    var close = function(){ if (document.body.contains(ov)) document.body.removeChild(ov); };
+    document.getElementById('_eg_close').addEventListener('click', close);
+    ov.addEventListener('click', function(e){
+      if (e.target === ov) { close(); return; }
+      var b = e.target.closest ? e.target.closest('.rosa-btn') : null;
+      if (b && b.dataset.i !== undefined) {
+        var pl = rosa[parseInt(b.dataset.i)];
+        close();
+        _applyGoalPlayer(goalId, pl.num, pl.name);
+      }
+    });
+    document.getElementById('_eg_clear').addEventListener('click', function(){ close(); _applyGoalPlayer(goalId, '', ''); });
+    return;
+  }
+  // Altrimenti (squadra avversaria o rosa vuota): modifica a mano come prima
   const jersey = prompt('Numero maglia:', g.jersey || '');
   if (jersey === null) return;
   const name = prompt('Nome giocatrice:', g.player || '');
   if (name === null) return;
-  const updated_g = {...g};
-  if (jersey.trim()) updated_g.jersey = jersey.trim(); else delete updated_g.jersey;
-  if (name.trim()) updated_g.player = name.trim(); else delete updated_g.player;
-  window._fbSaveLive({...liveData, goals: {...goals, [goalId]: updated_g}});
+  _applyGoalPlayer(goalId, jersey.trim(), name.trim());
 }
 
 function deleteGoal(goalId) {
