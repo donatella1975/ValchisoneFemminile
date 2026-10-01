@@ -1013,9 +1013,9 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <button class="ftab" onclick="setRosaCat('jf')" id="rosa-tab-jf">🔶 Juniores</button>
           <button class="ftab" onclick="setRosaCat('jfi')" id="rosa-tab-jfi">🔶 Juniores Indoor</button>
         </div>
-        <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
+        <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <input type="number" id="new-rosa-num" placeholder="N°" min="1" max="99" style="width:56px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
+          <input type="number" id="new-rosa-num" placeholder="N°" min="0" max="99" style="width:56px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 8px;font-size:13px;font-family:DM Sans,sans-serif">
           <input type="text" id="new-rosa-name" placeholder="Nome cognome..." style="flex:1;min-width:120px;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 10px;font-size:13px;font-family:DM Sans,sans-serif">
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap;cursor:pointer">
             <input type="checkbox" id="new-rosa-gk" style="width:16px;height:16px;cursor:pointer"> GK
@@ -1023,6 +1023,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <button class="btn btn-green btn-sm" onclick="addRosaPlayer()" style="touch-action:manipulation">+ Aggiungi</button>
         </div>
       </div>
+      <div id="rosa-overview" style="margin:6px 0 16px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">🏑 Squadre Prato</div>
@@ -2421,7 +2422,7 @@ function openGoalPanel(side) {
   const isHome = side === 'home';
   const teamName = isHome ? liveData.home : liveData.away;
   const isValch = teamName.toUpperCase().includes(VALCH);
-  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(function(a,b){ return a.num-b.num; });
+  const rosa = rosaValchisone.filter(function(p){ return p.cat === (liveData.cat||''); }).sort(_rosaSort);
 
   var ov = document.createElement('div');
   ov.className = 'goal-panel-overlay';
@@ -2439,7 +2440,7 @@ function openGoalPanel(side) {
       var nameShort = p.name.split(' ')[0];
       var gkHtml = p.gk ? ' <span class="gk-badge">GK</span>' : '';
       inner += '<button class="rosa-btn" data-num="'+p.num+'" data-name="'+p.name.replace(/"/g,'&quot;')+'">'
-        + '<div class="num">#'+p.num+'</div>'
+        + '<div class="num">'+(p.num?'#'+p.num:'–')+'</div>'
         + '<div class="name">'+nameShort+gkHtml+'</div>'
         + '</button>';
     });
@@ -2560,6 +2561,7 @@ function _registerGoalRosa(val) {
   if (ov && document.body.contains(ov)) document.body.removeChild(ov);
   var parts = val.split('|');
   var jersey = parts[0]||'';
+  if (jersey === '0') jersey = '';
   var player = parts[1]||'';
   _saveGoal(teamName, jersey, player);
 }
@@ -2719,15 +2721,34 @@ function setRosaCat(cat) {
   renderRosaEditor();
 }
 
+function _rosaSort(a,b){ return (a.num||999)-(b.num||999) || String(a.name).localeCompare(String(b.name)); }
+function renderRosaOverview() {
+  var box = document.getElementById('rosa-overview');
+  if (!box) return;
+  var cats = [['af','⚡ A2'],['cffb','🏆 CFFB'],['rf','🟣 Ragazze U16'],['alf','🩵 Allieve U14'],['jf','🔶 Juniores'],['a1f','🔥 A1 Indoor'],['rfi','🟣 Ragazze Indoor'],['alfi','🩵 Allieve Indoor'],['jfi','🔶 Juniores Indoor']];
+  var h = '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:8px">Tutte le rose</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px">';
+  cats.forEach(function(c){
+    var list = rosaValchisone.filter(function(p){ return p.cat === c[0]; }).sort(_rosaSort);
+    h += '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;background:#fff"><div style="font-size:12px;font-weight:800;color:#1a3a22;margin-bottom:4px">'+c[1]+' <span style="font-weight:600;color:#9ca3af">('+list.length+')</span></div>';
+    if (!list.length) h += '<div style="font-size:11px;color:#9ca3af">Nessuna giocatrice</div>';
+    list.forEach(function(p){
+      h += '<div style="font-size:12px;display:flex;gap:6px"><span style="font-weight:800;color:#1a7a2e;min-width:24px">'+(p.num?'#'+p.num:'–')+'</span><span>'+p.name+(p.gk?' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:0 4px;font-weight:700">GK</span>':'')+'</span></div>';
+    });
+    h += '</div>';
+  });
+  box.innerHTML = h + '</div>';
+}
+
 function renderRosaEditor() {
   const el = document.getElementById('rosa-editor');
   if (!el) return;
-  const filtered = rosaValchisone.filter(function(p){ return p.cat === rosaCat; }).sort(function(a,b){ return a.num-b.num; });
+  renderRosaOverview();
+  const filtered = rosaValchisone.filter(function(p){ return p.cat === rosaCat; }).sort(_rosaSort);
   if (!filtered.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna giocatrice per questa categoria</div>'; return; }
   el.innerHTML = filtered.map(function(p) {
     const globalIdx = rosaValchisone.findIndex(function(x){ return x.num===p.num && x.cat===p.cat && x.name===p.name; });
     return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px">'
-      +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">#'+p.num+'</span>'
+      +'<span style="font-size:12px;font-weight:800;color:#1a7a2e;min-width:28px">'+(p.num?'#'+p.num:'–')+'</span>'
       +'<span style="font-size:12px;flex:1">'+p.name+(p.gk?' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 5px;font-weight:700">GK</span>':'')+'</span>'
       +'<button class="rosa-edit-btn" data-idx="'+globalIdx+'" style="background:none;border:1px solid #d1fae5;border-radius:6px;padding:3px 7px;cursor:pointer;color:#1a7a2e;font-size:12px;touch-action:manipulation">✏️</button>'
       +'<button class="rosa-del-btn" data-idx="'+globalIdx+'" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
@@ -2748,15 +2769,29 @@ function renderRosaEditor() {
 function addRosaPlayer() {
   const numEl = document.getElementById('new-rosa-num');
   const nameEl = document.getElementById('new-rosa-name');
-  const num = parseInt(numEl ? numEl.value : '0');
+  const rawNum = numEl ? numEl.value.trim() : '';
+  const num = rawNum === '' ? 0 : parseInt(rawNum);
   const name = nameEl ? nameEl.value.trim() : '';
-  if (!num || !name) { alert('Inserisci numero e nome!'); return; }
-  // Cerca duplicato per num+cat
+  if (!name) { alert('Inserisci il nome!'); return; }
+  if (isNaN(num) || num < 0) { alert('Numero non valido (usa 0 se non lo sai).'); return; }
   const gkEl = document.getElementById('new-rosa-gk');
   const isGK = gkEl ? gkEl.checked : false;
-  const existing = rosaValchisone.findIndex(function(p){ return p.num === num && p.cat === rosaCat; });
-  if (existing >= 0) rosaValchisone[existing] = {num: num, name: name, cat: rosaCat, gk: isGK};
-  else rosaValchisone.push({num: num, name: name, cat: rosaCat, gk: isGK});
+  if (num > 0) {
+    const same = rosaValchisone.findIndex(function(p){ return p.num === num && p.cat === rosaCat; });
+    if (same >= 0) {
+      if (!confirm('Il numero ' + num + ' è già di ' + rosaValchisone[same].name + '. Vuoi sostituirla con ' + name + '?')) return;
+      rosaValchisone[same] = {num: num, name: name, cat: rosaCat, gk: isGK};
+      saveAllLists();
+      if (numEl) numEl.value = '';
+      if (nameEl) nameEl.value = '';
+      if (gkEl) gkEl.checked = false;
+      renderRosaEditor();
+      return;
+    }
+  }
+  const dupName = rosaValchisone.some(function(p){ return p.cat === rosaCat && String(p.name).toLowerCase() === name.toLowerCase(); });
+  if (dupName && !confirm(name + ' è già presente in questa categoria. Aggiungerla comunque?')) return;
+  rosaValchisone.push({num: num, name: name, cat: rosaCat, gk: isGK});
   saveAllLists();
   if (numEl) numEl.value = '';
   if (nameEl) nameEl.value = '';
@@ -2795,7 +2830,7 @@ function editRosaPlayer(globalIdx) {
   div.style.cssText = 'background:white;border-radius:16px;padding:20px;width:100%;max-width:320px;font-family:DM Sans,sans-serif';
   div.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1a3a22;margin-bottom:14px">✏️ Modifica giocatrice</div>'
     + '<div style="display:flex;gap:8px;margin-bottom:10px">'
-    + '<input id="_edit_num" type="number" value="'+p.num+'" placeholder="N°" min="1" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:14px;font-weight:700">'
+    + '<input id="_edit_num" type="number" value="'+p.num+'" placeholder="N°" min="0" max="99" style="width:60px;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:14px;font-weight:700">'
     + '<input id="_edit_name" type="text" value="'+p.name+'" placeholder="Nome..." style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:14px">'
     + '</div>'
     + '<select id="_edit_cat" style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px;font-size:13px;margin-bottom:10px">'+catOpts+'</select>'
@@ -2814,7 +2849,12 @@ function editRosaPlayer(globalIdx) {
     var name = (document.getElementById('_edit_name').value||'').trim();
     var cat = document.getElementById('_edit_cat').value;
     var gk = document.getElementById('_edit_gk').checked;
-    if (!num || !name) { alert('Inserisci numero e nome!'); return; }
+    if (!name) { alert('Inserisci il nome!'); return; }
+    if (isNaN(num) || num < 0) { alert('Numero non valido (usa 0 se non lo sai).'); return; }
+    if (num > 0) {
+      var clash = rosaValchisone.findIndex(function(q, qi){ return qi !== globalIdx && q.num === num && q.cat === cat; });
+      if (clash >= 0) { alert('Il numero ' + num + ' è già di ' + rosaValchisone[clash].name + ' in questa categoria.'); return; }
+    }
     rosaValchisone[globalIdx] = {num:num, name:name, cat:cat, gk:gk};
     saveAllLists();
     rosaCat = cat; // vai alla categoria modificata
