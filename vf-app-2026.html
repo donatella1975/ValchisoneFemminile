@@ -1008,6 +1008,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
           <button class="ftab" onclick="setRosaCat('alf')" id="rosa-tab-alf">🩵 Allieve</button>
           <button class="ftab" onclick="setRosaCat('a1f')" id="rosa-tab-a1f">🏒 Indoor A1</button>
           <button class="ftab" onclick="setRosaCat('alfi')" id="rosa-tab-alfi">🏒 Allieve Indoor</button>
+          <button class="ftab" onclick="setRosaCat('cffb')" id="rosa-tab-cffb">🏆 CFFB</button>
+          <button class="ftab" onclick="setRosaCat('rfi')" id="rosa-tab-rfi">🟣 Ragazze Indoor</button>
+          <button class="ftab" onclick="setRosaCat('jf')" id="rosa-tab-jf">🔶 Juniores</button>
+          <button class="ftab" onclick="setRosaCat('jfi')" id="rosa-tab-jfi">🔶 Juniores Indoor</button>
         </div>
         <div id="rosa-editor" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -2708,7 +2712,7 @@ function deleteGoal(goalId) {
 function setRosaCat(cat) {
   rosaCat = cat;
   // Aggiorna tab attivo
-  ['af','rf','alf','a1f','alfi'].forEach(function(c) {
+  ['af','cffb','rf','rfi','alf','a1f','alfi','jf','jfi'].forEach(function(c) {
     var btn = document.getElementById('rosa-tab-'+c);
     if (btn) btn.className = 'ftab' + (c === cat ? ' active' : '');
   });
@@ -2729,13 +2733,16 @@ function renderRosaEditor() {
       +'<button class="rosa-del-btn" data-idx="'+globalIdx+'" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button>'
       +'</div>';
   }).join('');
-  // Event delegation
-  el.addEventListener('click', function handler(e) {
-    var delBtn = e.target.closest('.rosa-del-btn');
-    var editBtn = e.target.closest('.rosa-edit-btn');
-    if (delBtn) { removeRosaPlayer(parseInt(delBtn.dataset.idx)); el.removeEventListener('click', handler); }
-    if (editBtn) { editRosaPlayer(parseInt(editBtn.dataset.idx)); el.removeEventListener('click', handler); }
-  }, {once: true});
+  // Event delegation (un solo ascoltatore, collegato una volta)
+  if (!el._rosaBound) {
+    el._rosaBound = true;
+    el.addEventListener('click', function(e) {
+      var delBtn = e.target.closest('.rosa-del-btn');
+      var editBtn = e.target.closest('.rosa-edit-btn');
+      if (delBtn) { removeRosaPlayer(parseInt(delBtn.dataset.idx)); }
+      else if (editBtn) { editRosaPlayer(parseInt(editBtn.dataset.idx)); }
+    });
+  }
 }
 
 function addRosaPlayer() {
@@ -2774,8 +2781,14 @@ function editRosaPlayer(globalIdx) {
     {key:'alf', label:'Allieve Prato'},
     {key:'a1f', label:'Indoor A1'},
     {key:'alfi', label:'Allieve Indoor'},
+    {key:'cffb', label:'CFFB Prato'},
+    {key:'rfi', label:'Ragazze Indoor'},
+    {key:'jf', label:'Juniores Prato'},
+    {key:'jfi', label:'Juniores Indoor'},
   ];
+  var oldOv = document.getElementById('_rosa_edit_ov'); if (oldOv) oldOv.remove();
   var ov = document.createElement('div');
+  ov.id = '_rosa_edit_ov';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   var catOpts = cats.map(function(c){ return '<option value="'+c.key+'"'+(c.key===p.cat?' selected':'')+'>'+c.label+'</option>'; }).join('');
   var div = document.createElement('div');
