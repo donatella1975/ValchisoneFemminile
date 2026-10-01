@@ -3494,7 +3494,7 @@ function setAdminSport(btn) {
 
 function setAdminCat(btn) {
   _adminCat = btn.dataset.cat;
-  document.querySelectorAll('.admin-fchip').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#admin-cat-filters .admin-fchip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   filterAdminList();
 }
