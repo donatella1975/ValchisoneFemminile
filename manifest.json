@@ -2,14 +2,37 @@
   "name": "H.P. Valchisone Femminile",
   "short_name": "Valchisone",
   "description": "Calendario, risultati e classifica di HP Valchisone Femminile — Hockey su prato e indoor",
-  "start_url": "hockey-valchisone-v4.html",
+  "id": "vf-app-2026.html",
+  "start_url": "vf-app-2026.html",
+  "scope": "./",
+  "lang": "it",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a7a30",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
