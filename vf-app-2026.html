@@ -277,6 +277,14 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 /* ─── WINNER HIGHLIGHT ─────────────────────────────── */
 .mc-team.winner { color:var(--green); }
 .mc-team.loser { opacity:.55; }
+.mc-scorers-line { font-size:12px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; line-height:1.5; }
+.mc-sc-h { color:var(--green); font-weight:700; }
+.mc-sc-a { color:var(--ink3); font-weight:600; }
+@media (max-width:640px) {
+  .mc-teams { grid-template-columns:1fr; gap:1px; }
+  .mc-team, .mc-team:first-child, .mc-team:last-of-type { text-align:left; white-space:normal; overflow:visible; text-overflow:clip; font-size:13px; line-height:1.25; }
+  .mc-vs { display:none; }
+}
 .mc-score-home.win, .mc-score-away.win { color:var(--green) !important; }
 /* ─── EVENT CARD ─────────────────────────────── */
 .event-card { background:var(--orange3); border:1px solid #fed7aa; border-left:4px solid var(--orange); border-radius:var(--radius); padding:12px 16px; margin-bottom:10px; }
@@ -1774,14 +1782,20 @@ function matchCardHTML(m, showAdmin) {
 
     </div>
     ${hasSc ? `<div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
-    ${hasSc && m.goals && Object.keys(m.goals).length ? `<div class="mc-scorers">${
-      Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
-        const isHome = g.team === m.home;
-        const cls = isHome ? 'mc-scorer-home' : 'mc-scorer-away';
-        const label = (g.player||'Gol') + (g.minute!==undefined ? ' '+g.minute+"'" : '');
-        return '<span class="'+cls+'">🏑 '+label+'</span>';
-      }).join('')
-    }</div>` : ''}
+    ${(function(){
+      if (!hasSc || !m.goals) return '';
+      var gl = Object.values(m.goals).filter(function(g){ return g && g.player; })
+        .sort(function(a,b){ return (a.minuteTotal||a.minute||0)-(b.minuteTotal||b.minute||0); });
+      if (!gl.length) return '';
+      var order = [], cnt = {};
+      gl.forEach(function(g){ var k = g.team+'|'+g.player; if (!cnt[k]) { cnt[k] = {n:0, team:g.team, name:g.player}; order.push(k); } cnt[k].n++; });
+      var parts = order.map(function(k){
+        var c = cnt[k];
+        var mine = (c.team === m.home) ? isHomeValch : isAwayValch;
+        return '<span class="'+(mine?'mc-sc-h':'mc-sc-a')+'">'+c.name+(c.n>1?' ('+c.n+')':'')+'</span>';
+      });
+      return '<div class="mc-scorers-line">\u26bd '+parts.join(', ')+'</div>';
+    })()}
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
       ${m.round ? `· ${m.round}` : ''}
