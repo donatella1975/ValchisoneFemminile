@@ -123,6 +123,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 /* ─── HERO ─────────────────────────────────── */
 .hero { background:linear-gradient(135deg,#1a3a22 0%,#1a7a2e 60%,#25a040 100%); padding:28px 16px 22px; text-align:center; position:relative; z-index:1; overflow:hidden; }
+body.on-live .hero { display:none; }
 .hero::before { content:''; position:absolute; inset:0; background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px); background-size:24px 24px; pointer-events:none; z-index:0; }
 .hero::after { content:'🏑'; position:absolute; right:-10px; bottom:-20px; font-size:140px; opacity:.07; pointer-events:none; z-index:0; line-height:1; }
 .hero > * { position:relative; z-index:1; }
@@ -1332,6 +1333,7 @@ function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   currentPage = name;
+  document.body.classList.toggle('on-live', name === 'live');
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -1350,6 +1352,7 @@ function switchSport(sport) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + pageName).classList.add('active');
   currentPage = pageName;
+  document.body.classList.remove('on-live');
   // Render contenuto
   if (sport === 'prato') { renderCalendar(); renderMatches(); }
   else { renderCalendarIndoor(); renderIndoor(); }
@@ -1895,16 +1898,10 @@ function eventCardHTML(e) {
 // ─── LIVE BADGE ─────────────────────────────────────────
 function goToLive() {
   showPage('live', document.getElementById('nav-live-btn'));
-  setTimeout(() => {
-    const sb = document.querySelector('.scoreboard');
-    if (sb) sb.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
 }
 
 function renderLiveBadge() {
   startTimerTick();
-  // Scroll al tabellone
-  setTimeout(() => { document.getElementById('page-live')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
   const badge = document.getElementById('hero-live-badge');
   const matchText = document.getElementById('hero-live-match');
   const navLive = document.getElementById('nav-live-btn');
