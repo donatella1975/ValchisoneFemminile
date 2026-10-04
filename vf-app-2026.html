@@ -8,6 +8,15 @@
 <meta property="og:title" content="HP Valchisone Femminile — Campionato 2026/27">
 <meta property="og:description" content="Calendario partite, risultati live e classifica">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://donatella1975.github.io/ValchisoneFemminile/vf-app-2026.html">
+<meta property="og:site_name" content="H.P. Valchisone Femminile">
+<meta property="og:locale" content="it_IT">
+<meta property="og:image" content="https://donatella1975.github.io/ValchisoneFemminile/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Stemma H.P. Valchisone Femminile">
+<meta name="twitter:card" content="summary_large_image">
 <title>H.P. Valchisone Femminile — Campionato 2026/27</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -1769,7 +1778,7 @@ function matchCardHTML(m, showAdmin) {
       Object.values(m.goals).sort((a,b)=>(a.minute||0)-(b.minute||0)).map(g => {
         const isHome = g.team === m.home;
         const cls = isHome ? 'mc-scorer-home' : 'mc-scorer-away';
-        const label = (g.player||'?') + (g.minute!==undefined ? ' '+g.minute+"'" : '');
+        const label = (g.player||'Gol') + (g.minute!==undefined ? ' '+g.minute+"'" : '');
         return '<span class="'+cls+'">🏑 '+label+'</span>';
       }).join('')
     }</div>` : ''}
@@ -2241,26 +2250,46 @@ function startLive() {
 }
 
 function finePartita() {
-  // Clear live password if used in live-only mode
-  if (_isLiveOnly && window._fbClearLivePwd) {
-    window._fbClearLivePwd();
+  if (!liveData) return;
+  // Gia' terminata: chiudi subito il live
+  if (liveData.finished) { stopLive(); return; }
+  if (!confirm('Terminare definitivamente la partita?\nIl risultato e i marcatori verranno salvati sulla partita e il live si chiudera\' tra pochi secondi.')) return;
+  var l = liveData;
+  // 1. Ferma il cronometro e segna la partita come finita (il pubblico vede FINALE)
+  var fin = Object.assign({}, l, { finished: true, timerRunning: false, timerStart: null });
+  if (l.timerRunning) {
+    var partial = getPartialMs(l);
+    fin.timerElapsed = partial;
+    fin.totalElapsed = (l.totalElapsed || 0) + partial;
   }
-  if (!confirm('Terminare definitivamente la partita? Il risultato finale verrà salvato.')) return;
-  // Ferma cronometro
-  if (liveData.timerRunning) {
-    const partial = getPartialMs(liveData);
-    const newTotal = (liveData.totalElapsed||0) + partial;
-    const _closingMatchId = liveData.matchId || null;
-    window._fbSaveLive({...liveData, timerRunning: false, timerStart: null, timerElapsed: partial, totalElapsed: newTotal, finished: true});
-    if (_closingMatchId && window._fbClearMatchPin) window._fbClearMatchPin(_closingMatchId);
-    playWhistle('triple');
-  } else {
-    window._fbSaveLive({...liveData, finished: true, timerRunning: false});
+  window._fbSaveLive(fin);
   playWhistle('triple');
   showFinalResult();
-}
+  // 2. Salva risultato e marcatori sulla scheda della partita
+  _saveLiveResultToMatch(fin);
+  // 3. Pulizia PIN della partita e password live (solo dopo la conferma)
+  if (l.id && window._fbClearMatchPin) window._fbClearMatchPin(l.id);
+  if (_isLiveOnly && window._fbClearLivePwd) window._fbClearLivePwd();
+  // 4. Chiude il live per tutti dopo 10 secondi
+  setTimeout(function(){ window._fbRemoveLive(); }, 10000);
 }
 
+function _saveLiveResultToMatch(l) {
+  if (!l || !l.id) return;
+  const all = [...allMatches, ...allIndoor];
+  const target = all.find(function(x){ return x.id === l.id; });
+  if (!target) return;
+  target.scoreHome = l.scoreHome || 0;
+  target.scoreAway = l.scoreAway || 0;
+  const goals = {};
+  Object.values(l.goals || {}).forEach(function(g){ goals[g.id] = Object.assign({}, g); });
+  target.goals = goals;
+  delete target.livePin;
+  const matchesObj = {}, indoorObj = {};
+  allMatches.forEach(function(m){ matchesObj[m.id] = m; });
+  allIndoor.forEach(function(m){ indoorObj[m.id] = m; });
+  return window._fbSave(Object.assign({}, matchesObj, indoorObj));
+}
 
 function showFinalResult() {
   if (!liveData) return;
@@ -2279,23 +2308,8 @@ function showFinalResult() {
   setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 8500);
 }
 function stopLive() {
-  if (!confirm('⚠️ Chiudere il live?\nIl tabellone sarà rimosso per tutti gli utenti.')) return;
-  // Save final score to match
-  if (liveData) {
-    const all = [...allMatches, ...allIndoor];
-    const allObj = {};
-    all.forEach(m => { allObj[m.id] = m; });
-    if (allObj[liveData.id]) {
-      allObj[liveData.id].scoreHome = liveData.scoreHome||0;
-      allObj[liveData.id].scoreAway = liveData.scoreAway||0;
-    }
-    // Save back
-    const matchesObj = {}, indoorObj = {};
-    allMatches.forEach(m => { matchesObj[m.id] = allObj[m.id]||m; });
-    allIndoor.forEach(m => { indoorObj[m.id] = allObj[m.id]||m; });
-    const combined = {...matchesObj, ...indoorObj};
-    window._fbSave(combined);
-  }
+  if (!confirm(' Chiudere il live?\nIl tabellone sar\u00e0 rimosso per tutti gli utenti.')) return;
+  if (liveData) _saveLiveResultToMatch(liveData);
   window._fbRemoveLive();
 }
 
