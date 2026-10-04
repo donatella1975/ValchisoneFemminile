@@ -2039,14 +2039,14 @@ function renderLivePage() {
       </div>
       <div class="sb-teams">
         <div class="sb-team sb-team-home">
-          <div class="sb-team-name${homeIsValch?' valch':''}">${abbrevTeam(l.home||'—',18)}</div>
+          <div class="sb-team-name${homeIsValch?' valch':''}">${abbrevTeam(l.home||'—',40)}</div>
         </div>
         <div class="sb-score-wrap">
           <div class="sb-score" aria-live="polite" aria-label="Risultato">${l.scoreHome||0}<span class="sb-score-dash">–</span>${l.scoreAway||0}</div>
           <div class="sb-cat-badge">${cat.icon||''} ${cat.label||''}</div>
         </div>
         <div class="sb-team sb-team-away">
-          <div class="sb-team-name${awayIsValch?' valch':''}">${abbrevTeam(l.away||'—',18)}</div>
+          <div class="sb-team-name${awayIsValch?' valch':''}">${abbrevTeam(l.away||'—',40)}</div>
         </div>
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
