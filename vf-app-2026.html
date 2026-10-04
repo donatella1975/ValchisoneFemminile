@@ -280,6 +280,15 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorers-line { font-size:12px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; line-height:1.5; }
 .mc-sc-h { color:var(--green); font-weight:700; }
 .mc-sc-a { color:var(--ink3); font-weight:600; }
+.mc-info { display:none; }
+@media (max-width:640px) {
+  .mc-info { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:3px 0 2px; }
+  .mc-info-score { font-family:'Bricolage Grotesque',sans-serif; font-size:18px; font-weight:800; color:var(--green); margin-right:2px; }
+  .mc-score-d { display:none; }
+  .match-card .mc-right .cat-badge, .match-card .mc-right .status-badge { display:none; }
+  .match-card .mc-right { padding:0 10px 6px; }
+  .match-card .mc-right:not(:has(button)) { display:none; }
+}
 @media (max-width:640px) {
   .mc-teams { grid-template-columns:1fr; gap:1px; }
   .mc-team, .mc-team:first-child, .mc-team:last-of-type { text-align:left; white-space:normal; overflow:visible; text-overflow:clip; font-size:13px; line-height:1.25; }
@@ -503,7 +512,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 
 /* ─── RESPONSIVE ─────────────────────────────── */
 @media (max-width:640px) {
-  .logo-text span { display:none; }
+  .logo-text span { display:block; font-size:11px; }
   .header-inner { padding:6px 10px; gap:5px; }
   .cal-day-btn { min-height:30px; font-size:10px; }
   .cal-wrap { padding:6px 8px; margin-bottom:6px; }
@@ -1785,7 +1794,8 @@ function matchCardHTML(m, showAdmin) {
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
 
     </div>
-    ${hasSc ? `<div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
+    <div class="mc-info">${hasSc ? `<span class="mc-info-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}<span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span></div>
+    ${hasSc ? `<div class="mc-score-d" style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
     ${(function(){
       if (!hasSc || !m.goals) return '';
       var gl = Object.values(m.goals).filter(function(g){ return g && g.player; })
