@@ -282,6 +282,20 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorers-line { font-size:12px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; line-height:1.5; }
 .mc-sc-h { color:var(--green); font-weight:700; }
 .mc-sc-a { color:var(--ink3); font-weight:600; }
+@media (max-width:640px) {
+  .scoreboard { min-height:0; justify-content:flex-start; padding:14px 14px 8px; }
+  .sb-live-badge { margin-bottom:10px; }
+  .sb-teams { display:grid; grid-template-columns:1fr 1fr; grid-template-areas:"home away" "score score"; gap:6px 10px; margin-bottom:6px; }
+  .sb-team { min-width:0; }
+  .sb-team-home { grid-area:home; }
+  .sb-team-away { grid-area:away; }
+  .sb-team-home .sb-team-name { text-align:left; }
+  .sb-team-away .sb-team-name { text-align:right; }
+  .sb-team-name { font-size:clamp(15px,4.8vw,22px); }
+  .sb-score-wrap { grid-area:score; padding:0; gap:6px; }
+  .sb-score { font-size:clamp(64px,23vw,100px); }
+  .sb-info { margin-top:4px; }
+}
 .live-comment { padding:6px 10px; font-size:13px; color:white; border-left:3px solid #fb923c; background:rgba(255,255,255,.06); border-radius:0 8px 8px 0; margin-bottom:6px; line-height:1.35; }
 .results-sep { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--ink3); margin:22px 0 4px; padding-top:10px; border-top:2px dashed #d1d5db; }
 .mc-info { display:none; }
