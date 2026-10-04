@@ -38,6 +38,8 @@
   window._fbClearLivePwd = ()    => set(ref(db,'livepwd'), null);
   window._fbSetMatchPin  = (matchId, pin) => set(ref(db,'matches/'+matchId+'/livePin'), pin);
   window._fbClearMatchPin = (matchId) => set(ref(db,'matches/'+matchId+'/livePin'), null);
+  window._fbSetLiveComment = (id, obj) => set(ref(db,'live/comments/'+id), obj);
+  window._fbDelLiveComment = (id) => set(ref(db,'live/comments/'+id), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
   window._fbSave        = (data) => set(ref(db,'matches'), data);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
@@ -280,6 +282,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorers-line { font-size:12px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; line-height:1.5; }
 .mc-sc-h { color:var(--green); font-weight:700; }
 .mc-sc-a { color:var(--ink3); font-weight:600; }
+.live-comment { padding:6px 10px; font-size:13px; color:white; border-left:3px solid #fb923c; background:rgba(255,255,255,.06); border-radius:0 8px 8px 0; margin-bottom:6px; line-height:1.35; }
 .results-sep { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--ink3); margin:22px 0 4px; padding-top:10px; border-top:2px dashed #d1d5db; }
 .mc-info { display:none; }
 @media (max-width:640px) {
@@ -2037,10 +2040,66 @@ function renderLivePage() {
     <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
       ${goalsHtml}
-    </div>`;
+    </div>${_liveCommentsPublicHTML(l)}`;
 }
 
 // ─── LIVE ADMIN PANEL ───────────────────────────────────
+
+//  COMMENTI DAL CAMPO (solo admin scrive, il pubblico legge)
+function _escHtml(x) {
+  return String(x==null?'':x).replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; });
+}
+function addLiveComment(text) {
+  text = String(text||'').trim();
+  if (!text || !liveData || !liveData.active || !window._fbSetLiveComment) return;
+  if (text.length > 140) text = text.slice(0, 140);
+  const id = 'c' + Date.now() + Math.random().toString(36).slice(2, 5);
+  window._fbSetLiveComment(id, {id: id, text: text, ts: Date.now()});
+}
+function sendLiveComment() {
+  const inp = document.getElementById('live-comment-input');
+  if (!inp) return;
+  const t = inp.value;
+  if (!t.trim()) return;
+  inp.value = '';
+  addLiveComment(t);
+}
+function deleteLiveComment(id) {
+  if (window._fbDelLiveComment) window._fbDelLiveComment(id);
+}
+function _liveCommentList(l) {
+  return l && l.comments ? Object.values(l.comments).filter(function(c){ return c && c.text; }).sort(function(a,b){ return (b.ts||0)-(a.ts||0); }) : [];
+}
+function _liveCommentQuickHTML(l) {
+  const hV = (l.home||'').toUpperCase().includes(VALCH);
+  const mine = hV ? l.home : l.away, other = hV ? l.away : l.home;
+  const items = [
+    'Corto ' + abbrevTeam(mine, 22), 'Corto ' + abbrevTeam(other, 22),
+    'Rigore ' + abbrevTeam(mine, 22), 'Rigore ' + abbrevTeam(other, 22),
+    'Cartellino verde', 'Cartellino giallo', 'Cartellino rosso', 'Infortunio', 'Parata'
+  ];
+  return items.map(function(t){
+    return '<button type="button" data-t="' + _escHtml(t) + '" onclick="addLiveComment(this.dataset.t)" style="background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:14px;padding:6px 10px;font-size:12px;font-weight:700;color:#1a3a22;cursor:pointer;touch-action:manipulation">' + _escHtml(t) + '</button>';
+  }).join('');
+}
+function _liveCommentsAdminHTML(l) {
+  const list = _liveCommentList(l);
+  const rows = list.map(function(c){
+    return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:#f9fafb;border-radius:8px;margin-top:4px;font-size:12px"><span style="flex:1">' + _escHtml(c.text) + '</span><button type="button" onclick="deleteLiveComment(\'' + _escHtml(c.id) + '\')" style="background:none;border:none;color:#ef4444;font-size:14px;cursor:pointer;touch-action:manipulation">\u2715</button></div>';
+  }).join('');
+  return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px">\ud83d\udcac Commenti dal campo</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">' + _liveCommentQuickHTML(l) + '</div>'
+    + '<div style="display:flex;gap:6px"><input id="live-comment-input" type="text" maxlength="140" placeholder="Scrivi un commento..." style="flex:1;min-width:0;border:1.5px solid #e5e7eb;border-radius:10px;padding:9px 10px;font-size:13px">'
+    + '<button type="button" onclick="sendLiveComment()" style="background:#1a7a2e;color:white;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation">Invia</button></div>'
+    + rows + '</div>';
+}
+function _liveCommentsPublicHTML(l) {
+  const list = _liveCommentList(l).slice(0, 10);
+  if (!list.length) return '';
+  return '<div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px"><div class="events-log-title">\ud83d\udcac Dal campo</div>'
+    + list.map(function(c){ return '<div class="live-comment">' + _escHtml(c.text) + '</div>'; }).join('') + '</div>';
+}
+
 function generateMatchPin(matchId) {
   if (!window._fbSetMatchPin) { alert('Firebase non pronto, riprova.'); return; }
   const pin = String(Math.floor(1000 + Math.random() * 9000));
@@ -2150,6 +2209,9 @@ function renderLiveAdminPanel() {
         </div>
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
       </div>`).join('') || '<div class="no-events">Nessun gol</div>';
+    var _cmtInp = document.getElementById('live-comment-input');
+    var _cmtVal = _cmtInp ? _cmtInp.value : '';
+    var _cmtFocus = !!(_cmtInp && document.activeElement === _cmtInp);
     el.innerHTML = `
       <!-- SCORE -->
       <div style="background:#1a3a22;border-radius:12px;padding:10px 12px;margin-bottom:8px;text-align:center;color:white">
@@ -2208,6 +2270,7 @@ function renderLiveAdminPanel() {
           </div>
         </div>
       </div>
+      ${_liveCommentsAdminHTML(l)}
       <!-- PULSANTE PDF -->
       <div style="margin-bottom:8px">
         <button onclick="generateRefertoLive()" style="background:#2563eb;color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;touch-action:manipulation">📄 Scarica Referto Arbitrale</button>
@@ -2218,6 +2281,7 @@ function renderLiveAdminPanel() {
         <button class="btn-live-stop" style="padding:10px;font-size:12px;flex:1;border-radius:10px;background:#6b7280" onclick="stopLive()">⏹ Chiudi live</button>
       </div>
       <div class="events-log"><div class="events-log-title">Gol segnati</div>${goalsAdmin}</div>`;
+    if (_cmtVal) { var _ni = document.getElementById('live-comment-input'); if (_ni) { _ni.value = _cmtVal; if (_cmtFocus) { _ni.focus(); try { _ni.setSelectionRange(_cmtVal.length, _cmtVal.length); } catch(e){} } } }
   }
 }
 
