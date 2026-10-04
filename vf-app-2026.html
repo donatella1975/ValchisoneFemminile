@@ -280,6 +280,7 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
 .mc-scorers-line { font-size:12px; margin-top:6px; padding-top:6px; border-top:1px solid #f3f4f6; line-height:1.5; }
 .mc-sc-h { color:var(--green); font-weight:700; }
 .mc-sc-a { color:var(--ink3); font-weight:600; }
+.results-sep { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--ink3); margin:22px 0 4px; padding-top:10px; border-top:2px dashed #d1d5db; }
 .mc-info { display:none; }
 @media (max-width:640px) {
   .mc-info { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:3px 0 2px; }
@@ -1624,20 +1625,44 @@ function renderMatches() {
     setTimeout(function(){ var el=document.getElementById('matches-list'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },80);
   }
   if (!ms.length && !evs.length) { c.innerHTML = _bannerHtml+'<div class="empty"><div class="empty-icon">🏑</div><div class="empty-text">Nessuna partita trovata</div><div class="empty-sub">Prova a selezionare un altra categoria o scegli una data diversa nel calendario</div></div>'; return; }
-  const byDate = {};
-  const dateOrder = [];
-  ms.forEach(m => {
-    if (!byDate[m.date]) { byDate[m.date] = []; dateOrder.push(m.date); }
-    byDate[m.date].push({type:'match',data:m});
-  });
-  evs.forEach(e => { const d=e.dateStart||'9999'; if(!byDate[d]){byDate[d]=[];dateOrder.push(d);} byDate[d].push({type:'event',data:e}); });
-  // Use dateOrder to preserve todo-first ordering, deduplicated
-  const orderedDates = [...new Set(dateOrder)];
-  c.innerHTML = _bannerHtml + orderedDates.map(date => {
+  const _isDone = function(m){ return m.scoreHome!==undefined && m.scoreAway!==undefined; };
+  const _dayLabel = function(date){
     const d = new Date(date+'T12:00:00');
-    const label = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
-    return `<div class="day-group"><div class="day-label"><span class="day-dot"></span>${label}</div>${byDate[date].map(it => it.type==='match' ? matchCardHTML(it.data,true) : eventCardHTML(it.data)).join('')}</div>`;
-  }).join('');
+    return d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+  };
+  const _dayHTML = function(date, arr){
+    return `<div class="day-group"><div class="day-label"><span class="day-dot"></span>${_dayLabel(date)}</div>${arr.map(it => it.type==='match' ? matchCardHTML(it.data,true) : eventCardHTML(it.data)).join('')}</div>`;
+  };
+  const _group = function(list){
+    const g = {}, o = [];
+    list.forEach(function(m){ if (!g[m.date]) { g[m.date] = []; o.push(m.date); } g[m.date].push({type:'match',data:m}); });
+    return {g:g, o:o};
+  };
+  if (calSelected) {
+    // Giorno scelto nel calendario: un solo blocco, da giocare prima e giocate dopo
+    const G = _group(ms);
+    evs.forEach(function(e){ const d=e.dateStart||'9999'; if(!G.g[d]){G.g[d]=[];G.o.push(d);} G.g[d].push({type:'event',data:e}); });
+    c.innerHTML = _bannerHtml + G.o.map(function(d){ return _dayHTML(d, G.g[d]); }).join('');
+  } else {
+    // Prima tutto cio' che deve ancora essere giocato (e gli eventi), in ordine di data;
+    // poi, in fondo, tutte le partite gia' giocate (le piu' recenti per prime)
+    const T = _group(ms.filter(function(m){ return !_isDone(m); }));
+    const D = _group(ms.filter(_isDone));
+    const E = {g:{}, o:[]};
+    evs.forEach(function(e){
+      const d = e.dateStart||'9999', it = {type:'event',data:e};
+      if (T.g[d]) T.g[d].push(it);
+      else if (D.g[d]) D.g[d].push(it);
+      else { if (!E.g[d]) { E.g[d] = []; E.o.push(d); } E.g[d].push(it); }
+    });
+    const upDates = [...new Set([...T.o, ...E.o])].sort();
+    let out = _bannerHtml + upDates.map(function(d){ return _dayHTML(d, T.g[d] || E.g[d]); }).join('');
+    if (D.o.length) {
+      if (upDates.length) out += '<div class="results-sep">\u2705 Risultati</div>';
+      out += D.o.map(function(d){ return _dayHTML(d, D.g[d]); }).join('');
+    }
+    c.innerHTML = out;
+  }
 }
 
 // ─── RENDER INDOOR ──────────────────────────────────────
