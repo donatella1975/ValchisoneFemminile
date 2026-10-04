@@ -284,6 +284,10 @@ nav { display:flex; gap:4px; margin-left:auto; align-items:center; flex-wrap:wra
   .mc-teams { grid-template-columns:1fr; gap:1px; }
   .mc-team, .mc-team:first-child, .mc-team:last-of-type { text-align:left; white-space:normal; overflow:visible; text-overflow:clip; font-size:13px; line-height:1.25; }
   .mc-vs { display:none; }
+  .match-card { display:grid; grid-template-columns:auto minmax(0,1fr); }
+  .match-card .mc-time { grid-row:1 / span 2; }
+  .match-card .mc-body { grid-column:2; padding-bottom:4px; }
+  .match-card .mc-right { grid-column:2; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-start; padding:0 10px 8px; gap:6px; }
 }
 .mc-score-home.win, .mc-score-away.win { color:var(--green) !important; }
 /* ─── EVENT CARD ─────────────────────────────── */
@@ -1794,12 +1798,12 @@ function matchCardHTML(m, showAdmin) {
         var mine = (c.team === m.home) ? isHomeValch : isAwayValch;
         return '<span class="'+(mine?'mc-sc-h':'mc-sc-a')+'">'+c.name+(c.n>1?' ('+c.n+')':'')+'</span>';
       });
-      return '<div class="mc-scorers-line">\u26bd '+parts.join(', ')+'</div>';
+      return '<div class="mc-scorers-line">\ud83c\udfd1 '+parts.join(', ')+'</div>';
     })()}
     <div class="mc-meta">
-      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> <a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}
+      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> ${hasSc ? '' : `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>`}` : ''}
       ${m.round ? `· ${m.round}` : ''}
-      <button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>
+      ${hasSc ? '' : `<button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>`}
     </div>
   </div>
   <div class="mc-right">
@@ -2463,7 +2467,7 @@ function openGoalPanel(side) {
     + '<div class="goal-panel-title">' + (isValch ? '🏑' : '⚔️') + ' ' + teamName + '</div>'
     + '<button id="_gp_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button>'
     + '</div>'
-    + '<button id="_gp_nogoal" style="width:100%;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation;margin-bottom:12px">⚽ GOL — marcatrice da definire</button>';
+    + '<button id="_gp_nogoal" style="width:100%;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation;margin-bottom:12px">🏑 GOL — marcatrice da definire</button>';
 
   if (isValch && rosa.length > 0) {
     // Griglia giocatrici
