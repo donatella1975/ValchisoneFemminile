@@ -4528,6 +4528,11 @@ function updateHeroStats() {
     if (valchD > 0) html += chip('N', valchD, '#f59e0b', 'white');
     html += chip('P', valchL, '#ef4444', 'white');
   }
+  // Didascalia: chiarisce cosa contano i numeri
+  const capTxt = onlyValch
+    ? 'Solo partite di HP Valchisone'
+    : 'Partite di tutte le squadre' + (valchPlayed.length > 0 ? ' · V/N/P: solo risultati di HP Valchisone' : '');
+  html += '<div style="flex-basis:100%;text-align:center;font-size:11px;color:rgba(255,255,255,.75);margin-top:-2px">' + capTxt + '</div>';
   statsEl.innerHTML = html;
 }
 
@@ -4580,7 +4585,7 @@ const TOUR_STEPS = [
   {
     target: '.filter-bar',
     title: 'Filtra per categoria',
-    desc: 'Tocca una categoria per vedere solo quelle partite. Il bottone arancione mostra solo le partite di HP Valchisone.',
+    desc: 'Tocca una categoria per vedere solo quelle partite. Qui trovi le partite di tutte le squadre dei gironi: il bottone arancione mostra solo quelle di HP Valchisone.',
     position: 'bottom'
   },
   {
@@ -4614,23 +4619,19 @@ function startTour() {
   _tourBubble = document.createElement('div');
   _tourBubble.className = 'tour-bubble';
   document.body.appendChild(_tourBubble);
+  window.addEventListener('scroll', _tourReposition, true);
+  window.addEventListener('resize', _tourReposition);
   showTourStep(_tourStep);
 }
+
+let _tourCur = 0;
 
 function showTourStep(idx) {
   const step = TOUR_STEPS[idx];
   if (!step) { endTour(); return; }
   const target = document.querySelector(step.target);
-  if (!target) { showTourStep(idx + 1); return; }
-
-  // Highlight
-  const r = target.getBoundingClientRect();
-  const pad = 6;
-  _tourHighlight.style.cssText =
-    'position:fixed;z-index:9992;border-radius:10px;pointer-events:none;transition:all .3s ease;' +
-    'top:'+(r.top-pad)+'px;left:'+(r.left-pad)+'px;' +
-    'width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;' +
-    'box-shadow:0 0 0 4px #fb923c,0 0 0 9999px rgba(0,0,0,.55)';
+  if (!target) { _tourStep = idx + 1; showTourStep(idx + 1); return; }
+  _tourCur = idx;
 
   // Dots
   const dots = TOUR_STEPS.map(function(_,i){
@@ -4648,32 +4649,66 @@ function showTourStep(idx) {
       '<button class="tour-next" onclick="nextTourStep()">'+(idx===TOUR_STEPS.length-1?'Fine ✓':'Avanti →')+'</button>' +
     '</div>';
 
-  // Position bubble
-  const bw = Math.min(300, window.innerWidth * 0.88);
-  let top, left;
-  _tourBubble.className = 'tour-bubble';
+  // Porta l'elemento in vista, poi posiziona (e riposiziona durante lo scroll)
+  target.scrollIntoView({behavior:'auto', block:'nearest'});
+  _tourPosition(true);
+}
 
-  if (step.position === 'bottom' || r.bottom + 180 < window.innerHeight) {
-    top = Math.min(r.bottom + pad + 16, window.innerHeight - 180);
-    left = Math.max(12, Math.min(r.left + r.width/2 - bw/2, window.innerWidth - bw - 12));
-    _tourBubble.classList.add('arrow-top');
-  } else {
-    top = Math.max(12, r.top - pad - 16 - 160);
-    left = Math.max(12, Math.min(r.left + r.width/2 - bw/2, window.innerWidth - bw - 12));
-    _tourBubble.classList.add('arrow-bottom');
+// Posiziona evidenziazione e fumetto in base alla posizione ATTUALE dell'elemento.
+// Viene richiamata anche durante scroll e ridimensionamento della finestra.
+function _tourPosition(animate) {
+  if (!_tourBubble || !_tourHighlight) return;
+  const step = TOUR_STEPS[_tourCur];
+  if (!step) return;
+  const target = document.querySelector(step.target);
+  if (!target) return;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const pad = 6;
+
+  // Rettangolo dell'elemento; se il contenitore e' molto piu' alto del suo contenuto
+  // (colonna allungata su PC) si evidenzia solo il contenuto reale.
+  let r = target.getBoundingClientRect();
+  let rTop = r.top, rBottom = r.bottom;
+  const kids = Array.prototype.filter.call(target.children, function(k){ return k.offsetHeight > 0; });
+  if (kids.length) {
+    let t = Infinity, b = -Infinity;
+    kids.forEach(function(k){ const q = k.getBoundingClientRect(); t = Math.min(t, q.top); b = Math.max(b, q.bottom); });
+    if ((rBottom - rTop) > (b - t) + 40) { rTop = t - 6; rBottom = b + 6; }
   }
 
+  // Evidenziazione limitata alla parte visibile
+  let cTop = Math.max(rTop, 8), cBottom = Math.min(rBottom, vh - 8);
+  if (cBottom <= cTop) { cTop = rTop; cBottom = rBottom; }
+  _tourHighlight.style.cssText =
+    'position:fixed;z-index:9992;border-radius:10px;pointer-events:none;' +
+    'transition:' + (animate ? 'all .3s ease' : 'none') + ';' +
+    'top:'+(cTop-pad)+'px;left:'+(r.left-pad)+'px;' +
+    'width:'+(r.width+pad*2)+'px;height:'+((cBottom-cTop)+pad*2)+'px;' +
+    'box-shadow:0 0 0 4px #fb923c,0 0 0 9999px rgba(0,0,0,.55)';
+
+  // Fumetto: si misura l'altezza reale e lo si tiene SEMPRE dentro lo schermo
+  const bw = Math.min(300, vw * 0.88);
+  _tourBubble.className = 'tour-bubble';
   _tourBubble.style.cssText =
     'position:fixed;z-index:9993;background:white;border-radius:16px;padding:18px 20px;' +
-    'width:'+bw+'px;box-shadow:0 8px 32px rgba(0,0,0,.25);' +
-    'top:'+top+'px;left:'+left+'px;';
-  // Arrow position
+    'width:'+bw+'px;max-height:'+(vh-24)+'px;overflow-y:auto;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,.25);top:0px;left:0px;';
+  const bh = _tourBubble.offsetHeight, bwTot = _tourBubble.offsetWidth;
+  const spaceBelow = vh - (cBottom + pad + 16);
+  const spaceAbove = (cTop - pad - 16);
+  let top, arrow = '';
+  if (bh <= spaceBelow)      { top = cBottom + pad + 16; arrow = 'arrow-top'; }
+  else if (bh <= spaceAbove) { top = cTop - pad - 16 - bh; arrow = 'arrow-bottom'; }
+  else                       { top = vh - bh - 12; }
+  top = Math.max(12, Math.min(top, vh - bh - 12));
+  const left = Math.max(12, Math.min(r.left + r.width/2 - bwTot/2, vw - bwTot - 12));
+  if (arrow) _tourBubble.classList.add(arrow);
+  _tourBubble.style.top = top + 'px';
+  _tourBubble.style.left = left + 'px';
   const arrowLeft = (r.left + r.width/2) - left;
-  _tourBubble.style.setProperty('--arrow-left', Math.max(16, Math.min(arrowLeft, bw-16))+'px');
-
-  // Scroll target into view
-  target.scrollIntoView({behavior:'smooth', block:'nearest'});
+  _tourBubble.style.setProperty('--arrow-left', Math.max(16, Math.min(arrowLeft, bwTot-16))+'px');
 }
+function _tourReposition() { _tourPosition(false); }
 
 function nextTourStep() {
   _tourStep++;
@@ -4682,6 +4717,8 @@ function nextTourStep() {
 }
 
 function endTour() {
+  window.removeEventListener('scroll', _tourReposition, true);
+  window.removeEventListener('resize', _tourReposition);
   if (_tourEl) { _tourEl.remove(); _tourEl = null; }
   if (_tourHighlight) { _tourHighlight.remove(); _tourHighlight = null; }
   if (_tourBubble) { _tourBubble.remove(); _tourBubble = null; }
