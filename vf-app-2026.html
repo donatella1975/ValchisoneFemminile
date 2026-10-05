@@ -917,6 +917,14 @@ body.on-live .hero { display:none; }
           <div style="font-size:11px;color:#9a3412">Condividi con chi aggiorna il live</div>
         </div>
       </button>
+      <button onclick="document.getElementById('import-matches-file').click()" style="width:100%;margin-top:10px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+        <span style="font-size:20px">📥</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:#15803d">Importa partite da file</div>
+          <div style="font-size:11px;color:#166534">Aggiunge solo le partite nuove, non tocca quelle esistenti</div>
+        </div>
+      </button>
+      <input type="file" id="import-matches-file" accept=".json,application/json" style="display:none" onchange="importMatchesFile(this)">
       <button onclick="showNuovaStagione()" style="width:100%;margin-top:10px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
         <span style="font-size:20px">📦</span>
         <div>
@@ -2109,6 +2117,44 @@ function _liveCommentsPublicHTML(l) {
   if (!list.length) return '';
   return '<div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px"><div class="events-log-title">\ud83d\udcac Dal campo</div>'
     + list.map(function(c){ return '<div class="live-comment">' + _escHtml(c.text) + '</div>'; }).join('') + '</div>';
+}
+
+
+//  IMPORTA PARTITE DA FILE (solo nuove: le esistenti non si toccano)
+function importMatchesFile(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = function() {
+    input.value = '';
+    let data;
+    try { data = JSON.parse(rd.result); } catch (e) { alert('Il file non e\' un JSON valido. Non ho aggiunto nulla.'); return; }
+    const list = Array.isArray(data) ? data : Object.values(data || {});
+    const okCats = ['af','a1f','cffb','rf','rfi','alf','alfi','jf','jfi'];
+    const existing = {};
+    [...allMatches, ...allIndoor].forEach(function(m){ existing[m.id] = true; });
+    const toAdd = [], bad = [];
+    let skipped = 0;
+    list.forEach(function(m){
+      const ok = m && m.id && m.home && m.away && okCats.indexOf(m.cat) >= 0 && /^\d{4}-\d{2}-\d{2}$/.test(m.date||'') && /^\d{2}:\d{2}$/.test(m.time||'');
+      if (!ok) { bad.push(m && m.id ? m.id : '?'); return; }
+      if (existing[m.id]) { skipped++; return; }
+      toAdd.push(m);
+    });
+    if (bad.length) { alert('File non valido: ' + bad.length + ' partite incomplete (' + bad.slice(0,5).join(', ') + '). Non ho aggiunto nulla.'); return; }
+    if (!toAdd.length) { alert('Nessuna partita nuova: le ' + skipped + ' del file sono gia\' presenti.'); return; }
+    const byCat = {};
+    toAdd.forEach(function(m){ byCat[m.cat] = (byCat[m.cat]||0) + 1; });
+    const righe = Object.keys(byCat).map(function(c){ return ((CATS[c] && CATS[c].label) || c) + ': ' + byCat[c]; }).join('\n');
+    if (!confirm('Aggiungere ' + toAdd.length + ' partite nuove?\n\n' + righe + '\n\n' + skipped + ' gia\' presenti: non verranno toccate.')) return;
+    const all = {};
+    [...allMatches, ...allIndoor].forEach(function(m){ all[m.id] = m; });
+    toAdd.forEach(function(m){ all[m.id] = m; });
+    Promise.resolve(window._fbSave(all)).then(function(){
+      alert('Aggiunte ' + toAdd.length + ' partite.');
+    }).catch(function(e){ alert('Errore nel salvataggio: ' + e.message); });
+  };
+  rd.readAsText(f);
 }
 
 function generateMatchPin(matchId) {
