@@ -29,19 +29,49 @@
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  const app = initializeApp({ databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app" });
-  const db  = getDatabase(app);
+  import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  const app = initializeApp({
+    apiKey: "AIzaSyBVQTEGdLGatDNTIBYm5STrAz2BdsWFD3g",
+    authDomain: "partite-hockey-prato.firebaseapp.com",
+    databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "partite-hockey-prato",
+    storageBucket: "partite-hockey-prato.firebasestorage.app",
+    messagingSenderId: "263353041218",
+    appId: "1:263353041218:web:e42dccc49903ac436b08db"
+  });
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
+
+  // --- Accesso ---
+  onAuthStateChanged(auth, (user) => {
+    window._authUser = user ? {
+      uid: user.uid,
+      email: user.email || '',
+      emailVerified: !!user.emailVerified,
+      provider: (user.providerData && user.providerData[0] && user.providerData[0].providerId) || ''
+    } : null;
+    window.dispatchEvent(new CustomEvent('vf-auth'));
+  });
+  window._fbLoginGoogle = () => signInWithPopup(auth, new GoogleAuthProvider());
+  window._fbLoginEmail  = (email, pwd) => signInWithEmailAndPassword(auth, email, pwd);
+  window._fbLogout      = () => signOut(auth);
+
+  // --- Assegnazione della diretta (partita -> email dell'operatore) e elenco operatori ---
+  window._fbListenAssign    = (cb) => onValue(ref(db,'liveAssign'), snap => cb(snap.val()), () => cb(null));
+  window._fbSetAssign       = (matchId, email) => set(ref(db,'liveAssign/'+matchId), email);
+  window._fbClearAssign     = (matchId) => set(ref(db,'liveAssign/'+matchId), null);
+  window._fbListenOperators = (cb) => onValue(ref(db,'operators'), snap => cb(snap.val()), () => cb(null));
+  window._fbSaveOperators   = (data) => set(ref(db,'operators'), data);
+
+  // --- Dati (invariati) ---
   window._fbSaveLists   = (data) => set(ref(db,'lists'), data);
-  window._fbSetLivePwd  = (pwd)  => set(ref(db,'livepwd'), {pwd, ts: Date.now()});
-  window._fbGetLivePwd  = (cb)   => onValue(ref(db,'livepwd'), snap => cb(snap.val()), {onlyOnce:true});
-  window._fbClearLivePwd = ()    => set(ref(db,'livepwd'), null);
-  window._fbSetMatchPin  = (matchId, pin) => set(ref(db,'matches/'+matchId+'/livePin'), pin);
-  window._fbClearMatchPin = (matchId) => set(ref(db,'matches/'+matchId+'/livePin'), null);
   window._fbSetLiveComment = (id, obj) => set(ref(db,'live/comments/'+id), obj);
   window._fbDelLiveComment = (id) => set(ref(db,'live/comments/'+id), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
   window._fbSave        = (data) => set(ref(db,'matches'), data);
+  // Salva SOLO risultato e marcatori di una partita (non riscrive tutte le altre)
+  window._fbSaveMatchResult = (id, obj) => update(ref(db,'matches/'+id), obj);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
   window._fbSaveEvents  = (data) => set(ref(db,'events'), data);
   window._fbSaveArchivio = (stagione, data) => set(ref(db,'archivio/'+stagione), data);
@@ -53,6 +83,11 @@
   window._fbRemoveLive  = ()     => remove(ref(db,'live'));
 </script>
 
+<style>
+body.live-only #admin-dashboard > button { display:none !important; }
+body.live-only #admin-dashboard > div:nth-child(2) > button:not(#tab-live-admin) { display:none !important; }
+body.live-only #missing-results-banner { display:none !important; }
+</style>
 <style>
 .skip-link { position:absolute; top:-100px; left:8px; background:var(--green); color:white; padding:8px 16px; border-radius:0 0 8px 8px; font-size:14px; font-weight:700; z-index:9999; text-decoration:none; transition:top .15s; }.skip-link:focus { top:0; }
 .privacy-bar { background:#1a1a1a; color:rgba(255,255,255,.85); font-size:12px; padding:12px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; position:fixed; bottom:0; left:0; right:0; z-index:9998; box-shadow:0 -2px 12px rgba(0,0,0,.3); }
@@ -871,16 +906,19 @@ body.on-live .hero { display:none; }
 <!-- ADMIN -->
 <div class="page" id="page-admin">
   <div id="login-wrap" style="display:none">
-    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;margin-bottom:16px">🔐 Admin</h2>
-    <div class="form-field"><label>Password</label><input type="password" id="pwd-input" onkeydown="if(event.key==='Enter')doLogin()" aria-label="Password amministratore" autocomplete="off" placeholder="Password admin o PIN 4 cifre" style="letter-spacing:2px"></div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px"><input type="checkbox" id="remember-admin" style="width:16px;height:16px"><label for="remember-admin" style="font-size:12px;color:#6b7280;cursor:pointer">Ricordami su questo dispositivo</label></div>
-    <button class="btn btn-green" onclick="doLogin()">Accedi</button>
+    <h2 style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;margin-bottom:16px">🔐 Accesso</h2>
+    <button class="btn btn-green" onclick="doLoginGoogle()" style="width:100%;margin-bottom:6px">Accedi con Google (amministratrice)</button>
+    <div style="text-align:center;color:#9ca3af;font-size:12px;margin:14px 0">oppure — operatore della diretta</div>
+    <div class="form-field"><label>Email</label><input type="email" id="op-email" autocomplete="username" autocapitalize="none" aria-label="Email operatore" placeholder="email che ti ha dato Lella"></div>
+    <div class="form-field"><label>Password</label><input type="password" id="op-pwd" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLoginEmail()" aria-label="Password operatore"></div>
+    <button class="btn btn-green" onclick="doLoginEmail()">Accedi come operatore</button>
+    <div id="login-error" style="color:#dc2626;font-size:12px;margin-top:10px;display:none"></div>
   </div>
   <div id="admin-panel" style="display:none">
     <!-- ADMIN DASHBOARD -->
     <div id="admin-dashboard" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22">⚙️ Amministrazione</div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:#1a3a22">⚙️ Amministrazione<div id="admin-who" style="font-size:11px;font-weight:600;color:#6b7280;margin-top:2px"></div></div>
         <button onclick="doLogout()" style="background:#f3f4f6;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#6b7280;font-family:DM Sans,sans-serif">🚪 Esci</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -910,11 +948,11 @@ body.on-live .hero { display:none; }
           <div style="font-size:11px;color:#6b7280;margin-top:2px">Finale, torneo, ecc.</div>
         </button>
       </div>
-      <button onclick="generateLivePwd()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
+      <button onclick="openAssignDialog()" style="width:100%;margin-top:10px;background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
         <span style="font-size:20px">🔑</span>
         <div>
-          <div style="font-weight:700;font-size:13px;color:#c2410c">Genera password Live</div>
-          <div style="font-size:11px;color:#9a3412">Condividi con chi aggiorna il live</div>
+          <div style="font-weight:700;font-size:13px;color:#c2410c">Assegna diretta</div>
+          <div style="font-size:11px;color:#9a3412">Scegli chi segue la partita</div>
         </div>
       </button>
       <button onclick="document.getElementById('import-matches-file').click()" style="width:100%;margin-top:10px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:14px;padding:12px;cursor:pointer;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:10px;text-align:left">
@@ -1266,7 +1304,7 @@ let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSel
 let calIndoorYear = new Date().getFullYear();
 let calIndoorMonth = new Date().getMonth();
 let calIndoorSelected = null;
-let currentPage = 'partite', classSport = 'prato', showAllResults = false, _liveOpMatchId = null;
+let currentPage = 'partite', classSport = 'prato', showAllResults = false, _liveOpMatchId = null, _liveOpMatchIds = [];
 
 // ─── INIT ───────────────────────────────────────────────
 window.addEventListener('load', () => {
@@ -1872,7 +1910,7 @@ function matchCardHTML(m, showAdmin) {
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
-    ${showAdmin && isAdminOpen ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
+    ${showAdmin && isAdminOpen && !_isLiveOnly ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
 </div>`;
 }
@@ -2157,71 +2195,83 @@ function importMatchesFile(input) {
   rd.readAsText(f);
 }
 
-function generateMatchPin(matchId) {
-  if (!window._fbSetMatchPin) { alert('Firebase non pronto, riprova.'); return; }
-  const pin = String(Math.floor(1000 + Math.random() * 9000));
-  const m = allMatches.concat(allIndoor).find(function(x){return x.id===matchId;});
-  const matchLabel = m ? (fmtDate(m.date) + ' - ' + m.home + ' vs ' + m.away) : matchId;
-  const siteUrl = window.location.href.split('?')[0];
-  const waMsg = 'PIN Live: ' + pin + '\nPartita: ' + matchLabel + '\nApp: ' + siteUrl;
-  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
-  window._fbSetMatchPin(matchId, pin).then(function() {
-    var ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    var div = document.createElement('div');
-    div.style.cssText = 'background:white;border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;font-family:DM Sans,sans-serif';
-    div.innerHTML = '<div style="font-size:13px;color:#6b7280;margin-bottom:4px">PIN Live generato</div>'
-      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:12px">' + matchLabel + '</div>'
-      + '<div id="_pin_display" style="font-family:Bricolage Grotesque,sans-serif;font-size:64px;font-weight:800;color:#1a3a22;letter-spacing:12px;margin:8px 0">' + pin + '</div>'
-      + '<div style="font-size:11px;color:#9ca3af;margin-bottom:16px">PIN valido fino a fine partita</div>'
-      + '<div style="display:flex;flex-direction:column;gap:8px">'
-      + '<button id="_pin_copy" style="background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">📋 Copia PIN</button>'
-      + '<a href="' + waUrl + '" target="_blank" style="background:#25d366;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block">📱 Invia su WhatsApp</a>'
-      + '<button id="_pin_close" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation">Chiudi</button>'
-      + '</div>';
-    ov.appendChild(div);
-    document.body.appendChild(ov);
-    document.getElementById('_pin_copy').addEventListener('click', function() {
-      navigator.clipboard && navigator.clipboard.writeText(pin);
-      this.textContent = '✓ Copiato!';
-      var btn = this;
-      setTimeout(function(){ btn.textContent = '📋 Copia PIN'; }, 1500);
-    });
-    document.getElementById('_pin_close').addEventListener('click', function() {
-      document.body.removeChild(ov);
-    });
-  }).catch(function(e) { alert('Errore: ' + e.message); });
-}
+var _operators = {};      // {id: {name, email}}
+var _assignData = null;   // {matchId: email}
+function _escH(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _matchLabel(m){ return fmtDate(m.date) + ' ' + (m.time||'') + ' – ' + m.home + ' vs ' + m.away; }
 
-
-function generateLivePwd() {
-  const matches = allMatches.concat(allIndoor)
-    .filter(function(m){return !m.scoreHome && !m.scoreAway;})
-    .sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
-  if (!matches.length) { alert('Nessuna partita futura trovata.'); return; }
-  var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var opts = matches.map(function(m){return '<option value="'+m.id+'">'+fmtDate(m.date)+' - '+m.home+' vs '+m.away+'</option>';}).join('');
-  var div = document.createElement('div');
-  div.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:340px;width:100%;font-family:DM Sans,sans-serif';
-  div.innerHTML = '<div style="font-weight:800;font-size:16px;color:#1a3a22;margin-bottom:12px">🔑 Genera PIN Live</div>'
-    + '<div style="font-size:13px;color:#6b7280;margin-bottom:8px">Scegli la partita:</div>'
-    + '<select id="pin-match-select" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:14px"><option value="">— Seleziona —</option>'+opts+'</select>'
-    + '<div style="display:flex;gap:8px">'
-    + '<button id="_pin_gen_btn" style="flex:1;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Genera PIN</button>'
-    + '<button id="_pin_cancel_btn" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation">Annulla</button>'
-    + '</div>';
-  ov.appendChild(div);
-  document.body.appendChild(ov);
-  document.getElementById('_pin_gen_btn').addEventListener('click', function() {
-    var sel = document.getElementById('pin-match-select');
-    if (!sel.value) { alert('Seleziona una partita'); return; }
-    var id = sel.value;
-    document.body.removeChild(ov);
-    generateMatchPin(id);
+function openAssignDialog() {
+  if (_isLiveOnly || !isAdminOpen) return;
+  var old = document.getElementById('assign-overlay'); if (old) old.parentNode.removeChild(old);
+  var matches = allMatches.concat(allIndoor)
+    .filter(function(m){ return (m.home.toUpperCase().indexOf(VALCH) >= 0 || m.away.toUpperCase().indexOf(VALCH) >= 0) && (m.scoreHome === undefined || m.scoreAway === undefined); })
+    .sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
+  if (!matches.length) { alert('Nessuna partita di Valchisone senza risultato.'); return; }
+  var ov = document.createElement('div'); ov.id = 'assign-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto';
+  var mOpts = matches.map(function(m){ return '<option value="'+_escH(m.id)+'">'+_escH(_matchLabel(m))+'</option>'; }).join('');
+  var oOpts = Object.keys(_operators).map(function(k){ var o=_operators[k]; return '<option value="'+_escH(k)+'">'+_escH(o.name)+' ('+_escH(o.email)+')</option>'; }).join('');
+  var cur = Object.keys(_assignData||{}).map(function(mid){
+    var m = allMatches.concat(allIndoor).find(function(x){ return x.id === mid; });
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><div><b>'+_escH(_assignData[mid])+'</b><br>'+_escH(m ? _matchLabel(m) : mid)+'</div><button data-revoca="'+_escH(mid)+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:12px">Revoca</button></div>';
+  }).join('');
+  var box = document.createElement('div');
+  box.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:360px;width:100%;font-family:DM Sans,sans-serif';
+  box.innerHTML = '<div style="font-weight:800;font-size:16px;color:#1a3a22;margin-bottom:12px">🔑 Assegna diretta</div>'
+    + '<div style="font-size:13px;color:#6b7280;margin-bottom:6px">Partita:</div>'
+    + '<select id="as-match" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:12px">'+mOpts+'</select>'
+    + '<div style="font-size:13px;color:#6b7280;margin-bottom:6px">Operatore:</div>'
+    + '<select id="as-op" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:8px">'+oOpts+'<option value="__new__">➕ Nuovo operatore…</option></select>'
+    + '<div id="as-new" style="display:none;margin-bottom:8px">'
+    +   '<input id="as-name" placeholder="Nome (es. Giulia)" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:6px">'
+    +   '<input id="as-email" type="email" autocapitalize="none" placeholder="Email dell\'account (quella creata in Firebase)" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px">'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-top:6px"><button id="as-go" style="flex:1;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">Assegna</button>'
+    + '<button id="as-cancel" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer">Chiudi</button></div>'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin:16px 0 4px">Assegnazioni attive</div>'
+    + (cur || '<div style="font-size:12px;color:#9ca3af">Nessuna.</div>');
+  ov.appendChild(box); document.body.appendChild(ov);
+  var close = function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); };
+  var opSel = box.querySelector('#as-op'), newBox = box.querySelector('#as-new');
+  var toggleNew = function(){ newBox.style.display = (opSel.value === '__new__') ? '' : 'none'; };
+  opSel.addEventListener('change', toggleNew); toggleNew();
+  box.querySelector('#as-cancel').addEventListener('click', close);
+  Array.prototype.forEach.call(box.querySelectorAll('[data-revoca]'), function(btn){
+    btn.addEventListener('click', function(){
+      var mid = btn.getAttribute('data-revoca');
+      if (!confirm('Revocare l\'assegnazione?')) return;
+      Promise.resolve(window._fbClearAssign(mid)).then(close).catch(function(e){ alert('Errore: ' + e.message); });
+    });
   });
-  document.getElementById('_pin_cancel_btn').addEventListener('click', function() {
-    document.body.removeChild(ov);
+  box.querySelector('#as-go').addEventListener('click', function(){
+    var mid = box.querySelector('#as-match').value, name, email, p = Promise.resolve();
+    if (opSel.value === '__new__') {
+      name = box.querySelector('#as-name').value.trim();
+      email = box.querySelector('#as-email').value.trim().toLowerCase();
+      if (!name) { alert('Scrivi il nome dell\'operatore.'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email non valida.'); return; }
+      var id = 'op' + Date.now(), next = Object.assign({}, _operators); next[id] = { name: name, email: email };
+      p = Promise.resolve(window._fbSaveOperators(next)).then(function(){ _operators = next; });
+    } else {
+      var o = _operators[opSel.value]; if (!o) { alert('Scegli un operatore.'); return; }
+      name = o.name; email = String(o.email).toLowerCase();
+    }
+    p.then(function(){ return window._fbSetAssign(mid, email); }).then(function(){
+      close();
+      var m = allMatches.concat(allIndoor).find(function(x){ return x.id === mid; });
+      var label = m ? _matchLabel(m) : mid;
+      var siteUrl = window.location.href.split('?')[0].split('#')[0];
+      var waMsg = 'Ciao ' + name + '! Sei assegnato/a alla diretta di: ' + label + '.\nApri ' + siteUrl + ' > Admin e accedi con la tua email (' + email + ') e la password che ti ha dato Lella.';
+      var o2 = document.createElement('div');
+      o2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+      var d2 = document.createElement('div');
+      d2.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center;font-family:DM Sans,sans-serif';
+      d2.innerHTML = '<div style="font-size:30px">✅</div><div style="font-weight:800;color:#1a3a22;margin:6px 0">Assegnata a ' + _escH(name) + '</div><div style="font-size:12px;color:#6b7280;margin-bottom:14px">' + _escH(label) + '</div>'
+        + '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" target="_blank" style="background:#25d366;color:white;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block;margin-bottom:8px">📱 Avvisa su WhatsApp</a>'
+        + '<button id="as-ok" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Chiudi</button>';
+      o2.appendChild(d2); document.body.appendChild(o2);
+      d2.querySelector('#as-ok').addEventListener('click', function(){ document.body.removeChild(o2); });
+    }).catch(function(e){ alert('Errore: ' + e.message); });
   });
 }
 
@@ -2232,13 +2282,17 @@ function renderLiveAdminPanel() {
   if (!liveData || !liveData.active) {
     const allPool = [...allMatches, ...allIndoor];
     // Live operator: mostra solo la sua partita
-    const poolFiltered = _isLiveOnly && _liveOpMatchId
-      ? allPool.filter(m => m.id === _liveOpMatchId)
+    const poolFiltered = _isLiveOnly
+      ? allPool.filter(m => _liveOpMatchIds.indexOf(m.id) >= 0)
       : allPool.filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; });
     const matchOpts = poolFiltered
       .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
       .map(m => `<option value="${m.id}">${fmtDate(m.date)} ${m.time||''} – ${m.home} vs ${m.away}</option>`)
       .join('');
+    if (_isLiveOnly && !poolFiltered.length) {
+      el.innerHTML = '<p style="font-size:14px;color:#374151;line-height:1.5">Non hai ancora nessuna partita assegnata.<br>Chiedi a Lella di assegnartela: comparirà qui da sola.</p>';
+      return;
+    }
     el.innerHTML = `
       <p style="font-size:13px;color:#6b7280;margin-bottom:14px">Seleziona la partita da trasmettere in diretta:</p>
       <div class="form-field"><label>Partita</label>
@@ -2441,11 +2495,12 @@ function finePartita() {
   showFinalResult();
   // 2. Salva risultato e marcatori sulla scheda della partita
   _saveLiveResultToMatch(fin);
-  // 3. Pulizia PIN della partita e password live (solo dopo la conferma)
-  if (l.id && window._fbClearMatchPin) window._fbClearMatchPin(l.id);
-  if (_isLiveOnly && window._fbClearLivePwd) window._fbClearLivePwd();
-  // 4. Chiude il live per tutti dopo 10 secondi
-  setTimeout(function(){ window._fbRemoveLive(); }, 10000);
+  // 3. Chiude il live per tutti dopo 10 secondi e poi toglie l'assegnazione dell'operatore
+  setTimeout(function(){
+    Promise.resolve(window._fbRemoveLive()).then(function(){
+      if (l.id && window._fbClearAssign) return window._fbClearAssign(l.id);
+    }).catch(function(){});
+  }, 10000);
 }
 
 function _saveLiveResultToMatch(l) {
@@ -2458,11 +2513,8 @@ function _saveLiveResultToMatch(l) {
   const goals = {};
   Object.values(l.goals || {}).forEach(function(g){ goals[g.id] = Object.assign({}, g); });
   target.goals = goals;
-  delete target.livePin;
-  const matchesObj = {}, indoorObj = {};
-  allMatches.forEach(function(m){ matchesObj[m.id] = m; });
-  allIndoor.forEach(function(m){ indoorObj[m.id] = m; });
-  return window._fbSave(Object.assign({}, matchesObj, indoorObj));
+  // Scrive SOLO risultato e marcatori di questa partita
+  return window._fbSaveMatchResult(l.id, { scoreHome: target.scoreHome, scoreAway: target.scoreAway, goals: goals });
 }
 
 function showFinalResult() {
@@ -2483,8 +2535,11 @@ function showFinalResult() {
 }
 function stopLive() {
   if (!confirm(' Chiudere il live?\nIl tabellone sar\u00e0 rimosso per tutti gli utenti.')) return;
+  var _stopId = liveData && liveData.id;
   if (liveData) _saveLiveResultToMatch(liveData);
-  window._fbRemoveLive();
+  Promise.resolve(window._fbRemoveLive()).then(function(){
+    if (_stopId && window._fbClearAssign) return window._fbClearAssign(_stopId);
+  }).catch(function(){});
 }
 
 // ─── TIMER ──────────────────────────────────────────────
@@ -3607,82 +3662,110 @@ function showAdminDashboard() {
 }
 
 function showAdminLogin() {
-  if (!isAdminOpen) {
-    try { if (localStorage.getItem('hockeyAdminRemember') === '1') { isAdminOpen = true; _isLiveOnly = false; } } catch(e) {}
-  }
   if (isAdminOpen) {
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('admin-panel').style.display = '';
-    showAdminDashboard(); // Always show dashboard when navigating to admin
-    renderLiveAdminPanel();
-    renderAdminEventList();
-    populateDataLists();
-    setTimeout(showMissingResultsAlert, 300);
+    var tabs = ['tab-match','tab-event','tab-lists','tab-edit'];
+    if (_isLiveOnly) {
+      // Operatore della diretta: solo il pannello Live
+      tabs.forEach(function(id){ var el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      switchFormTab('live');
+      renderLiveAdminPanel();
+    } else {
+      tabs.forEach(function(id){ var el = document.getElementById(id); if (el) el.style.display = ''; });
+      showAdminDashboard(); // Always show dashboard when navigating to admin
+      renderLiveAdminPanel();
+      renderAdminEventList();
+      populateDataLists();
+      setTimeout(showMissingResultsAlert, 300);
+    }
   } else {
     document.getElementById('login-wrap').style.display = '';
     document.getElementById('admin-panel').style.display = 'none';
-    document.getElementById('pwd-input').value = '';
-    setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+    var pe = document.getElementById('op-pwd'); if (pe) pe.value = '';
   }
 }
 let _isLiveOnly = false;
-function doLogin() {
-  const pwd = document.getElementById('pwd-input').value;
-  if (pwd === 'hockey2025') {
-    _isLiveOnly = false;
-    isAdminOpen = true;
-    if (document.getElementById('remember-admin').checked) {
-      try { localStorage.setItem('hockeyAdminRemember', '1'); } catch(e) {}
-    }
-    document.getElementById('login-wrap').style.display = 'none';
-    document.getElementById('admin-panel').style.display = '';
-    showAdminDashboard();
-    renderLiveAdminPanel();
-    renderAdminEventList();
-    populateDataLists();
-    setTimeout(showMissingResultsAlert, 300);
-  } else {
-    // Controlla PIN per partita su Firebase
-    if (window._fbListen) {
-      window._fbListen(function(data) {
-        if (!data) { alert('PIN non valido'); document.getElementById('pwd-input').value=''; return; }
-        var found = null;
-        Object.keys(data).forEach(function(k) {
-          if (data[k] && data[k].livePin && String(data[k].livePin) === String(pwd)) found = k;
-        });
-        if (found) {
-          _isLiveOnly = true;
-          _liveOpMatchId = found;
-          isAdminOpen = true;
-          document.getElementById('login-wrap').style.display = 'none';
-          document.getElementById('admin-panel').style.display = '';
-          switchFormTab('live');
-          ['tab-match','tab-event','tab-lists','tab-edit'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-          });
-          renderLiveAdminPanel();
-        } else {
-          alert('PIN non valido');
-          document.getElementById('pwd-input').value = '';
-          document.getElementById('pwd-input').focus();
-        }
-      });
-    } else {
-      alert('PIN non valido');
-      document.getElementById('pwd-input').value = '';
-      document.getElementById('pwd-input').focus();
+const ADMIN_EMAIL = 'donatella.1975@hotmail.com';
+var _authListening = false;
+
+function _loginMsg(t) {
+  var el = document.getElementById('login-error');
+  if (!el) return;
+  el.textContent = t || ''; el.style.display = t ? '' : 'none';
+}
+function _loginError(e) {
+  var c = (e && e.code) || '';
+  if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return;
+  var msg = {
+    'auth/popup-blocked': 'Il browser ha bloccato la finestra di accesso. Consenti i popup per questo sito e riprova.',
+    'auth/unauthorized-domain': 'Questo indirizzo non è autorizzato in Firebase (domini autorizzati).',
+    'auth/invalid-credential': 'Email o password non corretti.',
+    'auth/wrong-password': 'Email o password non corretti.',
+    'auth/user-not-found': 'Email o password non corretti.',
+    'auth/invalid-email': 'Email non valida.',
+    'auth/user-disabled': 'Questo account è disattivato.',
+    'auth/too-many-requests': 'Troppi tentativi. Riprova tra qualche minuto.',
+    'auth/network-request-failed': 'Nessuna connessione. Riprova.'
+  }[c];
+  _loginMsg(msg || ('Errore di accesso: ' + ((e && e.message) || c)));
+}
+function doLoginGoogle() {
+  _loginMsg('');
+  if (!window._fbLoginGoogle) { _loginMsg('Firebase non è ancora pronto: riprova tra qualche secondo.'); return; }
+  window._fbLoginGoogle().catch(_loginError);
+}
+function doLoginEmail() {
+  _loginMsg('');
+  var email = (document.getElementById('op-email').value || '').trim();
+  var pwd = document.getElementById('op-pwd').value || '';
+  if (!email || !pwd) { _loginMsg('Scrivi email e password.'); return; }
+  if (!window._fbLoginEmail) { _loginMsg('Firebase non è ancora pronto: riprova tra qualche secondo.'); return; }
+  window._fbLoginEmail(email, pwd).catch(_loginError);
+}
+function _assignedFor(email) {
+  var e = String(email || '').toLowerCase();
+  return Object.keys(_assignData || {}).filter(function(k){ return String(_assignData[k]).toLowerCase() === e; });
+}
+function _applyAuth() {
+  var u = window._authUser || null;
+  if (u && u.provider === 'google.com' && !(u.emailVerified && String(u.email).toLowerCase() === ADMIN_EMAIL)) {
+    // Account Google diverso dal tuo: non autorizzato
+    alert('Questo account Google non è autorizzato. Usa quello dell\'amministratrice, oppure accedi con email e password come operatore.');
+    if (window._fbLogout) window._fbLogout();
+    return;
+  }
+  if (u && u.provider === 'google.com') { isAdminOpen = true; _isLiveOnly = false; _liveOpMatchIds = []; }
+  else if (u && u.email) { isAdminOpen = true; _isLiveOnly = true; _liveOpMatchIds = _assignedFor(u.email); }
+  else { isAdminOpen = false; _isLiveOnly = false; _liveOpMatchIds = []; }
+  _liveOpMatchId = _liveOpMatchIds[0] || null;
+  document.body.classList.toggle('live-only', _isLiveOnly);
+  var who = document.getElementById('admin-who');
+  if (who) who.textContent = u ? ('Collegata come: ' + u.email) : '';
+  _loginMsg('');
+  try { renderMatches(); } catch(e) {}
+  if (currentPage === 'admin') showAdminLogin();
+}
+window.addEventListener('vf-auth', function() {
+  var u = window._authUser || null;
+  if (u && !_authListening && window._fbListenAssign) {
+    _authListening = true;
+    window._fbListenAssign(function(v){
+      _assignData = v || {};
+      if (window._authUser && window._authUser.provider !== 'google.com') { _applyAuth(); }
+    });
+    if (u.provider === 'google.com' && window._fbListenOperators) {
+      window._fbListenOperators(function(v){ _operators = v || {}; });
     }
   }
-}
+  if (!u) { _authListening = false; _assignData = null; _operators = {}; }
+  _applyAuth();
+});
 
 function doLogout() {
   if (!confirm("Vuoi uscire dall'area admin?")) return;
-  isAdminOpen = false;
   try { localStorage.removeItem('hockeyAdminRemember'); } catch(e) {}
-  document.getElementById('pwd-input').value = '';
-  document.getElementById('login-wrap').style.display = '';
-  document.getElementById('admin-panel').style.display = 'none';
+  if (window._fbLogout) window._fbLogout();
 }
 function switchFormTab(tab) {
   // Hide dashboard, show back button
@@ -3757,7 +3840,7 @@ function cancelMatchEdit() {
 
 function renderAdminList() {
   const el = document.getElementById('admin-match-list');
-  if (!el || !isAdminOpen) return;
+  if (!el || !isAdminOpen || _isLiveOnly) return;
   filterAdminList();
 }
 
@@ -3791,7 +3874,7 @@ function setAdminCat(btn) {
 
 function filterAdminList() {
   const el = document.getElementById('admin-match-list');
-  if (!el || !isAdminOpen) return;
+  if (!el || !isAdminOpen || _isLiveOnly) return;
   const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
   const pratoIds = ['af','cffb','rf','alf'];
