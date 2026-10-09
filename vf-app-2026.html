@@ -1398,7 +1398,7 @@ function showPage(name, btn) {
   // Rimuovi active dai nav pills prato/indoor, aggiungi al pill corrente
   document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  if (name === 'classifica') { renderStandings(); renderResults(); syncAllSportControls(classSport); }
+  if (name === 'classifica') { renderStandings(); syncAllSportControls(classSport); }
   if (name === 'live')       { renderLivePage(); setTimeout(function(){ window.scrollTo({top:0, behavior:'smooth'}); }, 50); }
   if (name === 'eventi')     { renderEventiPage(); }
   if (name === 'admin')      showAdminLogin();
@@ -1453,7 +1453,6 @@ function setClassSport(sport) {
   classSport = sport;
   syncAllSportControls(sport);
   renderStandings();
-  renderResults();
 }
 
 // ─── VIEW TABS (Calendario / Giornate) ──────────────────
@@ -1477,6 +1476,13 @@ function switchView(sport, view) {
   }
 }
 
+function _roundKey(r){
+  if (r === undefined || r === null) return '';
+  var t = String(r).trim();
+  if (!t) return '';
+  var n = t.match(/(\d+)/);
+  return n ? 'Giornata ' + parseInt(n[1], 10) : t;
+}
 function renderGiornate(sport) {
   const contentEl = document.getElementById('giornate-'+(sport === 'prato' ? 'prato' : 'indoor')+'-content');
   if (!contentEl) return;
@@ -1505,7 +1511,7 @@ function renderGiornate(sport) {
   // Raggruppa per giornata o data
   const grouped = {};
   allMs.forEach(m => {
-    const key = m.round ? 'Giornata ' + m.round : (m.date || 'Data sconosciuta');
+    const key = _roundKey(m.round) || (m.date || 'Data sconosciuta');
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(m);
   });
@@ -1918,7 +1924,7 @@ function matchCardHTML(m, showAdmin) {
     })()}
     <div class="mc-meta">
       ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> ${hasSc ? '' : `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>`}` : ''}
-      ${m.round ? `· ${m.round}` : ''}
+      ${m.round ? `· ${_roundKey(m.round)}` : ''}
       ${hasSc ? '' : `<button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>`}
     </div>
   </div>
@@ -3586,7 +3592,6 @@ function renderStandings() {
     html += '</tbody></table></div>';
   });
   el.innerHTML = html || '<div class="loading">Nessuna categoria trovata</div>';
-  renderResults();
   renderStandingsGiornate();
 }
 
@@ -3607,7 +3612,7 @@ function renderStandingsGiornate() {
     hasContent = true;
     var grouped = {};
     ms.forEach(function(m) {
-      var key = m.round ? 'Giornata ' + m.round : (m.date || 'Data sconosciuta');
+      var key = _roundKey(m.round) || (m.date || 'Data sconosciuta');
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(m);
     });
