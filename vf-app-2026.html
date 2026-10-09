@@ -3943,7 +3943,10 @@ function saveMatch() {
   const all = [...allMatches, ...allIndoor];
   const obj = {};
   all.forEach(x => { obj[x.id] = x; });
-  obj[id] = m;
+  // v33: conserva i dati gia' presenti (marcatrici, gol, ecc.) e aggiorna solo i campi del modulo
+  const prev = obj[id] ? Object.assign({}, obj[id]) : {};
+  if (sh === '' || sa === '') { delete prev.scoreHome; delete prev.scoreAway; }
+  obj[id] = Object.assign(prev, m);
   window._fbSave(obj);
   cancelMatchEdit(); // also returns to list view
 }
@@ -4044,7 +4047,7 @@ function filterAdminList() {
       +resultBtn
       +rb
       +goalsBtn
-      +(hasSc&&isValch?'':'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica">&#9999;</button>')
+      +'<button onclick="editMatch(\'' +id+ '\')" style="background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:14px" title="Modifica giornata, data, ora, campo">&#9999;&#65039;</button>'
       +'<button onclick="deleteMatch(\'' +id+ '\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px">&#128465;</button>'
       +'</div>'
       +'</div>';
