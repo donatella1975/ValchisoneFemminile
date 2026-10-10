@@ -66,6 +66,9 @@
 
   // --- Dati (invariati) ---
   window._fbSaveLists   = (data) => set(ref(db,'lists'), data);
+  // v34: la rosa vive in un nodo suo, leggibile solo da chi ha fatto l'accesso
+  window._fbSaveRosa    = (data) => set(ref(db,'rosa'), data);
+  window._fbListenRosa  = (cb)   => onValue(ref(db,'rosa'), snap => cb(snap.val()), () => cb(null));
   window._fbSetLiveComment = (id, obj) => set(ref(db,'live/comments/'+id), obj);
   window._fbDelLiveComment = (id) => set(ref(db,'live/comments/'+id), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
@@ -1292,6 +1295,8 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
 let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
+// v34: servono solo allo spostamento una tantum della rosa
+let _rosaLegacy = [], _rosaSeen = false, _rosaMigrated = false, _rosaMigrating = false;
 const DEFAULT_TEAMS_PRATO = [
   'HOCKEY PRATO VALCHISONE FEMMINILE','CUS TORINO','CUS TORINO B',
   'HF LORENZONI','HF LORENZONI B','USD MONCALVESE HOCKEY',
@@ -1352,7 +1357,9 @@ window.addEventListener('load', () => {
       teamsListPrato  = data?.teamsPrato  ? data.teamsPrato  : [...DEFAULT_TEAMS_PRATO];
       teamsListIndoor = data?.teamsIndoor ? data.teamsIndoor : [...DEFAULT_TEAMS_INDOOR];
       fieldsList      = data?.fields      ? data.fields      : [...DEFAULT_FIELDS];
-      rosaValchisone  = data?.rosaValchisone ? data.rosaValchisone : [];
+      // v34: la rosa non alimenta piu' l'app da qui. Resta solo come copia da spostare.
+      _rosaLegacy     = data?.rosaValchisone ? data.rosaValchisone : [];
+      _tryMigrateRosa();
     });
     window._fbListenLive(data => {
       const prev = liveData;
@@ -3278,8 +3285,55 @@ function editRosaPlayer(globalIdx) {
   });
 }
 
+// v34 - spostamento una tantum della rosa da 'lists' al nodo 'rosa'.
+// Parte da sola al primo accesso con Google, chiede conferma,
+// e se qualcosa non va lascia tutto com'era.
+function _tryMigrateRosa() {
+  if (_rosaMigrated || _rosaMigrating) return;
+  if (!_rosaSeen) return;                       // aspetta la risposta del nodo nuovo
+  if (rosaValchisone.length) return;            // gia' spostata
+  if (!_rosaLegacy || !_rosaLegacy.length) return;  // niente da spostare
+  var u = window._authUser;
+  if (!u || u.provider !== 'google.com') return;    // solo l'amministratrice
+  if (!window._fbSaveRosa) return;
+  var pulita = _rosaLegacy.filter(function(p){ return p && p.name; });
+  if (!pulita.length) return;
+  _rosaMigrating = true;
+  var ok = confirm('SPOSTAMENTO ROSA (una volta sola)\n\n'
+    + pulita.length + ' giocatrici verranno spostate in un archivio riservato,\n'
+    + 'non piu\' leggibile da chi non ha fatto l\'accesso.\n\n'
+    + 'Procedere?');
+  if (!ok) {
+    // Rinuncia: l'app continua a funzionare con la rosa di prima
+    rosaValchisone = pulita; _rosaMigrating = false; _rosaMigrated = true;
+    try { renderRosaEditor(); } catch(e) {}
+    return;
+  }
+  rosaValchisone = pulita;
+  Promise.resolve(window._fbSaveRosa(pulita)).then(function(){
+    // Tolta la copia vecchia da 'lists' (solo se le liste sono davvero caricate)
+    if (teamsListPrato.length) {
+      return window._fbSaveLists({teamsPrato:teamsListPrato, teamsIndoor:teamsListIndoor, fields:fieldsList});
+    }
+  }).then(function(){
+    _rosaMigrated = true; _rosaMigrating = false; _rosaLegacy = [];
+    alert('Fatto: ' + pulita.length + ' giocatrici spostate.\n'
+      + 'La copia pubblica e\' stata rimossa.');
+    try { renderRosaEditor(); } catch(e) {}
+  }).catch(function(e){
+    _rosaMigrating = false;
+    alert('Spostamento NON riuscito: ' + ((e && e.message) || e) + '\n\nNiente e\' stato cancellato: la rosa di prima e\' intatta.');
+  });
+}
+
 function saveAllLists() {
-  window._fbSaveLists({teamsPrato:teamsListPrato, teamsIndoor:teamsListIndoor, fields:fieldsList, rosaValchisone:rosaValchisone});
+  window._fbSaveLists({teamsPrato:teamsListPrato, teamsIndoor:teamsListIndoor, fields:fieldsList});
+  if (!window._fbSaveRosa) return;
+  // v34 - rete di sicurezza: mai sovrascrivere la rosa con un elenco vuoto
+  if (!rosaValchisone.length) {
+    if (!confirm('ATTENZIONE: la rosa risulta vuota.\n\nSalvando adesso la cancelleresti.\n\nSalvare comunque?')) return;
+  }
+  window._fbSaveRosa(rosaValchisone);
 }
 
 function renderListsEditor() {
@@ -3879,8 +3933,19 @@ window.addEventListener('vf-auth', function() {
     if (u.provider === 'google.com' && window._fbListenOperators) {
       window._fbListenOperators(function(v){ _operators = v || {}; });
     }
+    // v34: la rosa si carica adesso, non piu' all'apertura della pagina
+    if (window._fbListenRosa) {
+      window._fbListenRosa(function(v){
+        var raw = v ? (Array.isArray(v) ? v : Object.values(v)) : [];
+        rosaValchisone = raw.filter(function(p){ return p && p.name; });
+        _rosaSeen = true;
+        _tryMigrateRosa();
+        try { renderRosaEditor(); } catch(e) {}
+        try { if (liveData) renderLiveAdminPanel(); } catch(e) {}
+      });
+    }
   }
-  if (!u) { _authListening = false; _assignData = null; _operators = {}; }
+  if (!u) { _authListening = false; _assignData = null; _operators = {}; rosaValchisone = []; _rosaSeen = false; }
   _applyAuth();
 });
 
