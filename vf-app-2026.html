@@ -90,6 +90,7 @@
 body.live-only #admin-dashboard > button { display:none !important; }
 body.live-only #admin-dashboard > div:nth-child(2) > button:not(#tab-live-admin) { display:none !important; }
 body.live-only #missing-results-banner { display:none !important; }
+body.on-live #app-credits { display:none !important; }
 </style>
 <style>
 .skip-link { position:absolute; top:-100px; left:8px; background:var(--green); color:white; padding:8px 16px; border-radius:0 0 8px 8px; font-size:14px; font-weight:700; z-index:9999; text-decoration:none; transition:top .15s; }.skip-link:focus { top:0; }
@@ -2550,6 +2551,7 @@ function startLive() {
 
 function finePartita() {
   if (!liveData) return;
+  _cancelAutoResume();
   // Gia' terminata: chiudi subito il live
   if (liveData.finished) { stopLive(); return; }
   if (!confirm('Terminare definitivamente la partita?\nIl risultato e i marcatori verranno salvati sulla partita e il live si chiudera\' tra pochi secondi.')) return;
@@ -2624,6 +2626,27 @@ function _intervalMin(c, afterQuarter) {
 }
 // Promemoria sul cronometro (solo su questo dispositivo)
 let _clockNotice = null;      // {type:'goal'|'corner', ts}
+// v36: dopo un gol il cronometro riparte da solo, cosi' chi segna
+// puo' occuparsi d'altro (foto, panchina) senza lasciarlo fermo.
+const AUTO_RESUME_MS = 60000;
+let _autoResumeAt = null;     // quando ripartira' (ora locale, ms)
+let _autoResumeTimer = null;
+function _cancelAutoResume() {
+  if (_autoResumeTimer) { clearTimeout(_autoResumeTimer); _autoResumeTimer = null; }
+  _autoResumeAt = null;
+}
+function _scheduleAutoResume() {
+  _cancelAutoResume();
+  _autoResumeAt = Date.now() + AUTO_RESUME_MS;
+  _autoResumeTimer = setTimeout(function(){
+    _autoResumeTimer = null; _autoResumeAt = null;
+    var l = liveData;
+    if (!l || !l.active || l.finished || l.quarterEnded) return;
+    if (l.timerRunning) return;                    // gia' riavviato a mano
+    if (!_clockNotice || _clockNotice.type !== 'goal') return;
+    timerStart();
+  }, AUTO_RESUME_MS);
+}
 let _qEndBeepKey = '';
 function _pauseFieldsIfRunning(l) {
   if (!l || !l.timerRunning) return null;
@@ -2641,15 +2664,25 @@ function _updateClockNotices() {
     var show = false, html = '', bg = '#fef3c7', col = '#92400e';
     if (_clockNotice && _clockNotice.type === 'goal') {
       if (l.timerRunning || l.quarterEnded || l.finished) _clockNotice = null;
-      else { show = true; html = '⏸ Cronometro fermato per il gol. Quando si riprende a giocare premi <button type="button" onclick="timerStart()" style="background:#1a7a2e;color:white;border:none;border-radius:8px;padding:4px 10px;font-weight:800;cursor:pointer;touch-action:manipulation">▶ Avvia</button>'; }
+      else {
+        show = true;
+        var _sec = _autoResumeAt ? Math.max(0, Math.ceil((_autoResumeAt - Date.now())/1000)) : null;
+        html = '⏸ Cronometro fermato per il gol. '
+          + (_sec !== null
+             ? 'Riparte da solo tra <b>' + _sec + 's</b> — oppure '
+             : 'Quando si riprende a giocare premi ')
+          + '<button type="button" onclick="timerStart()" style="background:#1a7a2e;color:white;border:none;border-radius:8px;padding:4px 10px;font-weight:800;cursor:pointer;touch-action:manipulation">▶ Avvia ora</button>';
+      }
     } else if (_clockNotice && _clockNotice.type === 'corner') {
       if (!l.timerRunning || Date.now() - _clockNotice.ts > 180000 || l.finished) _clockNotice = null;
       else { show = true; html = '⏱ Tiro corto: ferma il cronometro <button type="button" onclick="timerPause();" style="background:#b45309;color:white;border:none;border-radius:8px;padding:4px 10px;font-weight:800;cursor:pointer;touch-action:manipulation">⏸ Ferma ora</button> e riavvialo alla ripresa.'; }
     }
     cn.style.display = show ? 'block' : 'none';
-    if (show && cn.getAttribute('data-k') !== (_clockNotice && _clockNotice.type) + String(l.timerRunning)) {
+    var _k = (_clockNotice && _clockNotice.type) + String(l.timerRunning)
+      + '|' + (_autoResumeAt ? Math.ceil((_autoResumeAt - Date.now())/1000) : '-');
+    if (show && cn.getAttribute('data-k') !== _k) {
       cn.innerHTML = html; cn.style.background = bg; cn.style.color = col; cn.style.border = '1.5px solid #f59e0b';
-      cn.setAttribute('data-k', (_clockNotice && _clockNotice.type) + String(l.timerRunning));
+      cn.setAttribute('data-k', _k);
     }
   }
   if (qa) {
@@ -2689,6 +2722,7 @@ function getTotalMs(l) {
 
 function timerStart() {
   if (!liveData || liveData.timerRunning) return;
+  _cancelAutoResume();
   const now = Date.now();
   const updated = {...liveData, timerRunning: true, timerStart: now - (liveData.timerElapsed||0)};
   window._fbSaveLive(updated);
@@ -2697,6 +2731,7 @@ function timerStart() {
 
 function timerPause() {
   if (!liveData || !liveData.timerRunning) return;
+  _cancelAutoResume();
   const partial = getPartialMs(liveData);
   const updated = {...liveData, timerRunning: false, timerElapsed: partial, timerStart: null};
   window._fbSaveLive(updated);
@@ -2705,6 +2740,7 @@ function timerPause() {
 function timerHalf() {
   // End current quarter — stop timer, signal interval
   if (!liveData) return;
+  _cancelAutoResume();
   const cur = liveData.half || 1;
   if (cur >= 4) {
     if (!confirm('Fine 4° Quarto — terminare la partita?')) return;
@@ -2749,6 +2785,7 @@ function startNextQuarter() {
 }
 
 function timerReset() {
+  _cancelAutoResume();
   if (!confirm('⚠️ Azzerare i cronometri?\nI tempi registrati andranno persi.')) return;
   const updated = {...liveData, timerRunning: false, timerStart: null, timerElapsed: 0, totalElapsed: 0, half: 1}; // resetarti da 15'
   window._fbSaveLive(updated);
@@ -2809,7 +2846,7 @@ function openGoalPanel(side) {
     // Griglia giocatrici
     inner += '<div class="rosa-grid">';
     rosa.forEach(function(p, idx) {
-      var nameShort = p.name.split(' ')[0];
+      var nameShort = _escHtml(_rosaBtnName(p, rosa));
       var gkHtml = p.gk ? ' <span class="gk-badge">GK</span>' : '';
       inner += '<button class="rosa-btn" data-num="'+p.num+'" data-name="'+p.name.replace(/"/g,'&quot;')+'">'
         + '<div class="num">'+(p.num?'#'+p.num:'–')+'</div>'
@@ -2970,7 +3007,7 @@ function _saveGoal(team, jersey, player) {
   var sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
   var _pf = _pauseFieldsIfRunning(liveData);
-  if (_pf) _clockNotice = { type: 'goal', ts: Date.now() };
+  if (_pf) { _clockNotice = { type: 'goal', ts: Date.now() }; _scheduleAutoResume(); }
   window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }, _pf || {}));
   playVictorySound && (team === liveData.home ? playVictorySound() : playReactionSound());
 }
@@ -3056,7 +3093,7 @@ function addGoal() {
   let sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
   var _pf2 = _pauseFieldsIfRunning(liveData);
-  if (_pf2) _clockNotice = { type: 'goal', ts: Date.now() };
+  if (_pf2) { _clockNotice = { type: 'goal', ts: Date.now() }; _scheduleAutoResume(); }
   window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa, ...(_pf2 || {})});
   if (rosaSelect) rosaSelect.value = '';
   const jerseyEl = document.getElementById('goal-jersey');
@@ -3091,7 +3128,7 @@ function editGoalPlayer(goalId) {
       + '<button id="_eg_close" style="background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button></div>'
       + '<div class="rosa-grid">';
     rosa.forEach(function(p, i) {
-      inner += '<button class="rosa-btn" data-i="'+i+'"><div class="num">'+(p.num?'#'+p.num:'–')+'</div><div class="name">'+p.name.split(' ')[0]+(p.gk?' <span class="gk-badge">GK</span>':'')+'</div></button>';
+      inner += '<button class="rosa-btn" data-i="'+i+'"><div class="num">'+(p.num?'#'+p.num:'–')+'</div><div class="name">'+_escHtml(_rosaBtnName(p, rosa))+(p.gk?' <span class="gk-badge">GK</span>':'')+'</div></button>';
     });
     inner += '</div><button id="_eg_clear" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:13px;color:#6b7280;cursor:pointer;touch-action:manipulation;margin-top:8px">Marcatrice da definire</button></div>';
     ov.innerHTML = inner;
@@ -3140,6 +3177,25 @@ function setRosaCat(cat) {
     if (btn) btn.className = 'ftab' + (c === cat ? ' active' : '');
   });
   renderRosaEditor();
+}
+
+// v36: sul bottone basta il nome di battesimo, ma se nella categoria
+// c'e' piu' di una con lo stesso nome allora si aggiunge il cognome.
+function _rosaBtnName(p, lista) {
+  var intero = String((p && p.name) || '').trim();
+  if (!intero) return '';
+  var parti = intero.split(/\s+/);
+  var primo = parti[0];
+  if (parti.length < 2) return primo;
+  var omonime = (lista || []).filter(function(q){
+    var n = String((q && q.name) || '').trim();
+    if (!n) return false;
+    return n.split(/\s+/)[0].toLowerCase() === primo.toLowerCase();
+  });
+  if (omonime.length < 2) return primo;        // nessuna omonima
+  var resto = parti.slice(1).join(' ');
+  if (resto.length > 7) resto = resto.slice(0, 6).replace(/\s+$/, '') + '.';
+  return primo + ' ' + resto;
 }
 
 function _rosaSort(a,b){ return (a.num||999)-(b.num||999) || String(a.name).localeCompare(String(b.name)); }
@@ -5522,6 +5578,16 @@ function updateMobileLiveIndicator(hasLive){
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('archivio-modal').classList.remove('open')">Chiudi</button>
     </div>
   </div>
+</div>
+
+<!-- v35: firma e copyright -->
+<div id="app-credits" style="max-width:1100px;margin:28px auto 0;padding:14px 16px 22px;
+     border-top:1px solid rgba(0,0,0,.08);text-align:center;font-size:11px;line-height:1.7;
+     color:#9ca3af">
+  <div style="font-weight:700;color:#6b7280;letter-spacing:.3px">
+    &copy; 2026 ASD Hockey su Prato Valchisone Femminile
+  </div>
+  <div>Tutti i diritti riservati &middot; App realizzata per uso interno della societ&agrave;</div>
 </div>
 
 <!-- PRIVACY BAR -->
