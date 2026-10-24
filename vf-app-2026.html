@@ -83,6 +83,8 @@
   window._fbListenEvents= (cb)   => onValue(ref(db,'events'), snap => cb(snap.val()));
   window._fbSaveLive    = (data) => set(ref(db,'live'), data);
   window._fbListenLive  = (cb)   => onValue(ref(db,'live'), snap => cb(snap.val()));
+  // v38: segnale di Firebase sullo stato della connessione. Non passa dalle regole.
+  window._fbListenConnected = (cb) => onValue(ref(db,'.info/connected'), snap => cb(snap.val() === true), () => cb(false));
   window._fbRemoveLive  = ()     => remove(ref(db,'live'));
 </script>
 
@@ -2179,7 +2181,7 @@ function addLiveComment(text) {
   if (text.length > 140) text = text.slice(0, 140);
   const id = 'c' + Date.now() + Math.random().toString(36).slice(2, 5);
   window._fbSetLiveComment(id, {id: id, text: text, ts: Date.now()});
-  if (/^corto\b/i.test(text) && liveData.timerRunning) { _clockNotice = { type: 'corner', ts: Date.now() }; _updateClockNotices(); }
+  // v37: per regolamento il tempo non si ferma piu' sui corti.
 }
 function sendLiveComment() {
   const inp = document.getElementById('live-comment-input');
@@ -2347,6 +2349,8 @@ function openAssignDialog() {
 function renderLiveAdminPanel() {
   const el = document.getElementById('live-admin-content');
   if (!el) return;
+  _startConnWatch();
+  setTimeout(_paintConnDot, 0);
   if (!liveData || !liveData.active) {
     const allPool = [...allMatches, ...allIndoor];
     // Live operator: mostra solo la sua partita
@@ -2405,6 +2409,7 @@ function renderLiveAdminPanel() {
         </div>
         ${liveData.quarterEnded && (liveData.half||1) < 4 ? `<div style="font-size:11px;font-weight:700;color:#fb923c;margin-top:4px;background:rgba(251,146,60,.15);border-radius:8px;padding:4px 10px">${(['','2° Quarto','3° Quarto','4° Quarto'][liveData.half||1] ? ('⏸ Intervallo ' + _intervalMin(l.cat, liveData.half||1) + ' min → ' + ['','2° Quarto','3° Quarto','4° Quarto'][liveData.half||1]) : '')}</div>` : ''}
       </div>
+      <div id="conn-dot" style="text-align:center;border-radius:10px;padding:6px 10px;margin-bottom:8px;font-size:12px;font-weight:800;background:#dcfce7;color:#166534;border:1.5px solid #22c55e">\u25cf collegata</div>
       <!-- TIMER CONTROLS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
         ${liveData.quarterEnded
@@ -2427,8 +2432,12 @@ function renderLiveAdminPanel() {
           <div style="font-size:12px;font-weight:800;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.away,14)}</div>
         </button>
       </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:6px;margin-bottom:10px">
+        <button onclick="shareLastGoal()" style="background:#25D366;color:white;border:none;border-radius:12px;padding:13px 8px;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">\ud83d\udcf2 Manda l\u0027ultimo gol</button>
+        <button onclick="shareLiveScore()" style="background:#f0faf2;color:#1a7a2e;border:2px solid #25D366;border-radius:12px;padding:13px 8px;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">Punteggio</button>
+      </div>
       ${_clockNoticeHTML()}
-      <div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;line-height:1.35">⏱ Il minuto dei gol viene preso dal cronometro: <u>fermalo (⏸ Pausa) su ogni gol e su ogni tiro corto</u> e riavvialo alla ripresa del gioco.</div>
+      <div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;line-height:1.35">⏱ Il minuto dei gol viene preso dal cronometro, che <u>non si ferma piu\u0027 su gol e tiri corti</u>. Usa ⏸ Pausa solo per interruzioni lunghe.</div>
       <!-- TIRI CORTI (solo admin) -->
       ${_isLiveOnly ? '' : `
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Tiri corti (penalty corner)</div>
@@ -2624,6 +2633,37 @@ function _quarterMin(c) { return _isIndoorCat(c) ? 10 : 15; }
 function _intervalMin(c, afterQuarter) {
   return (_isIndoorCat(c) ? {1:1,2:3,3:1} : {1:2,2:5,3:2})[afterQuarter] || 0;
 }
+// v38: stato della connessione al database (solo su questo dispositivo)
+let _isConnected = true;
+function _paintConnDot() {
+  var el = document.getElementById('conn-dot');
+  if (!el) return;
+  if (_isConnected) {
+    el.style.background = '#dcfce7'; el.style.color = '#166534';
+    el.style.border = '1.5px solid #22c55e';
+    el.textContent = '\u25cf collegata';
+  } else {
+    el.style.background = '#fee2e2'; el.style.color = '#991b1b';
+    el.style.border = '2px solid #ef4444';
+    el.textContent = '\u25cf SENZA RETE \u2014 non ricaricare la pagina';
+  }
+}
+function _startConnWatch() {
+  if (!window._fbListenConnected || window._connWatching) return;
+  window._connWatching = true;
+  window._fbListenConnected(function(ok){
+    _isConnected = (ok === true);
+    _paintConnDot();
+  });
+}
+// Se si prova a ricaricare o chiudere mentre si e' scollegate durante una
+// diretta, il browser chiede conferma: e' il gesto che fa perdere i gol.
+window.addEventListener('beforeunload', function(e){
+  if (liveData && liveData.active && !_isConnected) {
+    e.preventDefault(); e.returnValue = ''; return '';
+  }
+});
+
 // Promemoria sul cronometro (solo su questo dispositivo)
 let _clockNotice = null;      // {type:'goal'|'corner', ts}
 // v36: dopo un gol il cronometro riparte da solo, cosi' chi segna
@@ -2636,7 +2676,9 @@ function _cancelAutoResume() {
   _autoResumeAt = null;
 }
 function _scheduleAutoResume() {
+  // v37: non viene piu' richiamata (i gol non fermano il tempo). Lasciata inerte.
   _cancelAutoResume();
+  return;
   _autoResumeAt = Date.now() + AUTO_RESUME_MS;
   _autoResumeTimer = setTimeout(function(){
     _autoResumeTimer = null; _autoResumeAt = null;
@@ -2657,6 +2699,9 @@ function _clockNoticeHTML() {
        + '<div id="q-end-alert" style="display:none;margin-bottom:8px;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:800;line-height:1.35;background:#fee2e2;color:#991b1b;border:2px solid #ef4444"></div>';
 }
 function _updateClockNotices() {
+  // v37: niente piu' arresti automatici, quindi niente promemoria. _clockNotice resta
+  // sempre nullo e l'avviso non compare mai; l'allarme di fine quarto invece resta.
+  _clockNotice = null;
   var l = liveData;
   var cn = document.getElementById('clock-notice'), qa = document.getElementById('q-end-alert');
   if (!l || !l.active) return;
@@ -3006,9 +3051,8 @@ function _saveGoal(team, jersey, player) {
   var sh = liveData.scoreHome || 0;
   var sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
-  var _pf = _pauseFieldsIfRunning(liveData);
-  if (_pf) { _clockNotice = { type: 'goal', ts: Date.now() }; _scheduleAutoResume(); }
-  window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }, _pf || {}));
+  // v37: per regolamento il tempo non si ferma piu' sui gol.
+  window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }));
   playVictorySound && (team === liveData.home ? playVictorySound() : playReactionSound());
 }
 
@@ -3092,9 +3136,8 @@ function addGoal() {
   let sh = liveData.scoreHome || 0;
   let sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
-  var _pf2 = _pauseFieldsIfRunning(liveData);
-  if (_pf2) { _clockNotice = { type: 'goal', ts: Date.now() }; _scheduleAutoResume(); }
-  window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa, ...(_pf2 || {})});
+  // v37: per regolamento il tempo non si ferma piu' sui gol.
+  window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
   if (rosaSelect) rosaSelect.value = '';
   const jerseyEl = document.getElementById('goal-jersey');
   if (jerseyEl) jerseyEl.value = '';
@@ -3443,7 +3486,7 @@ function addCorner(side) {
   const key = side === 'home' ? 'cornerHome' : 'cornerAway';
   const updated = {...liveData, [key]: (liveData[key]||0) + 1};
   window._fbSaveLive(updated);
-  if (liveData.timerRunning) { _clockNotice = { type: 'corner', ts: Date.now() }; _updateClockNotices(); }
+  // v37: per regolamento il tempo non si ferma piu' sui corti.
 }
 
 function removeCorner(side) {
@@ -4779,6 +4822,53 @@ function shareMatchById(id) {
   if (!m) return;
   shareMatch(m);
 }
+// v38: manda l'ultimo gol sul gruppo WhatsApp. Usa lo stesso meccanismo
+// di shareMatch, gia' collaudato: apre WhatsApp col testo gia' scritto,
+// poi scegli il gruppo e premi invia tu.
+const VF_APP_URL = 'https://donatella1975.github.io/ValchisoneFemminile/';
+function _lastGoal() {
+  if (!liveData) return null;
+  var gs = Object.values(liveData.goals || {}).filter(function(g){ return g && g.id; });
+  if (!gs.length) return null;
+  gs.sort(function(a, b){
+    var ka = String(a.id).replace(/^g/, ''), kb = String(b.id).replace(/^g/, '');
+    return (parseInt(ka, 10) || 0) - (parseInt(kb, 10) || 0);
+  });
+  return gs[gs.length - 1];
+}
+function shareLastGoal() {
+  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
+  var g = _lastGoal();
+  if (!g) { alert('Non c\u0027e\u0027 ancora nessun gol da mandare.'); return; }
+  var isV = String(g.team || '').toUpperCase().indexOf(VALCH) >= 0;
+  var chi = ((g.jersey ? '#' + g.jersey + ' ' : '') + (g.player || '')).trim();
+  var min = (g.minute !== undefined ? g.minute : (g.minuteTotal || 0));
+  var quarto = g.quarter ? (' \u00b7 ' + g.quarter + '\u00b0 quarto') : '';
+  var cat = (CATS[liveData.cat] && CATS[liveData.cat].label)
+    ? ' \u2014 ' + CATS[liveData.cat].label : '';
+  var testa = isV ? '\ud83c\udfd1\u26bd GOL VALCHISONE!'
+    : '\u26bd Gol ' + abbrevTeam(g.team || '', 25);
+  var riga = (chi ? chi + ' \u2014 ' : '') + min + "'" + quarto;
+  var text = testa + cat + '\n' + riga + '\n\n'
+    + abbrevTeam(liveData.home, 25) + '  '
+    + (liveData.scoreHome || 0) + ' - ' + (liveData.scoreAway || 0)
+    + '  ' + abbrevTeam(liveData.away, 25)
+    + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+function shareLiveScore() {
+  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
+  var cat = (CATS[liveData.cat] && CATS[liveData.cat].label)
+    ? ' \u2014 ' + CATS[liveData.cat].label : '';
+  var text = '\ud83c\udfd1 Diretta' + cat + '\n\n'
+    + abbrevTeam(liveData.home, 25) + '  '
+    + (liveData.scoreHome || 0) + ' - ' + (liveData.scoreAway || 0)
+    + '  ' + abbrevTeam(liveData.away, 25)
+    + (liveData.finished ? '\n\nFINALE' : '')
+    + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+
 function shareMatch(m) {
   const d = new Date(m.date+'T12:00:00');
   const dateStr = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
