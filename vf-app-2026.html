@@ -84,6 +84,9 @@
   window._fbSaveLive    = (data) => set(ref(db,'live'), data);
   window._fbListenLive  = (cb)   => onValue(ref(db,'live'), snap => cb(snap.val()));
   // v38: segnale di Firebase sullo stato della connessione. Non passa dalle regole.
+  // v39: impostazioni societarie (nodo 'config', lettura pubblica)
+  window._fbSaveCfgCrono   = (data) => set(ref(db,'config/cronometro'), data);
+  window._fbListenCfgCrono = (cb)   => onValue(ref(db,'config/cronometro'), snap => cb(snap.val()), () => cb(null));
   window._fbListenConnected = (cb) => onValue(ref(db,'.info/connected'), snap => cb(snap.val() === true), () => cb(false));
   window._fbRemoveLive  = ()     => remove(ref(db,'live'));
 </script>
@@ -1132,6 +1135,8 @@ body.on-live .hero { display:none; }
         </div>
       </div>
       <div id="rosa-overview" style="margin:6px 0 16px"></div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">⏱ Il cronometro si ferma su…</div>
+      <div id="cfg-crono" style="margin-bottom:16px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1a7a2e;margin-bottom:6px">🏑 Squadre Prato</div>
@@ -1364,6 +1369,20 @@ window.addEventListener('load', () => {
       _rosaLegacy     = data?.rosaValchisone ? data.rosaValchisone : [];
       _tryMigrateRosa();
     });
+    if (window._fbListenCfgCrono) {
+      window._fbListenCfgCrono(function(v){
+        if (v && typeof v === 'object') {
+          _cfgCrono = {
+            seniorGol:   v.seniorGol   !== undefined ? !!v.seniorGol   : true,
+            seniorCorto: v.seniorCorto !== undefined ? !!v.seniorCorto : true,
+            giovGol:     v.giovGol     !== undefined ? !!v.giovGol     : false,
+            giovCorto:   v.giovCorto   !== undefined ? !!v.giovCorto   : false
+          };
+        }
+        try { renderCfgCrono(); } catch(e) {}
+        try { if (liveData) renderLiveAdminPanel(); } catch(e) {}
+      });
+    }
     window._fbListenLive(data => {
       const prev = liveData;
       liveData = data || null;
@@ -2181,7 +2200,9 @@ function addLiveComment(text) {
   if (text.length > 140) text = text.slice(0, 140);
   const id = 'c' + Date.now() + Math.random().toString(36).slice(2, 5);
   window._fbSetLiveComment(id, {id: id, text: text, ts: Date.now()});
-  // v37: per regolamento il tempo non si ferma piu' sui corti.
+  if (/^corto\b/i.test(text) && liveData.timerRunning && _fermaSuCorto(liveData.cat)) {
+    _clockNotice = { type: 'corner', ts: Date.now() }; _updateClockNotices();
+  }
 }
 function sendLiveComment() {
   const inp = document.getElementById('live-comment-input');
@@ -2437,7 +2458,9 @@ function renderLiveAdminPanel() {
         <button onclick="shareLiveScore()" style="background:#f0faf2;color:#1a7a2e;border:2px solid #25D366;border-radius:12px;padding:13px 8px;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">Punteggio</button>
       </div>
       ${_clockNoticeHTML()}
-      <div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;line-height:1.35">⏱ Il minuto dei gol viene preso dal cronometro, che <u>non si ferma piu\u0027 su gol e tiri corti</u>. Usa ⏸ Pausa solo per interruzioni lunghe.</div>
+      <div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;line-height:1.35">${(_fermaSuGol(l.cat) || _fermaSuCorto(l.cat))
+        ? '\u23f1 Regolamento di questa categoria: ferma il cronometro (\u23f8 Pausa) su ' + [_fermaSuGol(l.cat) ? 'ogni gol' : null, _fermaSuCorto(l.cat) ? 'ogni tiro corto' : null].filter(Boolean).join(' e su ') + ', e riavvialo alla ripresa.'
+        : '\u23f1 Regolamento di questa categoria: il cronometro <u>non si ferma</u> su gol e tiri corti. Usa \u23f8 Pausa solo per interruzioni lunghe.'}</div>
       <!-- TIRI CORTI (solo admin) -->
       ${_isLiveOnly ? '' : `
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:5px">Tiri corti (penalty corner)</div>
@@ -2633,6 +2656,35 @@ function _quarterMin(c) { return _isIndoorCat(c) ? 10 : 15; }
 function _intervalMin(c, afterQuarter) {
   return (_isIndoorCat(c) ? {1:1,2:3,3:1} : {1:2,2:5,3:2})[afterQuarter] || 0;
 }
+// v39: quali categorie seguono il regolamento senior
+const CAT_SENIOR = ['af', 'a1f', 'cffb'];
+// Impostazioni predefinite: le senior fermano il tempo, le giovanili no
+let _cfgCrono = { seniorGol: true, seniorCorto: true, giovGol: false, giovCorto: false };
+function _isSenior(c) { return CAT_SENIOR.indexOf(c) !== -1; }
+function _fermaSuGol(c) { return _isSenior(c) ? !!_cfgCrono.seniorGol : !!_cfgCrono.giovGol; }
+function _fermaSuCorto(c) { return _isSenior(c) ? !!_cfgCrono.seniorCorto : !!_cfgCrono.giovCorto; }
+function _cfgCronoSet(chiave, valore) {
+  _cfgCrono = Object.assign({}, _cfgCrono);
+  _cfgCrono[chiave] = !!valore;
+  if (window._fbSaveCfgCrono) {
+    Promise.resolve(window._fbSaveCfgCrono(_cfgCrono)).catch(function(e){
+      alert('Impostazione non salvata: ' + ((e && e.message) || e));
+    });
+  }
+}
+function renderCfgCrono() {
+  var box = document.getElementById('cfg-crono');
+  if (!box) return;
+  function riga(et, k1, k2) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:#f9fafb;border-radius:8px;margin-bottom:5px">'
+      + '<span style="flex:1;font-size:12px;font-weight:700;color:#374151">' + et + '</span>'
+      + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;cursor:pointer"><input type="checkbox" ' + (_cfgCrono[k1] ? 'checked' : '') + ' onchange="_cfgCronoSet(\'' + k1 + '\', this.checked)" style="width:16px;height:16px"> gol</label>'
+      + '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;cursor:pointer"><input type="checkbox" ' + (_cfgCrono[k2] ? 'checked' : '') + ' onchange="_cfgCronoSet(\'' + k2 + '\', this.checked)" style="width:16px;height:16px"> corti</label></div>';
+  }
+  box.innerHTML = riga('Senior \u2014 A2, A1 Indoor, Coppa Fed.', 'seniorGol', 'seniorCorto')
+    + riga('Giovanili \u2014 Ragazze, Allieve, Juniores', 'giovGol', 'giovCorto');
+}
+
 // v38: stato della connessione al database (solo su questo dispositivo)
 let _isConnected = true;
 function _paintConnDot() {
@@ -2676,7 +2728,7 @@ function _cancelAutoResume() {
   _autoResumeAt = null;
 }
 function _scheduleAutoResume() {
-  // v37: non viene piu' richiamata (i gol non fermano il tempo). Lasciata inerte.
+  // v39: non piu' usata. Quando il regolamento ferma il tempo, si riavvia a mano.
   _cancelAutoResume();
   return;
   _autoResumeAt = Date.now() + AUTO_RESUME_MS;
@@ -2699,9 +2751,6 @@ function _clockNoticeHTML() {
        + '<div id="q-end-alert" style="display:none;margin-bottom:8px;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:800;line-height:1.35;background:#fee2e2;color:#991b1b;border:2px solid #ef4444"></div>';
 }
 function _updateClockNotices() {
-  // v37: niente piu' arresti automatici, quindi niente promemoria. _clockNotice resta
-  // sempre nullo e l'avviso non compare mai; l'allarme di fine quarto invece resta.
-  _clockNotice = null;
   var l = liveData;
   var cn = document.getElementById('clock-notice'), qa = document.getElementById('q-end-alert');
   if (!l || !l.active) return;
@@ -3051,8 +3100,10 @@ function _saveGoal(team, jersey, player) {
   var sh = liveData.scoreHome || 0;
   var sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
-  // v37: per regolamento il tempo non si ferma piu' sui gol.
-  window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }));
+  // v39: si ferma solo se l'impostazione della categoria lo prevede
+  var _pf = _fermaSuGol(liveData.cat) ? _pauseFieldsIfRunning(liveData) : null;
+  if (_pf) _clockNotice = { type: 'goal', ts: Date.now() };
+  window._fbSaveLive(Object.assign({}, liveData, { goals: goals, scoreHome: sh, scoreAway: sa }, _pf || {}));
   playVictorySound && (team === liveData.home ? playVictorySound() : playReactionSound());
 }
 
@@ -3136,8 +3187,10 @@ function addGoal() {
   let sh = liveData.scoreHome || 0;
   let sa = liveData.scoreAway || 0;
   if (team === liveData.home) sh++; else sa++;
-  // v37: per regolamento il tempo non si ferma piu' sui gol.
-  window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa});
+  // v39: si ferma solo se l'impostazione della categoria lo prevede
+  var _pf2 = _fermaSuGol(liveData.cat) ? _pauseFieldsIfRunning(liveData) : null;
+  if (_pf2) _clockNotice = { type: 'goal', ts: Date.now() };
+  window._fbSaveLive({...liveData, goals, scoreHome: sh, scoreAway: sa, ...(_pf2 || {})});
   if (rosaSelect) rosaSelect.value = '';
   const jerseyEl = document.getElementById('goal-jersey');
   if (jerseyEl) jerseyEl.value = '';
@@ -3437,6 +3490,7 @@ function saveAllLists() {
 
 function renderListsEditor() {
   renderRosaEditor();
+  renderCfgCrono();
   const tp = document.getElementById('teams-prato-editor');
   if (tp) tp.innerHTML = teamsListPrato.map(function(t,i){return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f9fafb;border-radius:6px"><span style="flex:1;font-size:12px">'+t+'</span><button onclick="removeTeam(\'prato\','+i+')" style="background:none;border:1px solid #fee2e2;border-radius:6px;padding:3px 7px;cursor:pointer;color:#ef4444;font-size:12px;touch-action:manipulation">✕</button></div>';}).join('') || '<div style="font-size:12px;color:#9ca3af;padding:4px">Nessuna squadra</div>';
   const ti = document.getElementById('teams-indoor-editor');
@@ -3486,7 +3540,10 @@ function addCorner(side) {
   const key = side === 'home' ? 'cornerHome' : 'cornerAway';
   const updated = {...liveData, [key]: (liveData[key]||0) + 1};
   window._fbSaveLive(updated);
-  // v37: per regolamento il tempo non si ferma piu' sui corti.
+  // v39: avvisa solo se l'impostazione della categoria lo prevede
+  if (liveData.timerRunning && _fermaSuCorto(liveData.cat)) {
+    _clockNotice = { type: 'corner', ts: Date.now() }; _updateClockNotices();
+  }
 }
 
 function removeCorner(side) {
@@ -4286,12 +4343,12 @@ function openResultModal(id) {
   const goals = m.goals ? Object.values(m.goals).sort(function(a,b){return (a.minute||0)-(b.minute||0);}) : [];
   goals.forEach(function(g) {
     const side = g.team && g.team === m.away ? 'away' : 'home';
-    addScorerRow(side, g.player, g.minute, g.id);
+    addScorerRow(side, g.player, g.minute, g.id, g.jersey, g.quarter);
   });
   document.getElementById('result-modal').classList.add('open');
 }
 
-function addScorerRow(side, player, minute, gid) {
+function addScorerRow(side, player, minute, gid, jersey, quarter) {
   const listId = side === 'away' ? 'scorers-away-list' : 'scorers-home-list';
   const list = document.getElementById(listId);
   if (!list) return;
@@ -4300,8 +4357,11 @@ function addScorerRow(side, player, minute, gid) {
   row.style.cssText = 'display:flex;gap:6px;align-items:center';
   row.dataset.gid = id;
   row.dataset.side = side || 'home';
+  // v39: il quarto viaggia nascosto nella riga e non va perso al salvataggio
+  if (quarter !== undefined && quarter !== null && quarter !== '') row.dataset.quarter = String(quarter);
   const borderColor = side === 'away' ? '#e5e7eb' : '#d1fae5';
-  row.innerHTML = '<input type="text" placeholder="Nome marcatrice" value="'+(player||'')+'" style="flex:1;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 10px;font-size:13px" class="scorer-name">'
+  row.innerHTML = '<input type="number" placeholder="N\u00b0" min="0" max="99" value="'+(jersey!==undefined&&jersey!==null?jersey:'')+'" style="width:52px;flex-shrink:0;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 4px;font-size:13px;text-align:center" class="scorer-jersey">'
+    +'<input type="text" placeholder="Nome marcatrice" value="'+(player||'')+'" style="flex:1;min-width:0;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 10px;font-size:13px" class="scorer-name">'
     +'<input type="number" placeholder="Min" min="0" max="120" value="'+(minute!==undefined?minute:'')+'" style="width:60px;border:1.5px solid '+borderColor+';border-radius:8px;padding:7px 8px;font-size:13px;text-align:center" class="scorer-min">'
     +'<button onclick="this.parentNode.remove()" style="background:none;border:1.5px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px;flex-shrink:0">🗑</button>';
   list.appendChild(row);
@@ -4328,9 +4388,15 @@ function saveResult() {
       const name = nameEl.value.trim();
       const min = minEl.value;
       const gid = row.dataset.gid;
-      if (name || min !== '') {
+      // v39: numero di maglia e quarto non si perdono piu'
+      const jEl = row.querySelector('.scorer-jersey');
+      const jersey = jEl ? String(jEl.value).trim() : '';
+      const quarter = row.dataset.quarter;
+      if (name || min !== '' || jersey !== '') {
         const goal = { id: gid, player: name, team: teamName };
         if (min !== '') goal.minute = parseInt(min);
+        if (jersey !== '' && jersey !== '0') goal.jersey = jersey;
+        if (quarter) goal.quarter = parseInt(quarter);
         goals[gid] = goal;
       }
     });
