@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Correggi indirizzi — Valchisone</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --verde:#1a7a2e; --scuro:#1a3a22; --crema:#f8faf6; --bordo:#dfe6e0; }
+  * { box-sizing:border-box; }
+  body { font-family:'DM Sans',system-ui,sans-serif; background:var(--crema);
+         color:var(--scuro); margin:0; padding:18px; line-height:1.5; }
+  .box { max-width:720px; margin:0 auto; background:#fff; border:1px solid var(--bordo);
+         border-radius:16px; padding:22px; }
+  h1 { font-family:'Bricolage Grotesque',sans-serif; font-size:21px; color:var(--verde);
+       margin:0 0 4px; }
+  .sub { font-size:13px; color:#5b6b60; margin-bottom:18px; }
+  button { font-family:inherit; font-weight:700; border:none; border-radius:11px;
+           padding:13px 18px; font-size:15px; cursor:pointer; }
+  .primario { background:var(--verde); color:#fff; }
+  .primario:disabled { background:#9fb8a6; cursor:not-allowed; }
+  .secondario { background:#f1f5f2; color:var(--scuro); border:1.5px solid var(--bordo); }
+  .riga { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:16px; }
+  #stato { font-size:13px; padding:11px 13px; border-radius:10px; margin-bottom:16px;
+           background:#f1f5f2; }
+  .ok { background:#dcfce7 !important; color:#14532d; font-weight:700; }
+  .err { background:#fee2e2 !important; color:#991b1b; font-weight:700; }
+  .att { background:#fef3c7 !important; color:#92400e; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px;
+       color:#6b7280; padding:7px 8px; border-bottom:1.5px solid var(--bordo); }
+  td { padding:7px 8px; border-bottom:1px solid #f1f4f1; vertical-align:top; }
+  .da { color:#b91c1c; text-decoration:line-through; }
+  .a  { color:var(--verde); font-weight:700; }
+  .nota { font-size:12px; color:#5b6b60; background:#f8faf6; border-left:3px solid var(--verde);
+          padding:10px 12px; border-radius:0 6px 6px 0; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Correggi indirizzi delle partite</h1>
+  <div class="sub">Strumento di servizio — ASD H.P. Valchisone Femminile</div>
+
+  <div id="stato">Collegamento al database…</div>
+
+  <div class="riga">
+    <button id="btn-login" class="primario" style="display:none">Accedi con Google</button>
+    <button id="btn-cerca" class="secondario" style="display:none">Cerca di nuovo</button>
+    <button id="btn-applica" class="primario" style="display:none">Applica le correzioni</button>
+  </div>
+
+  <div id="elenco"></div>
+
+  <div class="nota">
+    Questo strumento modifica <b>solo il campo indirizzo</b> delle partite elencate.
+    Risultati, marcatrici, data e ora non vengono toccati.
+    Al termine puoi cancellare questo file da GitHub.
+  </div>
+</div>
+
+<script>
+// Logica di confronto, volutamente fuori dal blocco che carica Firebase:
+// cosi' esiste sempre, si puo' collaudare, e non dipende dalla rete.
+const CORREZIONI = [
+  { da: "Palazzetto dello Sport - Viale Risorgimento, 31, Bra",
+    a:  "Palazzetto dello Sport - Viale Risorgimento, 31/A, Bra" }
+];
+function daCorreggere(partite) {
+  const esito = [];
+  Object.keys(partite || {}).forEach(function (id) {
+    const m = partite[id];
+    if (!m || typeof m.location !== "string") return;
+    CORREZIONI.forEach(function (c) {
+      if (m.location.trim() === c.da) {
+        esito.push({ id: id, home: m.home, away: m.away, date: m.date,
+                     da: c.da, a: c.a });
+      }
+    });
+  });
+  esito.sort(function (x, y) { return String(x.date).localeCompare(String(y.date)); });
+  return esito;
+}
+// Se il modulo non parte entro 8 secondi, la rete o il blocco script ha fallito.
+window.__avviato = false;
+setTimeout(function () {
+  if (window.__avviato) return;
+  var s = document.getElementById("stato");
+  if (!s) return;
+  s.className = "err";
+  s.textContent = "Non riesco a caricare Firebase. Controlla la connessione, "
+    + "ricarica la pagina, e verifica di aver aperto il file dal sito "
+    + "(non dal computer).";
+}, 8000);
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyBVQTEGdLGatDNTIBYm5STrAz2BdsWFD3g",
+  authDomain: "partite-hockey-prato.firebaseapp.com",
+  databaseURL: "https://partite-hockey-prato-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "partite-hockey-prato",
+  storageBucket: "partite-hockey-prato.firebasestorage.app",
+  messagingSenderId: "263353041218",
+  appId: "1:263353041218:web:e42dccc49903ac436b08db"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+window.__avviato = true;
+
+const S = document.getElementById("stato");
+const E = document.getElementById("elenco");
+const bLogin = document.getElementById("btn-login");
+const bCerca = document.getElementById("btn-cerca");
+const bAppl  = document.getElementById("btn-applica");
+let trovate = [];
+
+function stato(testo, classe) {
+  S.textContent = testo;
+  S.className = classe || "";
+}
+function esc(x) {
+  return String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+onAuthStateChanged(auth, function (u) {
+  if (!u) {
+    stato("Devi accedere con l'account Google della societa'.", "att");
+    bLogin.style.display = "";
+    bCerca.style.display = bAppl.style.display = "none";
+    E.innerHTML = "";
+    return;
+  }
+  stato("Collegata come " + u.email + ". Cerco le partite da correggere…");
+  bLogin.style.display = "none";
+  bCerca.style.display = "";
+  cerca();
+});
+
+bLogin.addEventListener("click", function () {
+  signInWithPopup(auth, new GoogleAuthProvider()).catch(function (e) {
+    stato("Accesso non riuscito: " + (e && e.message ? e.message : e), "err");
+  });
+});
+bCerca.addEventListener("click", cerca);
+
+async function cerca() {
+  bAppl.style.display = "none";
+  E.innerHTML = "";
+  try {
+    const snap = await get(ref(db, "matches"));
+    trovate = daCorreggere(snap.val());
+    if (!trovate.length) {
+      stato("Nessuna partita da correggere: gli indirizzi sono gia' a posto.", "ok");
+      return;
+    }
+    stato(trovate.length + " partite da correggere.", "att");
+    let h = "<table><tr><th>Data</th><th>Partita</th><th>Indirizzo</th></tr>";
+    trovate.forEach(function (t) {
+      h += "<tr><td>" + esc(t.date) + "</td><td>" + esc(t.home) + "<br>" + esc(t.away)
+         + "</td><td><span class='da'>" + esc(t.da) + "</span><br><span class='a'>"
+         + esc(t.a) + "</span></td></tr>";
+    });
+    E.innerHTML = h + "</table>";
+    bAppl.style.display = "";
+    bAppl.textContent = "Applica le correzioni (" + trovate.length + ")";
+  } catch (e) {
+    stato("Lettura non riuscita: " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+bAppl.addEventListener("click", async function () {
+  if (!trovate.length) return;
+  if (!confirm("Correggo l'indirizzo di " + trovate.length + " partite?\n\n"
+      + "Risultati e marcatrici non vengono toccati.")) return;
+  bAppl.disabled = true;
+  stato("Correzione in corso…");
+  let fatte = 0, errori = [];
+  for (const t of trovate) {
+    try {
+      // scrive SOLO il campo location della singola partita
+      await update(ref(db, "matches/" + t.id), { location: t.a });
+      fatte++;
+    } catch (e) {
+      errori.push(t.id + ": " + (e && e.message ? e.message : e));
+    }
+  }
+  bAppl.disabled = false;
+  if (errori.length) {
+    stato(fatte + " corrette, " + errori.length + " non riuscite. " + errori[0], "err");
+  } else {
+    stato(fatte + " partite corrette. Ricontrollo…", "ok");
+    setTimeout(cerca, 900);
+  }
+});
+</script>
+</body>
+</html>
