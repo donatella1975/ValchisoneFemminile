@@ -2453,9 +2453,10 @@ function renderLiveAdminPanel() {
           <div style="font-size:12px;font-weight:800;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${abbrevTeam(l.away,14)}</div>
         </button>
       </div>
+      <button onclick="openRosaQuick()" style="width:100%;background:#fff;border:1.5px solid #d1fae5;border-radius:12px;padding:10px;font-size:13px;font-weight:800;color:#1a7a2e;cursor:pointer;touch-action:manipulation;margin-bottom:8px;font-family:DM Sans,sans-serif">👥 Rosa ${(CATS[l.cat] && CATS[l.cat].label) || ''} (${rosaValchisone.filter(function(x){ return x.cat === l.cat; }).length})</button>
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:6px;margin-bottom:10px">
-        <button onclick="shareLastGoal()" style="background:#25D366;color:white;border:none;border-radius:12px;padding:13px 8px;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">\ud83d\udcf2 Manda l\u0027ultimo gol</button>
-        <button onclick="shareLiveScore()" style="background:#f0faf2;color:#1a7a2e;border:2px solid #25D366;border-radius:12px;padding:13px 8px;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">Punteggio</button>
+        <button onclick="shareGoalPost()" style="background:#25D366;color:white;border:none;border-radius:12px;padding:13px 8px;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">\ud83d\udcf2 Manda il gol</button>
+        <button onclick="shareFullTimePost()" style="background:#f0faf2;color:#1a7a2e;border:2px solid #25D366;border-radius:12px;padding:13px 8px;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation;font-family:DM Sans,sans-serif">\ud83c\udfc1 Finale</button>
       </div>
       ${_clockNoticeHTML()}
       <div style="margin-bottom:8px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;line-height:1.35">${(_fermaSuGol(l.cat) || _fermaSuCorto(l.cat))
@@ -2558,7 +2559,17 @@ function startLive() {
   const all = [...allMatches, ...allIndoor];
   const m = all.find(x => x.id === matchId);
   if (!m) return;
-  alert('⏱️ Nota: i tempi ufficiali sono quelli dettati dall\'arbitro in campo. Il cronometro dell\'app è indicativo.');
+  // v41: prima di partire, dice quante giocatrici ci sono in rosa.
+  var _nR = rosaValchisone.filter(function(p){ return p.cat === m.cat; }).length;
+  var _etC = (CATS[m.cat] && CATS[m.cat].label) || m.cat;
+  var _msg = 'ROSA ' + _etC.toUpperCase() + ': ' + _nR
+    + (_nR === 1 ? ' giocatrice' : ' giocatrici') + '\n\n'
+    + (_nR === 0 ? 'ATTENZIONE: per questa categoria la rosa e\' vuota.\n\n' : '')
+    + 'I tempi ufficiali sono quelli dell\'arbitro: il cronometro dell\'app'
+    + ' e\' indicativo.\n\n'
+    + 'OK = avvia la diretta\n'
+    + 'ANNULLA = controlla prima la rosa';
+  if (!confirm(_msg)) { openRosaQuick(m.cat); return; }
   const live = {
     active: true,
     id: matchId,
@@ -2948,6 +2959,21 @@ function openGoalPanel(side) {
         + '</button>';
     });
     inner += '</div>';
+    // v41: chi e' salita da un'altra categoria, a un tocco invece che a mano
+    var altre = rosaValchisone.filter(function(p){ return p.cat !== (liveData.cat||''); }).sort(_rosaSort);
+    if (altre.length) {
+      inner += '<button id="_gp_altre" style="width:100%;background:#f0faf2;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px;font-size:13px;font-weight:700;color:#1a7a2e;cursor:pointer;touch-action:manipulation;margin-bottom:8px">👥 Altre categorie (' + altre.length + ')</button>';
+      inner += '<div id="_gp_altre_box" style="display:none"><div class="rosa-grid">';
+      altre.forEach(function(p){
+        var etc = (CATS[p.cat] && CATS[p.cat].label) || p.cat;
+        inner += '<button class="rosa-btn" data-num="'+(p.num||0)+'" data-name="'+_escH(p.name)+'">'
+          + '<div class="num">'+(p.num?'#'+p.num:'–')+'</div>'
+          + '<div class="name">'+_escHtml(_rosaBtnName(p, altre))+'</div>'
+          + '<div style="font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_escH(etc)+'</div>'
+          + '</button>';
+      });
+      inner += '</div></div>';
+    }
     // Bottone inserimento manuale
     inner += '<button id="_gp_manual" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px;font-size:13px;color:#6b7280;cursor:pointer;touch-action:manipulation">✏️ Inserimento manuale</button>';
   } else {
@@ -2982,6 +3008,15 @@ function openGoalPanel(side) {
     if (kpBtn && kpBtn.hasAttribute('data-key')) {
       _keypadPress(kpBtn.getAttribute('data-key'));
     }
+  });
+  var altreBtn = document.getElementById('_gp_altre');
+  if (altreBtn) altreBtn.addEventListener('click', function(){
+    var b = document.getElementById('_gp_altre_box');
+    if (!b) return;
+    var apri = b.style.display === 'none';
+    b.style.display = apri ? '' : 'none';
+    altreBtn.textContent = (apri ? '✕ Chiudi altre categorie'
+      : '👥 Altre categorie (' + altre.length + ')');
   });
   var manualBtn = document.getElementById('_gp_manual');
   if (manualBtn) manualBtn.addEventListener('click', function(){ _showGoalManual(teamName); });
@@ -3040,6 +3075,9 @@ function _showGoalManual(teamName) {
     var name = document.getElementById('_gm_name')?.value?.trim() || '';
     document.body.removeChild(ov2);
     _registerGoalDirect(num, name, teamName);
+    // v41: la rosa si corregge adesso, non la prossima settimana
+    var isV = String(teamName || '').toUpperCase().indexOf(VALCH) >= 0;
+    if (isV) _offriAggiuntaRosa(num, name);
   });
   window._goalPanelOv = ov2;
 }
@@ -4888,6 +4926,357 @@ function shareMatchById(id) {
   if (!m) return;
   shareMatch(m);
 }
+
+
+// ─── v41: ROSA CORREGGIBILE DALLA DIRETTA ───────────────────────────────
+// La rosa si sistema nel momento in cui ci si accorge che e' sbagliata,
+// senza uscire dalla diretta e senza doversene ricordare prima.
+let _rqCat = '';
+
+function _rqPuoiModificare() {
+  return !!(window._authUser && window._authUser.provider === 'google.com');
+}
+function _rqLista() {
+  return rosaValchisone
+    .map(function(p, i) { return { p: p, i: i }; })
+    .filter(function(x) { return x.p.cat === _rqCat; })
+    .sort(function(a, b) { return _rosaSort(a.p, b.p); });
+}
+
+function openRosaQuick(cat) {
+  _rqCat = cat || (liveData && liveData.cat) || rosaCat || 'af';
+  var vecchio = document.getElementById('rosa-quick-ov');
+  if (vecchio) document.body.removeChild(vecchio);
+  var et = (CATS[_rqCat] && CATS[_rqCat].label) || _rqCat;
+  var ov = document.createElement('div');
+  ov.id = 'rosa-quick-ov';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;'
+    + 'display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto';
+  ov.innerHTML = '<div style="background:#fff;border-radius:18px;padding:18px;'
+    + 'max-width:430px;width:100%;font-family:DM Sans,sans-serif;margin:auto">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    + '<div style="font-family:Bricolage Grotesque,sans-serif;font-size:17px;'
+    + 'font-weight:800;color:#1a3a22">👥 Rosa ' + _escH(et) + '</div>'
+    + '<button id="_rq_close" style="background:#f3f4f6;border:none;border-radius:50%;'
+    + 'width:32px;height:32px;font-size:18px;cursor:pointer;touch-action:manipulation">×</button></div>'
+    + '<div id="_rq_body"></div></div>';
+  document.body.appendChild(ov);
+  document.getElementById('_rq_close').addEventListener('click', closeRosaQuick);
+  ov.addEventListener('click', function(e) { if (e.target === ov) closeRosaQuick(); });
+  renderRosaQuick();
+}
+
+function closeRosaQuick() {
+  var ov = document.getElementById('rosa-quick-ov');
+  if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+  try { if (liveData) renderLiveAdminPanel(); } catch (e) {}
+  try { renderRosaEditor(); } catch (e) {}
+}
+
+function renderRosaQuick() {
+  var box = document.getElementById('_rq_body');
+  if (!box) return;
+  var lista = _rqLista();
+  var puoi = _rqPuoiModificare();
+  var h = '';
+  if (!lista.length) {
+    h += '<div style="background:#fef3c7;border:1.5px solid #fde68a;border-radius:10px;'
+      + 'padding:10px;font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px">'
+      + "Nessuna giocatrice in rosa per questa categoria." + '</div>';
+  } else {
+    h += '<div style="max-height:46vh;overflow-y:auto;margin-bottom:10px">';
+    lista.forEach(function(x) {
+      h += '<div style="display:flex;align-items:center;gap:9px;padding:7px 9px;'
+        + 'background:#f9fafb;border-radius:9px;margin-bottom:5px">'
+        + '<span style="min-width:36px;font-weight:800;color:#1a7a2e;font-size:13px">'
+        + (x.p.num ? '#' + x.p.num : '–') + '</span>'
+        + '<span style="flex:1;font-size:13px;font-weight:600">' + _escH(x.p.name)
+        + (x.p.gk ? ' <span style="font-size:9px;background:#fde68a;color:#92400e;'
+          + 'padding:1px 5px;border-radius:5px;font-weight:800">GK</span>' : '') + '</span>'
+        + (puoi ? '<button onclick="rosaQuickDel(' + x.i + ')" style="background:none;'
+          + 'border:1.5px solid #fee2e2;border-radius:7px;padding:3px 8px;cursor:pointer;'
+          + 'color:#ef4444;font-size:13px;touch-action:manipulation">✕</button>' : '')
+        + '</div>';
+    });
+    h += '</div>';
+  }
+  h += '<div style="font-size:11px;color:#6b7280;margin-bottom:10px">'
+    + lista.length + (lista.length === 1 ? ' giocatrice' : ' giocatrici') + ' in rosa</div>';
+  if (puoi) {
+    h += '<div style="border-top:1px solid #eef2ef;padding-top:11px">'
+      + '<div style="display:flex;gap:6px;align-items:center">'
+      + '<input type="number" id="_rq_num" placeholder="N°" min="0" max="99" '
+      + 'style="width:58px;border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 4px;'
+      + 'font-size:14px;text-align:center">'
+      + '<input type="text" id="_rq_name" placeholder="Nome e cognome" '
+      + 'style="flex:1;min-width:0;border:1.5px solid #e5e7eb;border-radius:9px;'
+      + 'padding:9px 10px;font-size:14px">'
+      + '<label style="display:flex;align-items:center;gap:3px;font-size:11px;'
+      + 'font-weight:700;color:#6b7280;cursor:pointer">'
+      + '<input type="checkbox" id="_rq_gk" style="width:15px;height:15px"> GK</label>'
+      + '</div>'
+      + '<button onclick="rosaQuickAdd()" style="width:100%;margin-top:9px;'
+      + 'background:#1a7a2e;color:#fff;border:none;border-radius:10px;padding:11px;'
+      + 'font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation">'
+      + '+ Aggiungi alla rosa</button></div>';
+  } else {
+    h += '<div style="background:#f3f4f6;border-radius:9px;padding:9px;font-size:11px;'
+      + 'color:#6b7280">Solo l&rsquo;amministratrice puo&rsquo; modificare la rosa.</div>';
+  }
+  box.innerHTML = h;
+}
+
+function rosaQuickAdd() {
+  if (!_rqPuoiModificare()) return;
+  var nEl = document.getElementById('_rq_num');
+  var sEl = document.getElementById('_rq_name');
+  var gEl = document.getElementById('_rq_gk');
+  var nome = sEl ? sEl.value.trim() : '';
+  if (!nome) { alert('Scrivi il nome.'); return; }
+  var num = nEl && nEl.value.trim() !== '' ? parseInt(nEl.value) : 0;
+  if (isNaN(num) || num < 0 || num > 99) { alert('Numero non valido (0 se non lo sai).'); return; }
+  var doppia = rosaValchisone.findIndex(function(p) {
+    return p.cat === _rqCat && String(p.name).trim().toLowerCase() === nome.toLowerCase();
+  });
+  if (doppia >= 0) {
+    if (!confirm(nome + " e' gia' in rosa. Aggiorno il numero a " + (num || '-') + "?")) return;
+    rosaValchisone[doppia] = { num: num, name: nome, cat: _rqCat, gk: gEl ? gEl.checked : false };
+  } else {
+    if (num > 0) {
+      var stesso = rosaValchisone.findIndex(function(p) {
+        return p.cat === _rqCat && p.num === num;
+      });
+      if (stesso >= 0 && !confirm('Il numero ' + num + " e' gia' di "
+          + rosaValchisone[stesso].name + '. Aggiungo lo stesso?')) return;
+    }
+    rosaValchisone.push({ num: num, name: nome, cat: _rqCat, gk: gEl ? gEl.checked : false });
+  }
+  saveAllLists();
+  if (nEl) nEl.value = '';
+  if (sEl) sEl.value = '';
+  if (gEl) gEl.checked = false;
+  renderRosaQuick();
+}
+
+function rosaQuickDel(idx) {
+  if (!_rqPuoiModificare()) return;
+  var p = rosaValchisone[idx];
+  if (!p) return;
+  if (!confirm('Tolgo ' + p.name + ' dalla rosa?')) return;
+  rosaValchisone.splice(idx, 1);
+  saveAllLists();
+  renderRosaQuick();
+}
+
+// v41: dopo un gol scritto a mano, offre di mettere la giocatrice in rosa
+function _offriAggiuntaRosa(num, nome) {
+  if (!liveData || !nome || !nome.trim()) return;
+  if (!_rqPuoiModificare()) return;
+  var cat = liveData.cat || '';
+  var gia = rosaValchisone.some(function(p) {
+    return p.cat === cat && String(p.name).trim().toLowerCase() === nome.trim().toLowerCase();
+  });
+  if (gia) return;
+  var et = (CATS[cat] && CATS[cat].label) || cat;
+  var n = parseInt(num) || 0;
+  if (!confirm('Aggiungo ' + (n ? '#' + n + ' ' : '') + nome.trim() + ' alla rosa ' + et + '?\n\n'
+      + 'Cosi la trovi gia pronta nel pannello, oggi e le prossime volte.')) return;
+  rosaValchisone.push({ num: n, name: nome.trim(), cat: cat, gk: false });
+  saveAllLists();
+  try { if (liveData) renderLiveAdminPanel(); } catch (e) {}
+}
+
+// ─── v40: POST QUADRATI PER WHATSAPP ────────────────────────────────────
+// Disegna l'immagine su una tela nascosta e la passa a WhatsApp come
+// allegato. Se il telefono non sa allegare immagini, riparte il testo.
+const POST_LATO = 1080;
+const POST_VERDE = '#1a3a22';
+const POST_VERDE2 = '#1a7a2e';
+const POST_ARANCIO = '#f07d28';
+const POST_CREMA = '#f8faf6';
+let _avvisoImmagini = false;
+
+function _pf(peso, dim) {
+  return peso + ' ' + Math.round(dim) + "px 'Bricolage Grotesque', sans-serif";
+}
+function _pCentro(ctx, cx, y, testo, font, colore) {
+  ctx.font = font; ctx.fillStyle = colore; ctx.textAlign = 'center';
+  ctx.textBaseline = 'top'; ctx.fillText(testo, cx, y);
+}
+function _pSpaziato(ctx, cx, y, testo, font, colore, sp) {
+  ctx.font = font; ctx.fillStyle = colore; ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+  var larg = 0, i;
+  for (i = 0; i < testo.length; i++) larg += ctx.measureText(testo[i]).width + sp;
+  larg -= sp;
+  var x = cx - larg / 2;
+  for (i = 0; i < testo.length; i++) {
+    ctx.fillText(testo[i], x, y);
+    x += ctx.measureText(testo[i]).width + sp;
+  }
+}
+function _pPoli(ctx, punti, colore) {
+  ctx.beginPath(); ctx.moveTo(punti[0][0], punti[0][1]);
+  for (var i = 1; i < punti.length; i++) ctx.lineTo(punti[i][0], punti[i][1]);
+  ctx.closePath(); ctx.fillStyle = colore; ctx.fill();
+}
+function _pPillola(ctx, cx, y, w, h, colore, raggio) {
+  var x = cx - w / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + raggio, y);
+  ctx.arcTo(x + w, y, x + w, y + h, raggio);
+  ctx.arcTo(x + w, y + h, x, y + h, raggio);
+  ctx.arcTo(x, y + h, x, y, raggio);
+  ctx.arcTo(x, y, x + w, y, raggio);
+  ctx.closePath(); ctx.fillStyle = colore; ctx.fill();
+}
+function _pSfondo(ctx, L) {
+  ctx.fillStyle = POST_CREMA; ctx.fillRect(0, 0, L, L);
+  var g = ctx.createLinearGradient(0, L * 0.55, 0, L);
+  g.addColorStop(0, 'rgba(168,200,150,0)');
+  g.addColorStop(1, 'rgba(168,200,150,0.55)');
+  ctx.fillStyle = g; ctx.fillRect(0, L * 0.55, L, L * 0.45);
+  var a = L * 0.14, b = L * 0.22;
+  _pPoli(ctx, [[-40,0],[a,0],[a*0.27,b],[-40,b*0.87]], POST_VERDE);
+  _pPoli(ctx, [[a*0.73,0],[a*1.43,0],[a*0.75,b*0.97],[a*0.27,b]], POST_ARANCIO);
+  _pPoli(ctx, [[L+40,L],[L-a,L],[L-a*0.27,L-b],[L+40,L-b*0.87]], POST_VERDE);
+  _pPoli(ctx, [[L-a*0.73,L],[L-a*1.43,L],[L-a*0.75,L-b*0.97],[L-a*0.27,L-b]], POST_ARANCIO);
+}
+function _pSwoosh(ctx, cx, y, w, h) {
+  _pPoli(ctx, [[cx-w/2,y+h*0.55],[cx-w*0.33,y],[cx+w*0.42,y+h*0.1],
+               [cx+w/2,y+h*0.75],[cx+w*0.3,y+h*0.5],[cx-w*0.38,y+h*0.95]],
+         POST_ARANCIO);
+}
+// I nomi non si tagliano: si rimpicciolisce il carattere finche' ci stanno,
+// cosi' resta leggibile per intero anche con squadre dal nome lungo.
+function _pSquadre(ctx, cx, y, u, casa, osp) {
+  var maxLarg = cx - 70 * u;
+  var dim = 46 * u, minimo = 24 * u;
+  ctx.textBaseline = 'top';
+  ctx.font = _pf(800, dim);
+  while (dim > minimo &&
+         (ctx.measureText(casa).width > maxLarg ||
+          ctx.measureText(osp).width > maxLarg)) {
+    dim -= 1.5 * u;
+    ctx.font = _pf(800, dim);
+  }
+  var wc = ctx.measureText(casa).width;
+  ctx.textAlign = 'left'; ctx.fillStyle = POST_VERDE;
+  var yy = y + (46 * u - dim) * 0.6;
+  ctx.fillText(casa, cx - 28 * u - wc, yy);
+  ctx.fillText(osp, cx + 28 * u, yy);
+  ctx.fillStyle = POST_ARANCIO;
+  ctx.fillRect(cx - 2.5 * u, y - 4 * u, 5 * u, 62 * u);
+}
+
+function _disegnaPost(d) {
+  var L = POST_LATO, u = L / 1080, cx = L / 2;
+  var cv = document.createElement('canvas');
+  cv.width = L; cv.height = L;
+  var ctx = cv.getContext('2d');
+  _pSfondo(ctx, L);
+  _pSpaziato(ctx, cx, L * 0.035, 'HP VALCHISONE', _pf(800, 54 * u), POST_VERDE, 2 * u);
+  _pSpaziato(ctx, cx, L * 0.095, 'FEMMINILE', _pf(700, 29 * u), POST_ARANCIO, 12 * u);
+
+  if (d.tipo === 'gol') {
+    _pCentro(ctx, cx, L * 0.145, 'GOL!', _pf(800, 150 * u), POST_VERDE);
+    _pSwoosh(ctx, cx, L * 0.285, 520 * u, 54 * u);
+    if (d.marcatrice) {
+      _pPillola(ctx, cx, L * 0.355, 660 * u, 92 * u, POST_VERDE2, 26 * u);
+      _pCentro(ctx, cx, L * 0.355 + 22 * u, d.marcatrice, _pf(700, 42 * u), '#ffffff');
+    }
+  } else {
+    _pCentro(ctx, cx, L * 0.155, 'FULL TIME', _pf(800, 118 * u), POST_VERDE);
+    _pSwoosh(ctx, cx, L * 0.295, 580 * u, 60 * u);
+  }
+
+  var ySq = (d.tipo === 'gol') ? L * 0.50 : L * 0.46;
+  var yPt = (d.tipo === 'gol') ? L * 0.575 : L * 0.545;
+  var dim = (d.tipo === 'gol') ? 185 * u : 215 * u;
+  _pSquadre(ctx, cx, ySq, u, d.casa, d.ospite);
+  _pCentro(ctx, cx, yPt, d.punteggio, _pf(800, dim), POST_VERDE);
+
+  if (d.categoria) _pSpaziato(ctx, cx, L * 0.835, d.categoria, _pf(700, 31 * u), POST_VERDE, 8 * u);
+  if (d.nota) {
+    _pPillola(ctx, cx, L * 0.885, 570 * u, 84 * u, POST_VERDE, 24 * u);
+    _pCentro(ctx, cx, L * 0.885 + 20 * u, d.nota, _pf(700, 35 * u), '#ffffff');
+  }
+  return cv;
+}
+
+function _condividiPost(cv, nomeFile, testoDiScorta) {
+  var fine = function(blob) {
+    try {
+      if (!blob) throw new Error('immagine non creata');
+      var file = new File([blob], nomeFile, { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(function(e) {
+          if (e && e.name === 'AbortError') return;   // annullato: nessun ripiego
+          _postDiScorta(testoDiScorta);
+        });
+        return;
+      }
+      throw new Error('questo telefono non allega immagini');
+    } catch (e) {
+      _postDiScorta(testoDiScorta);
+    }
+  };
+  try { cv.toBlob(fine, 'image/png'); } catch (e) { _postDiScorta(testoDiScorta); }
+}
+
+function _postDiScorta(testo) {
+  if (!_avvisoImmagini) {
+    _avvisoImmagini = true;
+    alert("Questo telefono non riesce ad allegare immagini a WhatsApp.\n"
+        + "Mando il messaggio scritto, che funziona lo stesso.");
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(testo), '_blank');
+}
+
+function _postComuni() {
+  var cat = (CATS[liveData.cat] && CATS[liveData.cat].label) || '';
+  return {
+    casa: String(abbrevTeam(liveData.home, 24) || '').toUpperCase(),
+    ospite: String(abbrevTeam(liveData.away, 24) || '').toUpperCase(),
+    punteggio: (liveData.scoreHome || 0) + '  -  ' + (liveData.scoreAway || 0),
+    categoria: cat.toUpperCase()
+  };
+}
+
+function _conCaratteri(fn) {
+  // I caratteri del sito devono essere pronti, altrimenti la tela ne usa altri
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+    document.fonts.ready.then(fn).catch(fn);
+  } else { fn(); }
+}
+
+function shareGoalPost() {
+  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
+  var g = _lastGoal();
+  if (!g) { alert("Non c'e' ancora nessun gol da mandare."); return; }
+  _conCaratteri(function() {
+    var d = _postComuni();
+    d.tipo = 'gol';
+    var chi = ((g.jersey ? '#' + g.jersey + ' ' : '') + (g.player || '')).trim();
+    var min = (g.minute !== undefined ? g.minute : (g.minuteTotal || 0));
+    d.marcatrice = chi ? (chi + '   ·   ' + min + "'") : (min + "'");
+    d.nota = g.quarter ? (g.quarter + '° quarto') : 'in corso';
+    _condividiPost(_disegnaPost(d), 'gol-valchisone.png', _testoGol(g));
+  });
+}
+
+function shareFullTimePost() {
+  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
+  _conCaratteri(function() {
+    var d = _postComuni();
+    d.tipo = 'full';
+    d.nota = new Date().toLocaleDateString('it-IT',
+             { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    d.nota = d.nota.charAt(0).toUpperCase() + d.nota.slice(1);
+    _condividiPost(_disegnaPost(d), 'finale-valchisone.png', _testoFinale());
+  });
+}
+
 // v38: manda l'ultimo gol sul gruppo WhatsApp. Usa lo stesso meccanismo
 // di shareMatch, gia' collaudato: apre WhatsApp col testo gia' scritto,
 // poi scegli il gruppo e premi invia tu.
@@ -4902,10 +5291,7 @@ function _lastGoal() {
   });
   return gs[gs.length - 1];
 }
-function shareLastGoal() {
-  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
-  var g = _lastGoal();
-  if (!g) { alert('Non c\u0027e\u0027 ancora nessun gol da mandare.'); return; }
+function _testoGol(g) {
   var isV = String(g.team || '').toUpperCase().indexOf(VALCH) >= 0;
   var chi = ((g.jersey ? '#' + g.jersey + ' ' : '') + (g.player || '')).trim();
   var min = (g.minute !== undefined ? g.minute : (g.minuteTotal || 0));
@@ -4920,10 +5306,9 @@ function shareLastGoal() {
     + (liveData.scoreHome || 0) + ' - ' + (liveData.scoreAway || 0)
     + '  ' + abbrevTeam(liveData.away, 25)
     + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  return text;
 }
-function shareLiveScore() {
-  if (!liveData) { alert('Nessuna diretta in corso.'); return; }
+function _testoFinale() {
   var cat = (CATS[liveData.cat] && CATS[liveData.cat].label)
     ? ' \u2014 ' + CATS[liveData.cat].label : '';
   var text = '\ud83c\udfd1 Diretta' + cat + '\n\n'
@@ -4932,7 +5317,7 @@ function shareLiveScore() {
     + '  ' + abbrevTeam(liveData.away, 25)
     + (liveData.finished ? '\n\nFINALE' : '')
     + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  return text;
 }
 
 function shareMatch(m) {
