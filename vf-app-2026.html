@@ -1940,7 +1940,7 @@ function matchCardHTML(m, showAdmin) {
       <span class="mc-team${awayClass}" title="${m.away}">${abbrevTeam(m.away,22)}</span>
 
     </div>
-    <div class="mc-info">${hasSc ? `<span class="mc-info-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}<span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span></div>
+    <div class="mc-info">${hasSc ? `<span class="mc-info-score">${m.scoreHome}–${m.scoreAway}</span>` : ''}<span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.label||cat.short||''}</span><span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span></div>
     ${hasSc ? `<div class="mc-score-d" style="font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px">${m.scoreHome}–${m.scoreAway}</div>` : ''}
     ${(function(){
       if (!hasSc || !m.goals) return '';
@@ -1963,7 +1963,7 @@ function matchCardHTML(m, showAdmin) {
     </div>
   </div>
   <div class="mc-right">
-    <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
+    <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.label||cat.short||''}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'🔒 Risultato Finale':'Da giocare'}</span>
     ${showAdmin && isAdminOpen && !_isLiveOnly ? `<button class="btn btn-sm btn-ghost" onclick="openResultModal('${m.id}')" title="Risultato">${hasSc?'✏️':'🏑'}</button>` : ''}
   </div>
@@ -6131,9 +6131,9 @@ function updateMobileLiveIndicator(hasLive){
      border-top:1px solid rgba(0,0,0,.08);text-align:center;font-size:11px;line-height:1.7;
      color:#9ca3af">
   <div style="font-weight:700;color:#6b7280;letter-spacing:.3px">
-    &copy; 2026 ASD Hockey su Prato Valchisone Femminile
+    &copy; 2026 Donatella R. &middot; Tutti i diritti riservati
   </div>
-  <div>Tutti i diritti riservati &middot; App realizzata per uso interno della societ&agrave;</div>
+  <div>Realizzata per ASD Hockey su Prato Valchisone Femminile</div>
 </div>
 
 <!-- PRIVACY BAR -->
