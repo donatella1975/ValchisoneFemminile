@@ -1939,8 +1939,11 @@ const MAP_COORDS = {
   'Villar Perosa': '44.91987154237015,7.245542664417819',
   'UMBERTO MICCO': '45.05193100148183,8.256897193253458',
   'Moncalvo': '45.05193100148183,8.256897193253458',
+  // Campo Tazzoli, corso Enrico Tazzoli 78: il campo da prato di Torino.
+  // Niente chiave generica 'TORINO': un altro campo torinese che non
+  // conosciamo deve cercare il proprio indirizzo, non finire qui.
+  'TAZZOLI': '45.0347417660555,7.633165707451384',
   'CUS TORINO': '45.0347417660555,7.633165707451384',
-  'TORINO': '45.0347417660555,7.633165707451384',
 };
 function getMapAddress(location) {
   if (!location) return '';
