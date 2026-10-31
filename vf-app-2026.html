@@ -805,13 +805,17 @@ body.on-live .hero { display:none; }
 <div class="page" id="page-indoor">
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-indoor"></div>
-    <div class="print-box">
-      <button class="print-btn-main" onclick="togglePrintMenu('print-menu-indoor')">🖨️ Stampa ▾</button>
-      <div class="print-dropdown" id="print-menu-indoor">
-        <button onclick="quickPrint('indoor','list','normal');closePrintMenus()">📋 Elenco</button>
-        <button onclick="quickPrint('indoor','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
-        <button onclick="quickPrint('indoor','list','pocket');closePrintMenus()">👜 Tascabile</button>
-        <button onclick="quickPrint('indoor','calendar');closePrintMenus()">📅 Calendario</button>
+    <!-- v47: anche l'Indoor ha il suo pulsante Solo Valchisone -->
+    <div style="display:flex;align-items:center;gap:5px">
+      <button class="ftab valch" id="valch-filter-btn-indoor" onclick="toggleValch()" title="Mostra solo partite di Valchisone" style="padding:6px 14px;font-size:12px;border-radius:20px;border-width:2px;font-weight:700">🟠 Solo Valchisone</button>
+      <div class="print-box" style="flex-shrink:0;margin-left:auto">
+        <button class="print-btn-main" onclick="togglePrintMenu('print-menu-indoor')">🖨️ Stampa ▾</button>
+        <div class="print-dropdown" id="print-menu-indoor">
+          <button onclick="quickPrint('indoor','list','normal');closePrintMenus()">📋 Elenco</button>
+          <button onclick="quickPrint('indoor','list','a4landscape');closePrintMenus()">📄 A4 2 colonne</button>
+          <button onclick="quickPrint('indoor','list','pocket');closePrintMenus()">👜 Tascabile</button>
+          <button onclick="quickPrint('indoor','calendar');closePrintMenus()">📅 Calendario</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1549,7 +1553,7 @@ function renderGiornate(sport) {
   if (!contentEl) return;
   const pool = sport === 'indoor' ? allIndoor : allMatches;
   const cats = sport === 'indoor' ? INDOOR_CATS : FEMALE_CATS;
-  const onlyValch = document.getElementById('valch-filter-btn') && document.getElementById('valch-filter-btn').classList.contains('active');
+  // v47: usa la variabile globale, non la classe del pulsante del prato.
 
   // Legge filtro attivo dalle variabili globali
   const activeFilter = sport === 'indoor' ? fIndoor : fPartite;
@@ -1669,8 +1673,11 @@ function setFIndoor(v) {
 }
 function toggleValch() {
   onlyValch = !onlyValch;
-  const btn = document.getElementById('valch-filter-btn');
-  if (btn) btn.className = 'ftab valch' + (onlyValch ? ' active' : '');
+  // v47: i due pulsanti (Prato e Indoor) mostrano sempre lo stesso stato.
+  ['valch-filter-btn', 'valch-filter-btn-indoor'].forEach(function(id) {
+    const b = document.getElementById(id);
+    if (b) b.className = 'ftab valch' + (onlyValch ? ' active' : '');
+  });
   renderCalendar(); renderMatches(); updateHeroStats(); renderIndoor(); renderStandings();
 }
 function addFPartiteExtra(v) {
