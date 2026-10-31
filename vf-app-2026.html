@@ -1268,6 +1268,8 @@ body.on-live .hero { display:none; }
       <button onclick="doPrint()" style="background:white;color:#1a7a2e;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">🖨️ Stampa / Salva PDF</button>
       <button onclick="closePrintPreview()" style="background:rgba(255,255,255,.2);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;white-space:nowrap">✕ Chiudi</button>
     </div>
+  </div><!-- v43: questo </div> mancava: senza, #print-preview-overlay
+       restava aperto e nascondeva firma, privacy, Archivio e Nuova stagione -->
   <div style="background:#e5e7eb;min-height:100vh;padding:24px 16px">
   <div id="print-preview-body" style="background:white;max-width:1100px;width:100%;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,.18);border-radius:4px;overflow:hidden"></div>
 </div>
@@ -1276,8 +1278,6 @@ body.on-live .hero { display:none; }
 <script>
 // ─── CONSTANTS ─────────────────────────────────────────
 const VALCH = 'VALCHISONE';
-const FEMALE_CATS = ['af','cffb','rf','alf'];
-const INDOOR_CATS = ['a1f','jfi','rfi','alfi'];
 const CATS = {
   af:   { label:'A2 Femminile',            icon:'🩷', short:'A2',   sport:'prato'  },
   cffb: { label:'Coppa Fed. Fem. Girone B', icon:'🏆', short:'CFFB', sport:'prato'  },
@@ -1289,6 +1289,34 @@ const CATS = {
   rfi:  { label:'Ragazze U16 Indoor',      icon:'🟣', short:'U16i', sport:'indoor' },
   alfi: { label:'Allieve U14 Indoor',      icon:'🩵', short:'U14i', sport:'indoor' },
 };
+// ─── v43: elenchi ricavati da CATS ──────────────────────────────────
+// Prima erano scritti a mano in 14 punti e Juniores era stata dimenticata
+// quasi ovunque. Ora una categoria nuova entra da sola in filtri,
+// area admin, stampe e classifiche.
+const PRATO_IDS   = Object.keys(CATS).filter(function(k){ return CATS[k].sport === 'prato';  });
+const INDOOR_IDS  = Object.keys(CATS).filter(function(k){ return CATS[k].sport === 'indoor'; });
+const FEMALE_CATS = PRATO_IDS;
+const INDOOR_CATS = INDOOR_IDS;
+// Etichetta compatta per i chip: "Ragazze (U16)" -> "Ragazze U16",
+// "A1 Femminile Indoor" -> "A1". Se resta troppo lunga usa la sigla.
+function catShortLabel(k) {
+  var c = CATS[k];
+  if (!c) return k;
+  var t = String(c.label || k)
+            .replace(' Femminile', '')
+            .replace(' Indoor', '')
+            .replace(/\s*\(([^)]*)\)/, ' $1')
+            .trim();
+  if (t.length > 14) t = c.short || t;
+  return t;
+}
+function catChip(k) {
+  return ((CATS[k] && CATS[k].icon) || '') + ' ' + catShortLabel(k);
+}
+// Nella vista "Tutte" prato e indoor hanno nomi uguali: serve distinguerli.
+function catChipSport(k) {
+  return catChip(k) + (CATS[k] && CATS[k].sport === 'indoor' ? ' Ind.' : ' Pr.');
+}
 // Categorie con colore proprio; le altre (nuove) ricevono un colore automatico (mai verde/arancione)
 const _CAT_COLORED = ['af','cffb','rf','alf','a1f','jf','jfi','rfi','alfi'];
 function _catAutoStyle(c) {
@@ -1710,7 +1738,7 @@ function selectCalDay(ds) { calSelected = calSelected===ds ? null : ds; renderCa
 // ─── RENDER MATCHES ─────────────────────────────────────
 function renderMatches() {
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  const pratoIds = ['af','cffb','rf','alf'], indoorIds = ['a1f','rfi','alfi'];
+  const pratoIds = PRATO_IDS, indoorIds = INDOOR_IDS;
   const _msBase = allMatches
     .filter(m => fPartite==='all' || m.cat===fPartite || (fPartiteExtra && m.cat===fPartiteExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
@@ -1821,7 +1849,7 @@ function selectCalIndoorDay(ds) {
 
 function renderIndoor() {
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  const indoorIds=['a1f','rfi','alfi'], pratoIds=['af','cffb','rf','alf'];
+  const indoorIds=INDOOR_IDS, pratoIds=PRATO_IDS;
   const _miBase = allIndoor
     .filter(m => fIndoor==='all' || m.cat===fIndoor || (fIndoorExtra && m.cat===fIndoorExtra))
     .filter(m => !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH));
@@ -1974,7 +2002,8 @@ function matchCardHTML(m, showAdmin) {
 function eventCardHTML(e) {
   const typeIcons = { Finale:'🏆', Torneo:'🏆', Concentramento:'📍', Coppa:'🥇', Altro:'📅' };
   const icon = typeIcons[e.type]||'📅';
-  const catLabels = { af:'🩷 A2', cffb:'🏆 CFFB', rf:'🟣 U16', alf:'🩵 U14', a1f:'🟡 A1', rfi:'🟣 U16i', alfi:'🩵 U14i' };
+  const catLabels = {};
+  Object.keys(CATS).forEach(function(k){ catLabels[k] = catChip(k); });
   let dateStr = '';
   if (e.dateStart === e.dateEnd || !e.dateEnd) {
     dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
@@ -3959,7 +3988,7 @@ function showAdminListView() {
 
 function populateDataLists() {
   const cat = document.getElementById('m-cat')?.value || 'af';
-  const isIndoor = ['a1f','rfi','alfi'].includes(cat);
+  const isIndoor = INDOOR_IDS.includes(cat);
   const teams = isIndoor ? teamsListIndoor : teamsListPrato;
   const tl = document.getElementById('teams-list');
   const fl = document.getElementById('fields-list');
@@ -4245,9 +4274,11 @@ function setAdminSport(btn) {
   // Update cat filter chips based on sport
   const catFilters = document.getElementById('admin-cat-filters');
   if (catFilters) {
-    const pratoCats = [['all','Tutte'],['af','🩷 A2'],['cffb','🏆 CFFB'],['rf','🟣 Ragazze'],['alf','🩵 Allieve']];
-    const indoorCats = [['all','Tutte'],['a1f','🟡 A1'],['rfi','🟣 Ragazze I'],['alfi','🩵 Allieve I']];
-    const allCats = [['all','Tutte'],['af','🩷 A2'],['cffb','🏆 CFFB'],['rf','🟣 R.Prato'],['alf','🩵 A.Prato'],['a1f','🟡 A1'],['rfi','🟣 R.Indoor'],['alfi','🩵 A.Indoor']];
+    const pratoCats  = [['all','Tutte']].concat(PRATO_IDS.map(function(k){ return [k, catChip(k)]; }));
+    const indoorCats = [['all','Tutte']].concat(INDOOR_IDS.map(function(k){ return [k, catChip(k)]; }));
+    const allCats    = [['all','Tutte']]
+      .concat(PRATO_IDS.map(function(k){ return [k, catChipSport(k)]; }))
+      .concat(INDOOR_IDS.map(function(k){ return [k, catChipSport(k)]; }));
     const cats = _adminSport==='prato' ? pratoCats : _adminSport==='indoor' ? indoorCats : allCats;
     catFilters.innerHTML = cats.map(([cat,lbl],i) => `<button class="admin-fchip${i===0?' active':''}" data-cat="${cat}" onclick="setAdminCat(this)">${lbl}</button>`).join('');
   }
@@ -4266,8 +4297,8 @@ function filterAdminList() {
   if (!el || !isAdminOpen || _isLiveOnly) return;
   const q = (document.getElementById('admin-search')?.value || '').toLowerCase().trim();
   const all = [...allMatches, ...allIndoor].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
-  const pratoIds = ['af','cffb','rf','alf'];
-  const indoorIds = ['a1f','rfi','alfi'];
+  const pratoIds = PRATO_IDS;
+  const indoorIds = INDOOR_IDS;
   const filtered = all.filter(m => {
     if (_adminSport === 'prato' && !pratoIds.includes(m.cat)) return false;
     if (_adminSport === 'indoor' && !indoorIds.includes(m.cat)) return false;
@@ -4490,7 +4521,7 @@ function renderAdminEventList() {
   const sorted = [...allEvents].sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
   el.innerHTML = sorted.map(function(e){
     const dates = e.dateEnd && e.dateEnd !== e.dateStart ? fmtDate(e.dateStart)+' → '+fmtDate(e.dateEnd) : fmtDate(e.dateStart);
-    const catBadges = (e.cats||[]).map(function(c){ const cat=CATS[c]||{}; return '<span class="cat-badge cat-'+c+'" style="font-size:9px;padding:2px 5px">'+(cat.icon||'')+' '+(cat.short||'')+'</span>'; }).join(' ');
+    const catBadges = (e.cats||[]).map(function(c){ return '<span class="cat-badge cat-'+c+'" style="font-size:9px;padding:2px 5px">'+catChip(c)+'</span>'; }).join(' ');
     const ris = (e.placement || e.result) ? '<div style="font-size:11px;font-weight:700;color:#1a7a2e;margin-top:2px">'+(e.placement?e.placement+' ':'')+(e.result?'🏑 '+e.result:'')+'</div>' : '';
     return '<div style="background:#f9fafb;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;margin-bottom:6px">'
       + '<div style="display:flex;align-items:center;gap:6px;min-width:0">'
@@ -4573,8 +4604,8 @@ function quickPrint(section, mode, format, isRefresh) {
   const catExtra2 = isIndoor ? fIndoorExtra : fPartiteExtra;
   const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const indoorCats = ['a1f','rfi','alfi'];
-  const pratoIds   = ['af','cffb','rf','alf'];
+  const indoorCats = INDOOR_IDS;
+  const pratoIds   = PRATO_IDS;
 
   const catExtra = isIndoor ? fIndoorExtra : fPartiteExtra;
   let ms = (isIndoor ? allIndoor : allMatches)
@@ -4610,7 +4641,7 @@ function quickPrint(section, mode, format, isRefresh) {
   if (format === 'pocket')      { printListPocket(section, sport, catName, today, ms, evs); return; }
   printList(section, sport, catName, today, ms, evs);
   // Populate cat filter chips in toolbar
-  const indoorCats2 = ['a1f','rfi','alfi'];
+  const indoorCats2 = INDOOR_IDS;
   const availCats2 = Object.entries(CATS).filter(([k,v]) => isIndoor ? indoorCats2.includes(k) : !indoorCats2.includes(k));
   const ppCats = document.getElementById('pp-cat-filters');
   if (ppCats) {
@@ -4637,7 +4668,7 @@ function openPrintDialog(section, mode) {
   const sport=isIndoor?'🏑 Indoor':'🏑 Prato';
   const modeLabel=mode==='list'?'📋 Elenco':'📅 Calendario';
   document.getElementById('pd-title').textContent=modeLabel+' — '+sport;
-  const indoorCats=['a1f','rfi','alfi'];
+  const indoorCats=INDOOR_IDS;
   const availCats=Object.entries(CATS).filter(([k,v])=>isIndoor?indoorCats.includes(k):!indoorCats.includes(k));
   document.getElementById('pd-cats').innerHTML='<button class="pd-chip active" data-val="all" onclick="pdToggleCat(this)">Tutte</button>'+availCats.map(([k,v])=>`<button class="pd-chip" data-val="${k}" onclick="pdToggleCat(this)">${v.icon} ${v.label}</button>`).join('');
   const pool=isIndoor?allIndoor:allMatches;
@@ -4665,7 +4696,7 @@ function confirmPrint() {
   const sport=isIndoor?'🏑 Indoor':'🏑 Hockey Prato';
   const catName=selCat==='all'?'Tutte le categorie':(CATS[selCat]?.label||selCat);
   const today=new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const indoorCats=['a1f','rfi','alfi'];
+  const indoorCats=INDOOR_IDS;
   let ms=(isIndoor?allIndoor:allMatches).filter(m=>selCat==='all'||m.cat===selCat).filter(m=>selMo==='all'||m.date.startsWith(selMo)).filter(m=>!selValch||(m.home.toUpperCase().includes('VALCHISONE')||m.away.toUpperCase().includes('VALCHISONE'))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   let evs=allEvents.filter(e=>{ if(!e.cats||e.cats.length===0) return true; if(isIndoor) return e.cats.some(c=>indoorCats.includes(c)); return e.cats.some(c=>!indoorCats.includes(c)); }).filter(e=>selCat==='all'||!e.cats||e.cats.length===0||e.cats.includes(selCat)).filter(e=>selMo==='all'||(e.dateStart||'').startsWith(selMo));
   if (_pdMode==='list') printList(_pdSection,sport,catName,today,ms,evs);
@@ -4816,10 +4847,11 @@ function printStandings() {
   if (ppCatFilters) ppCatFilters.innerHTML = '';
 
   // Rebuild standings HTML from data (not from DOM)
-  const indoorCats = ['a1f','rfi','alfi'];
-  const catGroups = classSport==='indoor'
-    ? [['a1f','🟡 A1 Femminile Indoor'],['rfi','🟣 Ragazze U16 Indoor'],['alfi','🩵 Allieve U14 Indoor']]
-    : [['af','🩷 A2 Femminile'],['rf','🟣 Ragazze U16'],['alf','🩵 Allieve U14']];
+  const indoorCats = INDOOR_IDS;
+  // La coppa non ha classifica: resta fuori, come prima.
+  const catGroups = (classSport==='indoor' ? INDOOR_IDS : PRATO_IDS)
+    .filter(function(k){ return k !== 'cffb'; })
+    .map(function(k){ return [k, ((CATS[k].icon||'') + ' ' + CATS[k].label)]; });
   const allM = classSport==='indoor' ? allIndoor : allMatches;
 
   let content = '';
