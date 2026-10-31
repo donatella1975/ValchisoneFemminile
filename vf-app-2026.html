@@ -1281,7 +1281,7 @@ const VALCH = 'VALCHISONE';
 const CATS = {
   af:   { label:'A2 Femminile',            icon:'🩷', short:'A2',   sport:'prato'  },
   cffb: { label:'Coppa Fed. Fem. Girone B', icon:'🏆', short:'CFFB', sport:'prato'  },
-  jf:   { label:'Juniores (U20)',           icon:'🩶', short:'U20',  sport:'prato'  },
+  jf:   { label:'Juniores (U20)',           icon:'🩶', short:'U20',  sport:'prato',  attiva:false },  // 2026/27: non si gioca
   rf:   { label:'Ragazze (U16)',            icon:'🟣', short:'U16',  sport:'prato'  },
   alf:  { label:'Allieve (U14)',            icon:'🩵', short:'U14',  sport:'prato'  },
   a1f:  { label:'A1 Femminile Indoor',     icon:'🟡', short:'A1',   sport:'indoor' },
@@ -1299,6 +1299,10 @@ const FEMALE_CATS = PRATO_IDS;
 const INDOOR_CATS = INDOOR_IDS;
 // Etichetta compatta per i chip: "Ragazze (U16)" -> "Ragazze U16",
 // "A1 Femminile Indoor" -> "A1". Se resta troppo lunga usa la sigla.
+// Categorie ferme questa stagione: restano in CATS per lo storico e per
+// l'archivio, ma non compaiono in filtri, stampe e classifiche.
+const PRATO_CHIPS  = PRATO_IDS.filter(function(k){  return CATS[k].attiva !== false; });
+const INDOOR_CHIPS = INDOOR_IDS.filter(function(k){ return CATS[k].attiva !== false; });
 function catShortLabel(k) {
   var c = CATS[k];
   if (!c) return k;
@@ -1608,7 +1612,7 @@ function renderGiornate(sport) {
       html += '<div class="giornata-match'+(isValch?' valch':'')+'">';
       html += '<div class="giornata-match-teams">';
       html += abbrevTeam(m.home,20)+' <span style="color:#9ca3af;font-weight:400">vs</span> '+abbrevTeam(m.away,20);
-      html += '<div class="giornata-match-meta">'+(cat.icon||'')+' '+(cat.short||m.cat)+(m.location?' · '+m.location:'')+'</div>';
+      html += '<div class="giornata-match-meta">'+catChip(m.cat)+(m.location?' · '+m.location:'')+'</div>';
       html += '</div>';
       html += scoreHtml;
       html += '</div>';
@@ -1623,8 +1627,8 @@ function renderGiornate(sport) {
 function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
   const c = document.getElementById(containerId);
   if (!c) return;
-  const filteredCats = Object.entries(CATS).filter(([k,v]) => indoorOnly ? v.sport==='indoor' : v.sport==='prato');
-  const chips = [{ v:'all', l:'Tutte', lf:'Tutte le categorie' }, ...filteredCats.map(([k,v]) => ({ v:k, l:`${v.icon} ${v.label.split(' (')[0].split(' Femminile')[0]}`, lf:`${v.icon} ${v.label}` }))];
+  const filteredCats = (indoorOnly ? INDOOR_CHIPS : PRATO_CHIPS);
+  const chips = [{ v:'all', l:'Tutte', lf:'Tutte le categorie' }, ...filteredCats.map(k => ({ v:k, l:catChip(k), lf:`${CATS[k].icon} ${CATS[k].label}` }))];
   const extra = containerId==='filter-partite' ? fPartiteExtra : fIndoorExtra;
   const addFn = containerId==='filter-partite' ? 'addFPartiteExtra' : 'addFIndoorExtra';
   let html = chips.map(ch => {
@@ -1908,21 +1912,35 @@ const MAP_ADDRESSES = {
 // non porta esattamente al cancello del campo. Se una location trova corrispondenza
 // qui, il pulsante "Naviga" usa queste coordinate al posto della ricerca testuale.
 const MAP_COORDS = {
-  // v42: sedi indoor, punti verificati sulla mappa.
-  // Stanno in cima perche' la prima chiave che combacia vince.
-  'PINASCA': '44.93915194437684,7.229156154454052',
-  'Risorgimento': '44.70970395878392,7.838990250311999',
-  'Palasport Bra': '44.70970395878392,7.838990250311999',
-  'Genova': '44.4280086,8.9193129',
-  'SUPERBA': '44.4280086,8.9193129',
-  'ARNALDI': '44.4280086,8.9193129',
-  'Villar Perosa': '44.9197234,7.2455373',
-  'VILLAR': '44.9197234,7.2455373',
-  'MICHELLONET': '44.9197234,7.2455373',
-  'campo da hockey villar': '44.9197234,7.2455373',
-  'campo hockey villar': '44.9197234,7.2455373',
-  'Moncalvo': '45.0517832,8.2568811',
-  'UMBERTO MICCO': '45.0517832,8.2568811',
+  // v44: punti presi sulla mappa dalla societa', sede per sede.
+  // La PRIMA chiave che compare nel nome del luogo vince: l'ordine conta.
+  // Valore null = non usare coordinate, l'indirizzo scritto porta gia' bene.
+
+  // Torino indoor: "VIA TORRAZZA PIEMONTE" e' una via di Torino, non il paese.
+  // L'indirizzo funziona; sta in cima per non farsi rubare la precedenza
+  // dalla chiave 'TORINO' del campo da prato, che e' tutt'altro posto.
+  'TORRAZZA': null,
+
+  // ── Indoor ──
+  'PINASCA': '44.93901914388478,7.2291270454525005',
+  'Risorgimento': '44.699048643016525,7.841616646497843',
+  'Palasport Bra': '44.699048643016525,7.841616646497843',
+
+  // ── Prato ──
+  'MADONNA DEI FIORI': '44.70598714458634,7.842207140581578',
+  'LORENZONI': '44.70598714458634,7.842207140581578',
+  'ARNALDI': '44.42794347475167,8.919661587158291',
+  'SUPERBA': '44.42794347475167,8.919661587158291',
+  'Genova': '44.42794347475167,8.919661587158291',
+  'MICHELLONET': '44.91987154237015,7.245542664417819',
+  'campo da hockey villar': '44.91987154237015,7.245542664417819',
+  'campo hockey villar': '44.91987154237015,7.245542664417819',
+  'VILLAR': '44.91987154237015,7.245542664417819',
+  'Villar Perosa': '44.91987154237015,7.245542664417819',
+  'UMBERTO MICCO': '45.05193100148183,8.256897193253458',
+  'Moncalvo': '45.05193100148183,8.256897193253458',
+  'CUS TORINO': '45.0347417660555,7.633165707451384',
+  'TORINO': '45.0347417660555,7.633165707451384',
 };
 function getMapAddress(location) {
   if (!location) return '';
@@ -3787,7 +3805,7 @@ function renderNextMatchBanner() {
   container.innerHTML =
     '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(['+"'af','cffb','rf','alf'].includes(m.cat)?'prato':'indoor')"+'>'
     + '<div class="nmb-left">'
-    + '<div class="nmb-label">🏑 Prossima partita ' + (cat.short||'') + '</div>'
+    + '<div class="nmb-label">🏑 Prossima partita ' + catShortLabel(m.cat) + '</div>'
     + '<div class="nmb-teams">' + homeHtml + ' <span style="color:rgba(255,255,255,.4)">vs</span> ' + awayHtml + '</div>'
     + '<div class="nmb-meta">📅 ' + dateStr + timeStr + locStr + '</div>'
     + '</div>'
@@ -4274,11 +4292,11 @@ function setAdminSport(btn) {
   // Update cat filter chips based on sport
   const catFilters = document.getElementById('admin-cat-filters');
   if (catFilters) {
-    const pratoCats  = [['all','Tutte']].concat(PRATO_IDS.map(function(k){ return [k, catChip(k)]; }));
-    const indoorCats = [['all','Tutte']].concat(INDOOR_IDS.map(function(k){ return [k, catChip(k)]; }));
+    const pratoCats  = [['all','Tutte']].concat(PRATO_CHIPS.map(function(k){ return [k, catChip(k)]; }));
+    const indoorCats = [['all','Tutte']].concat(INDOOR_CHIPS.map(function(k){ return [k, catChip(k)]; }));
     const allCats    = [['all','Tutte']]
-      .concat(PRATO_IDS.map(function(k){ return [k, catChipSport(k)]; }))
-      .concat(INDOOR_IDS.map(function(k){ return [k, catChipSport(k)]; }));
+      .concat(PRATO_CHIPS.map(function(k){ return [k, catChipSport(k)]; }))
+      .concat(INDOOR_CHIPS.map(function(k){ return [k, catChipSport(k)]; }));
     const cats = _adminSport==='prato' ? pratoCats : _adminSport==='indoor' ? indoorCats : allCats;
     catFilters.innerHTML = cats.map(([cat,lbl],i) => `<button class="admin-fchip${i===0?' active':''}" data-cat="${cat}" onclick="setAdminCat(this)">${lbl}</button>`).join('');
   }
@@ -4333,7 +4351,7 @@ function filterAdminList() {
       :'<button onclick="openResultModal(\'' +id+ '\')" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">&#x1F3D1; '+(hasSc?'Modifica':'Risultato')+'</button>';
     return '<div style="background:'+(needsResult?'#fff5f5':'#f9fafb')+';border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;'+(needsResult?'border:1px solid #fecaca':'')+'">'
       +'<div style="display:flex;align-items:center;gap:6px;min-width:0">'
-      +'<span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px;flex-shrink:0">'+(cat.icon||'')+' '+(cat.short||cat.label||'')+'</span>'
+      +'<span class="cat-badge cat-'+m.cat+'" style="font-size:9px;padding:2px 5px;flex-shrink:0">'+catChip(m.cat)+'</span>'
       +'<span style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+m.home+' vs '+m.away+'</span>'
       +scoreStr
       +'</div>'
@@ -4642,10 +4660,10 @@ function quickPrint(section, mode, format, isRefresh) {
   printList(section, sport, catName, today, ms, evs);
   // Populate cat filter chips in toolbar
   const indoorCats2 = INDOOR_IDS;
-  const availCats2 = Object.entries(CATS).filter(([k,v]) => isIndoor ? indoorCats2.includes(k) : !indoorCats2.includes(k));
+  const availCats2 = (isIndoor ? INDOOR_CHIPS : PRATO_CHIPS).map(function(k){ return [k, CATS[k]]; });
   const ppCats = document.getElementById('pp-cat-filters');
   if (ppCats) {
-    ppCats.innerHTML = [['all','Tutte'], ...availCats2.map(([k,v]) => [k, v.icon+' '+v.short])].map(([val,lbl]) =>
+    ppCats.innerHTML = [['all','Tutte'], ...availCats2.map(([k,v]) => [k, catChip(k)])].map(([val,lbl]) =>
       `<button onclick="setPPCat('${val}')" data-val="${val}" style="background:${catFilter===val?'white':'rgba(255,255,255,.15)'};color:${catFilter===val?'#1a7a2e':'white'};border:none;border-radius:16px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer">${lbl}</button>`
     ).join('');
   }
@@ -4669,7 +4687,7 @@ function openPrintDialog(section, mode) {
   const modeLabel=mode==='list'?'📋 Elenco':'📅 Calendario';
   document.getElementById('pd-title').textContent=modeLabel+' — '+sport;
   const indoorCats=INDOOR_IDS;
-  const availCats=Object.entries(CATS).filter(([k,v])=>isIndoor?indoorCats.includes(k):!indoorCats.includes(k));
+  const availCats=(isIndoor?INDOOR_CHIPS:PRATO_CHIPS).map(function(k){ return [k, CATS[k]]; });
   document.getElementById('pd-cats').innerHTML='<button class="pd-chip active" data-val="all" onclick="pdToggleCat(this)">Tutte</button>'+availCats.map(([k,v])=>`<button class="pd-chip" data-val="${k}" onclick="pdToggleCat(this)">${v.icon} ${v.label}</button>`).join('');
   const pool=isIndoor?allIndoor:allMatches;
   const evDates=allEvents.map(e=>e.dateStart||'').filter(Boolean);
@@ -4849,8 +4867,8 @@ function printStandings() {
   // Rebuild standings HTML from data (not from DOM)
   const indoorCats = INDOOR_IDS;
   // La coppa non ha classifica: resta fuori, come prima.
-  const catGroups = (classSport==='indoor' ? INDOOR_IDS : PRATO_IDS)
-    .filter(function(k){ return k !== 'cffb'; })
+  // v45: la Coppa Federale Girone B e' un girone e ha la sua classifica: si stampa.
+  const catGroups = (classSport==='indoor' ? INDOOR_CHIPS : PRATO_CHIPS)
     .map(function(k){ return [k, ((CATS[k].icon||'') + ' ' + CATS[k].label)]; });
   const allM = classSport==='indoor' ? allIndoor : allMatches;
 
@@ -4914,7 +4932,7 @@ function printMatchRow(m, hideTime){
   </div>
   ${m.location?`<div class="match-line2">📍 ${m.location}</div>`:''}
   <div class="match-line3">
-    <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.short||''}</span>
+    <span class="cat-badge cat-${m.cat}">${catChip(m.cat)}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
   </div>
 </div>`;}
@@ -5890,8 +5908,8 @@ function saveArchivioEdit(stagione, matchId) {
 
 // ─── ARCHIVIO: calcola classifica da array partite ─────────────────────────
 function calcolaClassificaArchivio(matches) {
-  // Escludi CFFB (coppa, non classifica)
-  var catsConClassifica = ['af','jf','rf','alf','a1f','jfi','rfi','alfi'];
+  // v45: tutte le categorie, Coppa Federale compresa.
+  var catsConClassifica = PRATO_IDS.concat(INDOOR_IDS);
   var result = {};
 
   catsConClassifica.forEach(function(catKey) {
