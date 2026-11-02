@@ -72,7 +72,9 @@
   window._fbSetLiveComment = (id, obj) => set(ref(db,'live/comments/'+id), obj);
   window._fbDelLiveComment = (id) => set(ref(db,'live/comments/'+id), null);
   window._fbListenLists = (cb)   => onValue(ref(db,'lists'), snap => cb(snap.val()));
-  window._fbSave        = (data) => set(ref(db,'matches'), data);
+  // v49: le partite senza categoria valida non vengono piu' cancellate di nascosto
+  window._fbSave        = (data) => set(ref(db,'matches'),
+    (window._keepOrphans && data && Object.keys(data).length) ? window._keepOrphans(data) : data);
   // Salva SOLO risultato e marcatori di una partita (non riscrive tutte le altre)
   window._fbSaveMatchResult = (id, obj) => update(ref(db,'matches/'+id), obj);
   window._fbListen      = (cb)   => onValue(ref(db,'matches'), snap => cb(snap.val()));
@@ -1002,13 +1004,8 @@ body.on-live .hero { display:none; }
       <div class="form-row">
         <div class="form-field"><label>Categoria</label>
           <select id="m-cat" onchange="populateDataLists()">
-            <option value="af">🩷 A2 Femminile (Prato)</option>
-            <option value="a1f">🟡 A1 Femminile (Indoor)</option>
-            <option value="cffb">🏆 Coppa Fed. Femminile B (Prato)</option>
-            <option value="rf">🟣 Ragazze U16 (Prato)</option>
-            <option value="rfi">🟣 Ragazze U16 (Indoor)</option>
-            <option value="alf">🩵 Allieve U14 (Prato)</option>
-            <option value="alfi">🩵 Allieve U14 (Indoor)</option>
+            <!-- v49: le voci vengono da CATS (buildCatSelect). Prima mancava Juniores:
+                 modificare una partita Juniores la salvava senza categoria -->
           </select>
         </div>
         <div class="form-field"><label>Giornata</label><input type="text" id="m-round" placeholder="es. G1"></div>
@@ -1244,6 +1241,25 @@ const CATS = {
 const PRATO_IDS   = Object.keys(CATS).filter(function(k){ return CATS[k].sport === 'prato';  });
 const INDOOR_IDS  = Object.keys(CATS).filter(function(k){ return CATS[k].sport === 'indoor'; });
 const FEMALE_CATS = PRATO_IDS;
+function buildCatSelect() {
+  var sel = document.getElementById('m-cat');
+  if (!sel) return;
+  var cur = sel.value;
+  var opt = function(k){
+    var c = CATS[k], lbl = c.label.replace(/ Indoor/, '').replace(/[()]/g, '');
+    return '<option value="' + k + '">' + c.icon + ' ' + lbl + ' (' + (c.sport === 'indoor' ? 'Indoor' : 'Prato') + ')'
+      + (c.attiva === false ? ' – non attiva' : '') + '</option>';
+  };
+  var keys = Object.keys(CATS);
+  var act = keys.filter(function(k){ return CATS[k].attiva !== false; });
+  var off = keys.filter(function(k){ return CATS[k].attiva === false; });
+  sel.innerHTML = '<option value="" disabled>— Scegli la categoria —</option>'
+    + '<optgroup label="Prato">'  + act.filter(function(k){ return CATS[k].sport === 'prato';  }).map(opt).join('') + '</optgroup>'
+    + '<optgroup label="Indoor">' + act.filter(function(k){ return CATS[k].sport === 'indoor'; }).map(opt).join('') + '</optgroup>'
+    + (off.length ? '<optgroup label="Non attive">' + off.map(opt).join('') + '</optgroup>' : '');
+  sel.value = CATS[cur] ? cur : 'af';
+}
+document.addEventListener('DOMContentLoaded', buildCatSelect);
 const INDOOR_CATS = INDOOR_IDS;
 // Etichetta compatta per i chip: "Ragazze (U16)" -> "Ragazze U16",
 // "A1 Femminile Indoor" -> "A1". Se resta troppo lunga usa la sigla.
@@ -1287,6 +1303,13 @@ const DAYS_IT   = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 
 // ─── STATE ─────────────────────────────────────────────
 let allMatches = [], allIndoor = [], allEvents = [], liveData = null;
+// v49: partite il cui codice categoria non esiste (es. salvate con il menu vuoto)
+let allOrphans = [], _deletingId = null;
+window._keepOrphans = function(data) {
+  var out = Object.assign({}, data);
+  allOrphans.forEach(function(m){ if (!out[m.id] && m.id !== _deletingId) out[m.id] = m; });
+  return out;
+};
 let teamsListPrato = [], teamsListIndoor = [], fieldsList = [], rosaValchisone = [], rosaCat = 'af';
 // v34: servono solo allo spostamento una tantum della rosa
 let _rosaLegacy = [], _rosaSeen = false, _rosaMigrated = false, _rosaMigrating = false;
@@ -1335,6 +1358,7 @@ window.addEventListener('load', () => {
       const all = data ? Object.values(data) : [];
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
+      allOrphans = all.filter(m => m && m.id && !CATS[m.cat]);
       renderCalendar(); renderCalendarIndoor(); updateHeroStats(); renderNextMatchBanner();
   renderMatches(); renderIndoor(); renderStandings();
       renderAdminList();
@@ -4230,8 +4254,9 @@ function saveMatch() {
     round: document.getElementById('m-round').value.trim(),
   };
   if (sh !== '' && sa !== '') { m.scoreHome = parseInt(sh); m.scoreAway = parseInt(sa); }
+  if (!CATS[m.cat]) { alert('Scegli la categoria della partita: senza categoria non compare da nessuna parte.'); document.getElementById('m-cat').focus(); return; }
   if (!m.date||!m.home||!m.away) { alert('Compila data, casa e ospite!'); return; }
-  const all = [...allMatches, ...allIndoor];
+  const all = [...allMatches, ...allIndoor, ...allOrphans];
   const obj = {};
   all.forEach(x => { obj[x.id] = x; });
   // v33: conserva i dati gia' presenti (marcatrici, gol, ecc.) e aggiorna solo i campi del modulo
@@ -4244,6 +4269,7 @@ function saveMatch() {
 
 function cancelMatchEdit() {
   ['edit-id','m-date','m-time','m-home','m-away','m-loc','m-round','m-sh','m-sa'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  buildCatSelect();
   document.getElementById('m-cat').value = 'af';
   document.getElementById('form-match-title').textContent = 'Aggiungi Partita';
   document.getElementById('btn-cancel-match').style.display = 'none';
@@ -4309,7 +4335,21 @@ function filterAdminList() {
            dateIT.includes(q) ||
            (m.location && m.location.toLowerCase().includes(q));
   });
-  if (!filtered.length) { el.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
+  // v49: le partite senza categoria si vedono sempre, in cima, per poterle sistemare
+  const orphans = allOrphans.filter(m => !q || ((m.home||'')+' '+(m.away||'')+' '+(m.date||'')).toLowerCase().includes(q));
+  const orphanHTML = orphans.length
+    ? '<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;margin-bottom:10px">'
+      + '<div style="font-weight:800;color:#b91c1c;font-size:13px;margin-bottom:6px">⚠️ ' + orphans.length + (orphans.length===1?' partita':' partite') + ' senza categoria: non si vedono nell\'app. Tocca ✏️ e scegli la categoria.</div>'
+      + orphans.map(function(m){
+          return '<div style="display:flex;align-items:center;gap:6px;background:white;border-radius:8px;padding:8px 10px;margin-top:4px">'
+            + '<span style="flex:1;font-size:12px"><b>' + (m.home||'?') + ' vs ' + (m.away||'?') + '</b><br><span style="color:#6b7280">' + (m.date?fmtDate(m.date):'senza data') + (m.time?' '+m.time:'') + '</span></span>'
+            + '<button onclick="editMatch(\'' + m.id + '\')" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700;color:#c2410c">✏️ Sistema</button>'
+            + '<button onclick="deleteMatch(\'' + m.id + '\')" style="background:none;border:1px solid #fee2e2;border-radius:8px;padding:6px 8px;cursor:pointer;color:#ef4444;font-size:14px">&#128465;</button>'
+            + '</div>';
+        }).join('')
+      + '</div>'
+    : '';
+  if (!filtered.length) { el.innerHTML = orphanHTML + '<div class="loading" style="text-align:center;padding:20px;color:#9ca3af">Nessuna partita trovata</div>'; return; }
   const withScore=filtered.filter(function(m){return m.scoreHome!==undefined&&m.scoreAway!==undefined;}).sort(function(a,b){return b.date.localeCompare(a.date);});
   const withoutScore=filtered.filter(function(m){return m.scoreHome===undefined||m.scoreAway===undefined;}).sort(function(a,b){return a.date.localeCompare(b.date);});
   const recentPlayed=withScore.slice(0,3);
@@ -4351,13 +4391,14 @@ function filterAdminList() {
   if(recentPlayed.length) rows+=_sep('Ultime giocate')+recentPlayed.map(_rm).join('');
   if(withoutScore.length) rows+=_sep('Da giocare')+withoutScore.map(_rm).join('');
   if(olderPlayed.length)  rows+=_sep('Risultati precedenti')+olderPlayed.map(_rm).join('');
-  el.innerHTML=rows;
+  el.innerHTML=orphanHTML+rows;
 }
 function editMatch(id) {
-  const all = [...allMatches,...allIndoor];
+  const all = [...allMatches,...allIndoor,...allOrphans];
   const m = all.find(x=>x.id===id); if(!m) return;
+  buildCatSelect();
   document.getElementById('edit-id').value  = m.id;
-  document.getElementById('m-cat').value    = m.cat;
+  document.getElementById('m-cat').value    = CATS[m.cat] ? m.cat : '';
   document.getElementById('m-date').value   = m.date;
   document.getElementById('m-time').value   = m.time||'';
   document.getElementById('m-home').value   = m.home;
@@ -4390,12 +4431,13 @@ function resetResult(id) {
   }
 }
 function deleteMatch(id) {
-  const allDel = [...allMatches,...allIndoor];
+  const allDel = [...allMatches,...allIndoor,...allOrphans];
   const mDel = allDel.find(x=>x.id===id);
   const label = mDel ? abbrevTeam(mDel.home,15)+' vs '+abbrevTeam(mDel.away,15) : 'questa partita';
   if (!confirm('⚠️ Eliminare "'+label+'"?\n\nQuesta azione non può essere annullata.')) return;
   const obj = {}; allDel.forEach(m => { if(m.id!==id) obj[m.id]=m; });
-  window._fbSave(obj);
+  _deletingId = id;
+  Promise.resolve(window._fbSave(obj)).finally(function(){ _deletingId = null; });
 }
 
 function openResultModal(id) {
