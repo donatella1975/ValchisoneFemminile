@@ -24,7 +24,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <!-- v4.1 -->
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
 <script type="module">
@@ -669,6 +669,71 @@ body.on-live .hero { display:none; }
 /* ─── PAGE TRANSITIONS ─────────────────────────────── */
 .page { opacity:0; transition:opacity .18s ease; }
 .page.active { opacity:1; }
+
+/* ═══════════ v50: leggibilita', telefono, diretta ═══════════ */
+.mc-loc { color:var(--ink3); font-size:12px; flex-basis:100%; }
+.valch-hint { font-size:12px; color:#9a3412; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:6px 10px; margin:0 0 10px; line-height:1.5; }
+.valch-hint button { background:none; border:none; color:#c2410c; font-weight:800; text-decoration:underline; cursor:pointer; font-size:12px; padding:6px 2px; font-family:inherit; }
+.gio-cat { margin-bottom:22px; }
+.gio-cat-title { font-family:'Bricolage Grotesque',sans-serif; font-size:16px; font-weight:800; color:var(--green); margin:4px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--green); }
+.nmb-meta { line-height:1.5; }
+.nmb-countdown { font-size:17px; white-space:nowrap; }
+/* Classifica: nomi allineati a sinistra */
+.standings-table th:nth-child(2), .standings-table td:nth-child(2) { text-align:left; }
+.standings-table th:first-child, .standings-table td:first-child { width:52px; white-space:nowrap; }
+/* Diretta: testi chiari su fondo scuro */
+#page-live .events-log-title { color:#ffffff; border-bottom-color:rgba(255,255,255,.12); }
+#page-live .eli-player { color:#ffffff; font-size:14px; }
+#page-live .eli-team { color:rgba(255,255,255,.78); font-size:12px; }
+#page-live .eli-minute { color:#86efac !important; }
+#page-live .event-log-item[style*="dc2626"] .eli-minute { color:#fca5a5 !important; }
+#page-live .event-log-item { border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:4px; }
+#page-live .no-events { color:rgba(255,255,255,.75); }
+.no-live-text { color:#ffffff; }
+.no-live-sub { color:rgba(255,255,255,.78); }
+.no-live-next { margin:22px auto 0; max-width:380px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:12px 14px; color:#fff; font-size:14px; line-height:1.5; }
+.no-live-next b { color:#fb923c; }
+.scoreboard { min-height:0; justify-content:flex-start; }
+#page-live { min-height:0 !important; }
+@media (min-width:641px) {
+  .scoreboard { padding:28px 24px; }
+}
+/* Telefono */
+@media (max-width:640px) {
+  .hero h1, .hero-sub, .hero-btns { display:none !important; }
+  .hero { padding:8px 10px; }
+  .hero::after { display:none; }
+  #hero-stats { margin-top:0 !important; gap:6px !important; }
+  #hero-stats > div { padding:3px 10px !important; }
+  #hero-stats > div > span:first-child { font-size:16px !important; }
+  #hero-stats > div[style*="flex-basis"] { display:none !important; }
+  .hero-live-badge { margin-top:6px; }
+  .hero:not(:has(#hero-stats > *)):not(:has(.hero-live-badge.visible)) { display:none; }
+  header nav { -webkit-mask-image:linear-gradient(to right,#000 82%,transparent); mask-image:linear-gradient(to right,#000 82%,transparent); padding-right:24px; }
+  .ftab { min-height:36px; padding:6px 12px; font-size:12px; }
+  .filter-bar { gap:6px; }
+  .filter-bar button[title^="Aggiungi"] { width:28px !important; height:28px !important; font-size:14px !important; }
+  .btn-map, .btn-share { min-height:36px; padding:6px 12px; font-size:12px; }
+  .print-btn-main, .btn-pdf, .standings-toggle { min-height:36px; }
+  .standings-info-btn { width:32px !important; height:32px !important; font-size:14px !important; }
+  .view-tab { min-height:40px; }
+  .cal-nav { width:40px; height:40px; }
+  .cat-badge, .status-badge { font-size:11px; }
+  .mc-meta { font-size:12px; gap:6px; }
+  .t-dow { font-size:11px; }
+  .nmb-label { font-size:11px; }
+  .nmb-meta { font-size:12px; }
+  .giornata-match-meta, .match-row-meta { font-size:12px; }
+  .standings-table th { font-size:11px; }
+  .tour-step-num { font-size:11px; }
+  #page-archivio-pub > div { padding:12px 0 !important; }
+  .cal-dow { font-size:11px; }
+  .cal-day-btn { font-size:14px; }
+  .ev-type { font-size:11px; }
+  .valch-hint button { padding:8px 2px; }
+  button[onclick^="goToToday"] { min-height:34px; padding:6px 16px !important; }
+  #page-archivio-pub table td, #page-archivio-pub table th { padding:5px 4px !important; }
+}
 </style>
 </head>
 <body>
@@ -755,6 +820,7 @@ body.on-live .hero { display:none; }
 
 <!-- PRATO -->
 <div class="page active" id="page-partite">
+  <div class="nmb-slot" id="nmb-prato"></div>
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-partite"></div>
     <div style="display:flex;align-items:center;gap:5px">
@@ -770,6 +836,7 @@ body.on-live .hero { display:none; }
       </div>
     </div>
   </div>
+  <div class="valch-hint" id="valch-hint-prato"></div>
   <div class="view-tabs">
     <button class="view-tab active" id="tab-cal-prato" onclick="switchView('prato','cal')">📅 Calendario</button>
     <button class="view-tab" id="tab-gio-prato" onclick="switchView('prato','gio')">📋 Giornate</button>
@@ -790,7 +857,6 @@ body.on-live .hero { display:none; }
         </div>
       </div>
       <div class="page-layout-right">
-        <div id="next-match-banner-wrap"></div>
         <div id="matches-list"><div id="skeleton-partite"></div></div>
       </div>
     </div>
@@ -802,6 +868,7 @@ body.on-live .hero { display:none; }
 
 <!-- INDOOR -->
 <div class="page" id="page-indoor">
+  <div class="nmb-slot" id="nmb-indoor"></div>
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-indoor"></div>
     <!-- v47: anche l'Indoor ha il suo pulsante Solo Valchisone -->
@@ -818,6 +885,7 @@ body.on-live .hero { display:none; }
       </div>
     </div>
   </div>
+  <div class="valch-hint" id="valch-hint-indoor"></div>
   <div class="view-tabs">
     <button class="view-tab active" id="tab-cal-indoor" onclick="switchView('indoor','cal')">📅 Calendario</button>
     <button class="view-tab" id="tab-gio-indoor" onclick="switchView('indoor','gio')">📋 Giornate</button>
@@ -1226,11 +1294,11 @@ const VALCH = 'VALCHISONE';
 const CATS = {
   af:   { label:'A2 Femminile',            icon:'🩷', short:'A2',   sport:'prato'  },
   cffb: { label:'Coppa Fed. Fem. Girone B', icon:'🏆', short:'CFFB', sport:'prato'  },
-  jf:   { label:'Juniores (U20)',           icon:'🩶', short:'U20',  sport:'prato',  attiva:false },  // 2026/27: non si gioca
-  rf:   { label:'Ragazze (U16)',            icon:'🟣', short:'U16',  sport:'prato'  },
-  alf:  { label:'Allieve (U14)',            icon:'🩵', short:'U14',  sport:'prato'  },
+  jf:   { label:'Juniores U20',           icon:'🩶', short:'U20',  sport:'prato',  attiva:false },  // 2026/27: non si gioca
+  rf:   { label:'Ragazze U16',            icon:'🟣', short:'U16',  sport:'prato'  },
+  alf:  { label:'Allieve U14',            icon:'🩵', short:'U14',  sport:'prato'  },
   a1f:  { label:'A1 Femminile Indoor',     icon:'🟡', short:'A1',   sport:'indoor' },
-  jfi:  { label:'Juniores Indoor (U20)',   icon:'🩶', short:'U20i', sport:'indoor' },
+  jfi:  { label:'Juniores U20 Indoor',   icon:'🩶', short:'U20i', sport:'indoor' },
   rfi:  { label:'Ragazze U16 Indoor',      icon:'🟣', short:'U16i', sport:'indoor' },
   alfi: { label:'Allieve U14 Indoor',      icon:'🩵', short:'U14i', sport:'indoor' },
 };
@@ -1335,7 +1403,35 @@ const DEFAULT_FIELDS = [
   'Centro S. Comunale - Via Milano, 65, 27030 Castello dAgogna PV',
   'C.S. Seveninfinity - Via Toscana, 7, 20064 Gorgonzola MI'
 ];
-let fPartite = 'all', fIndoor = 'all', fPartiteExtra = null, fIndoorExtra = null, onlyValch = false;
+let fPartite = 'all', fIndoor = 'all', fPartiteExtra = null, fIndoorExtra = null, onlyValch = true;
+// v50: le scelte (categoria e Solo Valchisone) restano salvate sul telefono.
+// Chi apre l'app la prima volta vede solo le partite di Valchisone.
+(function(){
+  try {
+    var f = JSON.parse(localStorage.getItem('vf_filtri') || 'null');
+    if (f) {
+      if (typeof f.onlyValch === 'boolean') onlyValch = f.onlyValch;
+      if (f.fPartite && (f.fPartite === 'all' || (typeof CATS !== 'undefined' && CATS[f.fPartite]))) fPartite = f.fPartite;
+      if (f.fIndoor && (f.fIndoor === 'all' || (typeof CATS !== 'undefined' && CATS[f.fIndoor]))) fIndoor = f.fIndoor;
+    }
+  } catch(e) {}
+})();
+function _saveFiltri() {
+  try { localStorage.setItem('vf_filtri', JSON.stringify({onlyValch:onlyValch, fPartite:fPartite, fIndoor:fIndoor})); } catch(e) {}
+}
+function _syncValchUI() {
+  ['valch-filter-btn', 'valch-filter-btn-indoor'].forEach(function(id) {
+    var b = document.getElementById(id);
+    if (b) { b.className = 'ftab valch' + (onlyValch ? ' active' : ''); b.innerHTML = onlyValch ? '🟠 Solo Valchisone ✓' : '🟠 Solo Valchisone'; }
+  });
+  ['valch-hint-prato', 'valch-hint-indoor'].forEach(function(id) {
+    var h = document.getElementById(id);
+    if (!h) return;
+    h.innerHTML = onlyValch
+      ? 'Vedi solo le partite di <b>HP Valchisone</b>. <button type="button" onclick="toggleValch()">Mostra tutte le squadre</button>'
+      : 'Vedi le partite di <b>tutte le squadre</b> dei gironi. <button type="button" onclick="toggleValch()">Solo Valchisone</button>';
+  });
+}
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSelected = null;
 let calIndoorYear = new Date().getFullYear();
 let calIndoorMonth = new Date().getMonth();
@@ -1344,6 +1440,7 @@ let currentPage = 'partite', classSport = 'prato', showAllResults = false, _live
 
 // ─── INIT ───────────────────────────────────────────────
 window.addEventListener('load', () => {
+  _syncValchUI();
   const now = new Date();
   calYear  = now.getFullYear();
   calMonth = now.getMonth();
@@ -1359,8 +1456,9 @@ window.addEventListener('load', () => {
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
       allOrphans = all.filter(m => m && m.id && !CATS[m.cat]);
+      if (!window._autoMonthDone && all.length) { window._autoMonthDone = true; _autoMonth('prato'); _autoMonth('indoor'); }
       renderCalendar(); renderCalendarIndoor(); updateHeroStats(); renderNextMatchBanner();
-  renderMatches(); renderIndoor(); renderStandings();
+  renderMatches(); renderIndoor(); renderStandings(); _syncValchUI();
       renderAdminList();
       checkMissingResults();
     });
@@ -1451,6 +1549,7 @@ function switchSport(sport) {
   // Render contenuto
   if (sport === 'prato') { renderCalendar(); renderMatches(); }
   else { renderCalendarIndoor(); renderIndoor(); }
+  renderNextMatchBanner();
   // Sync tutti i controlli sport
   syncAllSportControls(sport);
   setTimeout(function() { window.scrollTo({top:0, behavior:'smooth'}); updateHeroStats(); }, 80);
@@ -1542,57 +1641,40 @@ function renderGiornate(sport) {
     return;
   }
 
-  // Raggruppa per giornata o data
-  const grouped = {};
-  allMs.forEach(m => {
-    const key = _roundKey(m.round) || (m.date || 'Data sconosciuta');
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(m);
-  });
-
-  // Ordina: giornate numeriche prima, poi per data
-  const sortedKeys = Object.keys(grouped).sort((a, b) => {
-    const aRound = a.match(/^Giornata (\d+)/);
-    const bRound = b.match(/^Giornata (\d+)/);
-    if (aRound && bRound) return parseInt(aRound[1]) - parseInt(bRound[1]);
-    if (aRound) return -1;
-    if (bRound) return 1;
-    return a.localeCompare(b);
-  });
-
+  // v50: prima la categoria, poi la giornata; ogni partita con la sua data
   let html = '';
-  sortedKeys.forEach(key => {
-    const matches = grouped[key];
-    // Formatta data leggibile se è una data
-    let label = key;
-    if (!key.startsWith('Giornata') && key.match(/^\d{4}-\d{2}-\d{2}/)) {
-      const d = new Date(key);
-      label = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
-    }
-    html += '<div style="margin-bottom:16px">';
-    html += '<div class="giornata-header">'+label+'</div>';
-    matches.sort((a,b) => {
-      const catOrder = (cats.indexOf(a.cat) - cats.indexOf(b.cat));
-      if (catOrder !== 0) return catOrder;
-      return (a.time||'').localeCompare(b.time||'');
-    }).forEach(m => {
-      const isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
-      const hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null;
-      const cat = CATS[m.cat] || {};
-      const scoreHtml = hasSc
-        ? '<div class="giornata-match-score">'+m.scoreHome+' – '+m.scoreAway+'</div>'
-        : '<div class="giornata-match-score future">'+(m.time||'–')+'</div>';
-      html += '<div class="giornata-match'+(isValch?' valch':'')+'">';
-      html += '<div class="giornata-match-teams">';
-      html += abbrevTeam(m.home,20)+' <span style="color:#9ca3af;font-weight:400">vs</span> '+abbrevTeam(m.away,20);
-      html += '<div class="giornata-match-meta">'+catChip(m.cat)+(m.location?' · '+m.location:'')+'</div>';
-      html += '</div>';
-      html += scoreHtml;
+  cats.forEach(function(ck) {
+    const inCat = allMs.filter(function(m){ return m.cat === ck; });
+    if (!inCat.length) return;
+    const c = CATS[ck] || {};
+    const grouped = {};
+    inCat.forEach(function(m) {
+      const key = _roundKey(m.round) || 'Senza giornata';
+      (grouped[key] = grouped[key] || []).push(m);
+    });
+    const keys = Object.keys(grouped).sort(function(a, b2) {
+      const x = a.match(/(\d+)/), y = b2.match(/(\d+)/);
+      if (x && y) return parseInt(x[1],10) - parseInt(y[1],10);
+      return x ? -1 : y ? 1 : a.localeCompare(b2);
+    });
+    html += '<div class="gio-cat"><div class="gio-cat-title">' + (c.icon||'') + ' ' + (c.label||ck) + '</div>';
+    keys.forEach(function(key) {
+      html += '<div style="margin-bottom:14px"><div class="giornata-header">' + key + '</div>';
+      grouped[key].sort(function(x, y){ return (x.date + (x.time||'')).localeCompare(y.date + (y.time||'')); }).forEach(function(m) {
+        const isValch = m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH);
+        const hasSc = m.scoreHome !== undefined && m.scoreAway !== undefined && m.scoreHome !== null;
+        const scoreHtml = hasSc
+          ? '<div class="giornata-match-score">' + m.scoreHome + ' – ' + m.scoreAway + '</div>'
+          : '<div class="giornata-match-score future">' + (m.time || '–') + '</div>';
+        html += '<div class="giornata-match' + (isValch ? ' valch' : '') + '">';
+        html += '<div class="giornata-match-teams">' + teamShort(m.home) + ' <span style="color:#9ca3af;font-weight:400">vs</span> ' + teamShort(m.away);
+        html += '<div class="giornata-match-meta">📅 ' + _shortDate(m.date) + (m.location ? ' · ' + venueLabel(m.location) : '') + '</div>';
+        html += '</div>' + scoreHtml + '</div>';
+      });
       html += '</div>';
     });
     html += '</div>';
   });
-
   contentEl.innerHTML = html;
 }
 
@@ -1627,6 +1709,7 @@ function setFPartite(v) {
     fPartite = v; fPartiteExtra = null;
   }
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
+  _saveFiltri(); _autoMonth('prato');
   renderCalendar(); renderMatches(); updateHeroStats();
   if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
@@ -1637,16 +1720,14 @@ function setFIndoor(v) {
     fIndoor = v; fIndoorExtra = null;
   }
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  _saveFiltri(); _autoMonth('indoor');
+  renderCalendarIndoor(); renderIndoor(); updateHeroStats(); renderNextMatchBanner();
   if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 function toggleValch() {
   onlyValch = !onlyValch;
-  // v47: i due pulsanti (Prato e Indoor) mostrano sempre lo stesso stato.
-  ['valch-filter-btn', 'valch-filter-btn-indoor'].forEach(function(id) {
-    const b = document.getElementById(id);
-    if (b) b.className = 'ftab valch' + (onlyValch ? ' active' : '');
-  });
+  // v47/v50: i due pulsanti mostrano sempre lo stesso stato, e la scelta resta salvata
+  _syncValchUI(); _saveFiltri();
   renderCalendar(); renderMatches(); updateHeroStats();
   renderCalendarIndoor(); renderIndoor(); renderStandings();
   // v48: anche la vista Giornate, se aperta
@@ -1669,6 +1750,23 @@ function addFIndoorExtra(v) {
 }
 
 // ─── CALENDAR ──────────────────────────────────────────
+// v50: se nel mese mostrato non c'e' niente, il calendario va al mese della prossima partita
+function _autoMonth(sport) {
+  var isI = sport === 'indoor';
+  var pool = isI ? allIndoor : allMatches;
+  var f = isI ? fIndoor : fPartite, fx = isI ? fIndoorExtra : fPartiteExtra;
+  var ms = pool.filter(function(m){ return f === 'all' || m.cat === f || (fx && m.cat === fx); })
+               .filter(function(m){ return !onlyValch || m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH); });
+  if (!ms.length) return;
+  var y = isI ? calIndoorYear : calYear, mo = isI ? calIndoorMonth : calMonth;
+  var pre = y + '-' + String(mo + 1).padStart(2, '0');
+  if (ms.some(function(m){ return (m.date || '').slice(0, 7) === pre; })) return;
+  var today = _todayLocal();
+  var next = ms.filter(function(m){ return m.date >= today; }).sort(function(a,b){ return a.date.localeCompare(b.date); })[0];
+  if (!next) return;
+  var ny = parseInt(next.date.slice(0, 4), 10), nm = parseInt(next.date.slice(5, 7), 10) - 1;
+  if (isI) { calIndoorYear = ny; calIndoorMonth = nm; } else { calYear = ny; calMonth = nm; }
+}
 function renderCalendar() {
   const titleEl = document.getElementById('cal-title');
   const gridEl  = document.getElementById('cal-grid');
@@ -1699,7 +1797,7 @@ function renderCalendar() {
     clearBtn.innerHTML = '<button onclick="selectCalDay(calSelected)" style="background:none;border:1px solid #e5e7eb;border-radius:12px;padding:3px 12px;font-size:11px;color:#6b7280;cursor:pointer">✕ Tutte le date</button>';
     gridEl.parentNode.appendChild(clearBtn);
   }
-  clearBtn.style.display = calSelected ? '' : 'none';
+  clearBtn.style.display = 'none';
 }
 function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
 function goToToday() {
@@ -1823,7 +1921,7 @@ function renderCalendarIndoor() {
     clearBtnI.innerHTML = '<button onclick="selectCalIndoorDay(calIndoorSelected)" style="background:none;border:1px solid #e5e7eb;border-radius:12px;padding:3px 12px;font-size:11px;color:#6b7280;cursor:pointer">✕ Tutte le date</button>';
     gridEl.parentNode.appendChild(clearBtnI);
   }
-  clearBtnI.style.display = calIndoorSelected ? '' : 'none';
+  clearBtnI.style.display = 'none';
 }
 function selectCalIndoorDay(ds) {
   calIndoorSelected = calIndoorSelected===ds ? null : ds;
@@ -2010,7 +2108,7 @@ function matchCardHTML(m, showAdmin) {
       return '<div class="mc-scorers-line">\ud83c\udfd1 '+parts.join(', ')+'</div>';
     })()}
     <div class="mc-meta">
-      ${m.location ? `<span style="color:var(--ink3);font-size:11px;">📍 ${m.location}</span> ${hasSc ? '' : `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>`}` : ''}
+      ${m.location ? `<span class="mc-loc">📍 ${venueLabel(m.location)}</span> ${hasSc ? '' : `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>`}` : ''}
       ${m.round ? `· ${_roundKey(m.round)}` : ''}
       ${hasSc ? '' : `<button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>`}
     </div>
@@ -2031,10 +2129,13 @@ function eventCardHTML(e) {
   Object.keys(CATS).forEach(function(k){ catLabels[k] = catChip(k); });
   let dateStr = '';
   if (e.dateStart === e.dateEnd || !e.dateEnd) {
-    dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+    dateStr = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  } else if ((e.dateStart||'').slice(0,7) === (e.dateEnd||'').slice(0,7)) {
+    // v50: stesso mese -> "15–16 maggio 2027"
+    dateStr = parseInt(e.dateStart.slice(8,10),10) + '–' + new Date(e.dateEnd+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
   } else {
-    const d1 = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long'});
-    const d2 = new Date(e.dateEnd+'T00:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+    const d1 = new Date(e.dateStart+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'long'});
+    const d2 = new Date(e.dateEnd+'T00:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
     dateStr = `${d1} — ${d2}`;
   }
   const catBadges = (e.cats||[]).map(c => `<span class="cat-badge cat-${c}">${catLabels[c]||c}</span>`).join('');
@@ -2043,7 +2144,7 @@ function eventCardHTML(e) {
   <div class="ev-type">${icon} ${e.type||'Evento'}</div>
   <div class="ev-title">${e.title}</div>
   <div class="ev-dates">📅 ${dateStr}</div>
-  ${e.location ? `<div class="ev-meta">📍 ${e.location}</div>` : ''}
+  ${e.location ? `<div class="ev-meta">📍 ${venueLabel(e.location)}</div>` : ''}
   ${(e.result || e.placement) ? `<div class="ev-meta" style="font-weight:700;color:var(--green)">${e.placement ? e.placement + ' ' : ''}${e.result ? (e.placement ? '· ' : '') + '🏑 ' + e.result : ''}</div>` : ''}
   ${e.desc ? `<div class="ev-desc">${e.desc}</div>` : ''}
   <div class="ev-cats">${catBadges}${noCatWarning}</div>
@@ -2183,6 +2284,15 @@ function showGoalEffect(type, goal) {
   setTimeout(() => el.remove(), type==='away' ? 4000 : 3600);
 }
 
+function _nextMatchLine() {
+  var today = _todayLocal();
+  var n = allMatches.concat(allIndoor)
+    .filter(function(m){ return (m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH)) && m.scoreHome === undefined && m.date >= today; })
+    .sort(function(a,b){ return (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')); })[0];
+  if (!n) return '';
+  return '<div class="no-live-next">Prossima partita · ' + catShortLabel(n.cat) + '<br><b>' + teamShort(n.home) + ' vs ' + teamShort(n.away) + '</b><br>'
+    + _shortDate(n.date) + (n.time ? ' · ore ' + n.time : '') + (n.location ? '<br>📍 ' + venueLabel(n.location) : '') + '</div>';
+}
 function renderLivePage() {
   const el = document.getElementById('live-content');
   if (!el) return;
@@ -2191,6 +2301,7 @@ function renderLivePage() {
       <div class="no-live-icon">🏑</div>
       <div class="no-live-text">Nessuna partita in corso</div>
       <div class="no-live-sub">Il tabellone live apparirà qui quando una partita sarà attiva</div>
+      ${_nextMatchLine()}
     </div>`;
     return;
   }
@@ -2205,7 +2316,7 @@ function renderLivePage() {
       <div class="eli-icon">${g.team&&g.team.toUpperCase().includes('VALCHISONE')?'🟢':'🔴'}</div>
       <div class="eli-text">
         <div class="eli-player">${g.jersey ? '#'+g.jersey+' ' : ''}${g.player||''}</div>
-        <div class="eli-team">${g.team||''}</div>
+        <div class="eli-team">${teamShort(g.team||'')}</div>
       </div>
     </div>`).join('') : '<div class="no-events">Nessun gol segnato</div>';
 
@@ -2238,7 +2349,7 @@ function renderLivePage() {
           <div class="sb-team-name${awayIsValch?' valch':''}">${abbrevTeam(l.away||'—',40)}</div>
         </div>
       </div>
-      ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${l.location}</div></div>` : ''}
+      ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${venueLabel(l.location)}</div></div>` : ''}
     </div>
     <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
@@ -2467,7 +2578,7 @@ function renderLiveAdminPanel() {
             ${g.jersey ? '<span style="font-weight:800;color:#1a7a2e">#'+g.jersey+'</span> ' : ''}${g.player?'<span>'+g.player+'</span>':''}
             <button onclick="editGoalPlayer('${g.id}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:#6b7280;padding:0">✏️</button>
           </div>
-          <div class="eli-team">${g.team||''}</div>
+          <div class="eli-team">${teamShort(g.team||'')}</div>
         </div>
         <button class="eli-del" onclick="deleteGoal('${g.id}')">✕</button>
       </div>`).join('') || '<div class="no-events">Nessun gol</div>';
@@ -3770,41 +3881,46 @@ function skeletonCards(n) {
 }
 
 function renderNextMatchBanner() {
-  const container = document.getElementById('next-match-banner-wrap');
-  if (!container) return;
-  const today = _todayLocal();
-  const allMs = [...allMatches, ...allIndoor];
-  // Trova prossima partita Valchisone non ancora giocata
-  const upcoming = allMs
-    .filter(m => m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH))
-    .filter(m => m.scoreHome === undefined && m.date >= today)
-    .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
-  if (!upcoming.length) { container.innerHTML = ''; return; }
-  const m = upcoming[0];
-  const matchDate = new Date(m.date+'T00:00:00'); // v48: con T12 il conto era sempre 1 giorno in piu'
-  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
-  const diffMs = matchDate - todayDate;
-  const diffDays = Math.round(diffMs / 86400000);
-  const dateStr = matchDate.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'});
-  const timeStr = m.time ? ' · '+m.time : '';
-  const locStr = m.location ? ' · '+m.location : '';
-  const cat = CATS[m.cat]||{};
-  const isToday = diffDays === 0;
-  const isTomorrow = diffDays === 1;
-  const countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : diffDays+'g';
-  const hV = m.home.toUpperCase().includes(VALCH);
-  const aV = m.away.toUpperCase().includes(VALCH);
-  const homeHtml = '<span class="'+(hV?'valch':'')+'">' + abbrevTeam(m.home,18) + '</span>';
-  const awayHtml = '<span class="'+(aV?'valch':'')+'">' + abbrevTeam(m.away,18) + '</span>';
-  container.innerHTML =
-    '<div class="next-match-banner'+(isToday?' nmb-today':'')+'" onclick="switchSport(\''+(PRATO_IDS.includes(m.cat)?'prato':'indoor')+'\')">'
-    + '<div class="nmb-left">'
-    + '<div class="nmb-label">🏑 Prossima partita ' + catShortLabel(m.cat) + '</div>'
-    + '<div class="nmb-teams">' + homeHtml + ' <span style="color:rgba(255,255,255,.4)">vs</span> ' + awayHtml + '</div>'
-    + '<div class="nmb-meta">📅 ' + dateStr + timeStr + locStr + '</div>'
-    + '</div>'
-    + '<div class="nmb-countdown">' + countdownLabel + '<small>' + (isToday?'':'al via') + '</small></div>'
-    + '</div>';
+  // v50: in cima alla pagina Prato e Indoor; segue la categoria scelta
+  [['prato','nmb-prato'],['indoor','nmb-indoor']].forEach(function(p) {
+    var container = document.getElementById(p[1]);
+    if (!container) return;
+    var isI = p[0] === 'indoor';
+    var f = isI ? fIndoor : fPartite, fx = isI ? fIndoorExtra : fPartiteExtra;
+    var today = _todayLocal();
+    var upcoming = (isI ? allIndoor : allMatches)
+      .filter(function(m){ return f === 'all' || m.cat === f || (fx && m.cat === fx); })
+      .filter(function(m){ return m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH); })
+      .filter(function(m){ return m.scoreHome === undefined && m.date >= today; })
+      .sort(function(a,b){ return (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')); });
+    if (!upcoming.length) { container.innerHTML = ''; return; }
+    var m = upcoming[0];
+    var matchDate = new Date(m.date + 'T00:00:00');
+    var todayDate = new Date(); todayDate.setHours(0,0,0,0);
+    var diffDays = Math.round((matchDate - todayDate) / 86400000);
+    var dateStr = matchDate.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+    var isToday = diffDays === 0, isTomorrow = diffDays === 1;
+    var countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : 'tra ' + diffDays + ' g';
+    var hV = m.home.toUpperCase().includes(VALCH), aV = m.away.toUpperCase().includes(VALCH);
+    container.innerHTML =
+      '<div class="next-match-banner' + (isToday ? ' nmb-today' : '') + '" onclick="goToMatchDay(\'' + p[0] + '\',\'' + m.date + '\')" role="button" tabindex="0">'
+      + '<div class="nmb-left">'
+      + '<div class="nmb-label">🏑 Prossima partita · ' + catShortLabel(m.cat) + '</div>'
+      + '<div class="nmb-teams"><span class="' + (hV ? 'valch' : '') + '">' + teamShort(m.home) + '</span> <span style="color:rgba(255,255,255,.55)">vs</span> <span class="' + (aV ? 'valch' : '') + '">' + teamShort(m.away) + '</span></div>'
+      + '<div class="nmb-meta">📅 ' + dateStr + (m.time ? ' · ore ' + m.time : '') + (m.location ? '<br>📍 ' + venueLabel(m.location) : '') + '</div>'
+      + '</div>'
+      + '<div class="nmb-countdown">' + countdownLabel + '</div>'
+      + '</div>';
+  });
+}
+function goToMatchDay(sport, ds) {
+  if (sport === 'indoor') {
+    calIndoorYear = parseInt(ds.slice(0,4),10); calIndoorMonth = parseInt(ds.slice(5,7),10) - 1;
+    calIndoorSelected = ds; renderCalendarIndoor(); renderIndoor();
+  } else {
+    calYear = parseInt(ds.slice(0,4),10); calMonth = parseInt(ds.slice(5,7),10) - 1;
+    calSelected = ds; renderCalendar(); renderMatches();
+  }
 }
 
 function renderEventiPage() {
@@ -3891,7 +4007,7 @@ function renderStandings() {
     <table class="standings-table" role="table"><thead><tr><th>#</th><th style="text-align:left">Squadra</th><th>Pt</th><th>G</th><th class="col-sec">V</th><th class="col-sec">N</th><th class="col-sec">P</th><th class="col-sec">GF</th><th class="col-sec">GS</th><th>DR</th></tr></thead><tbody>`;
     rows.forEach((r,i) => {
       const dr = r.gf - r.gs, isV = r.name.toUpperCase().includes(VALCH);
-      html += `<tr${isV?' class="valch-row"':''}><td class="st-pos">${isV?'<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:9px;background:var(--orange);color:white;border-radius:4px;padding:1px 4px;font-weight:800">HP</span>'+(i+1)+'</span>':i+1}</td><td>${r.name}</td><td class="st-pts">${r.pts}</td><td>${r.g}</td><td class="col-sec">${r.v}</td><td class="col-sec">${r.n}</td><td class="col-sec">${r.p}</td><td class="col-sec">${r.gf}</td><td class="col-sec">${r.gs}</td><td class="${dr>=0?'dr-pos':'dr-neg'}">${dr>0?'+':''}${dr}</td></tr>`;
+      html += `<tr${isV?' class="valch-row"':''}><td class="st-pos">${isV?'<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:9px;background:var(--orange);color:white;border-radius:4px;padding:1px 4px;font-weight:800">HP</span>'+(i+1)+'</span>':i+1}</td><td title="${r.name}">${teamShort(r.name)}</td><td class="st-pts">${r.pts}</td><td>${r.g}</td><td class="col-sec">${r.v}</td><td class="col-sec">${r.n}</td><td class="col-sec">${r.p}</td><td class="col-sec">${r.gf}</td><td class="col-sec">${r.gs}</td><td class="${dr>=0?'dr-pos':'dr-neg'}">${dr>0?'+':''}${dr}</td></tr>`;
     });
     html += '</tbody></table></div>';
   });
@@ -3946,7 +4062,7 @@ function renderStandingsGiornate() {
         html += '<div class="match-row' + (isValch?' valch':'') + '" onclick="showMatchDetail(' + mid + ')" style="touch-action:manipulation">';
         html += '<div class="match-row-teams">';
         html += abbrevTeam(m.home, 18) + ' <span style="color:#9ca3af;font-weight:400">vs</span> ' + abbrevTeam(m.away, 18);
-        html += '<div class="match-row-meta">' + (m.location||'') + '</div>';
+        html += '<div class="match-row-meta">' + _shortDate(m.date) + (m.location ? ' · ' + venueLabel(m.location) : '') + '</div>';
         html += '</div>' + scoreHtml + '</div>';
       });
     });
@@ -3984,7 +4100,7 @@ function showMatchDetail(matchId) {
     + '</div>'
     + (hasSc ? '<div class="match-detail-score">' + m.scoreHome + ' \u2013 ' + m.scoreAway + '</div>' : '<div style="text-align:center;color:#9ca3af;margin:12px 0">Partita programmata</div>')
     + '<div class="match-detail-teams"><span>' + m.home + '</span><span>' + m.away + '</span></div>'
-    + '<div style="font-size:11px;color:#9ca3af;text-align:center;margin-bottom:12px">' + fmtDate(m.date) + (m.time ? ' ore '+m.time : '') + (m.location ? ' \u00b7 '+m.location : '') + '</div>';
+    + '<div style="font-size:11px;color:#9ca3af;text-align:center;margin-bottom:12px">' + fmtDate(m.date) + (m.time ? ' ore '+m.time : '') + (m.location ? ' \u00b7 '+venueLabel(m.location) : '') + '</div>';
 
   if (hasSc) {
     inner += '<div class="match-detail-section">Marcatrici \u2014 ' + m.home + '</div>' + goalsSection(homeGoals);
@@ -4629,7 +4745,7 @@ function quickPrint(section, mode, format, isRefresh) {
   const sport     = isIndoor ? '🏑 Indoor' : '🏑 Hockey Prato';
   const catFilter = isIndoor ? fIndoor : fPartite;
   const catExtra2 = isIndoor ? fIndoorExtra : fPartiteExtra;
-  const catName   = catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '');
+  const catName   = (catFilter === 'all' ? 'Tutte le categorie' : (CATS[catFilter]?.label||catFilter) + (catExtra2 ? ' + '+(CATS[catExtra2]?.label||catExtra2) : '')) + (onlyValch ? ' · solo HP Valchisone' : ' · tutte le squadre');
   const today     = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const indoorCats = INDOOR_IDS;
   const pratoIds   = PRATO_IDS;
@@ -4673,7 +4789,9 @@ function quickPrint(section, mode, format, isRefresh) {
 // ─── PRINT FUNCTIONS (abbreviated – reuse from v2 logic) ─
 const LOGO_B64 = 'data:image/jpeg;base64,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';
 function buildPrintHeader(sport,catName,today){return`<div style="display:flex;align-items:center;gap:14px;border-bottom:3px solid #1a7a2e;padding-bottom:14px;margin-bottom:20px;"><img src="${LOGO_B64}" alt="HP Valchisone" style="width:44px;height:44px;border-radius:50%;border:2px solid #1a7a2e;flex-shrink:0"><div style="flex:1"><div style="font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:#1a3a22">H.P. Valchisone Femminile</div><div style="font-size:12px;color:#6b7280;margin-top:2px">${sport} &nbsp;·&nbsp; ${catName} &nbsp;·&nbsp; Stagione 2026/27</div></div><div style="text-align:right;font-size:10px;color:#9ca3af;line-height:1.6">${today}</div></div>`;}
-function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'-'+m+'-'+y;}
+function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y;}
+// v50: nelle stampe prima le prossime date (in ordine), poi i risultati (dal piu' recente)
+function _printOrder(keys){const t=_todayLocal();const fut=keys.filter(k=>k>=t).sort();const past=keys.filter(k=>k<t).sort().reverse();return fut.concat(past);}
 
 const PRINT_BASE_CSS=`*{box-sizing:border-box;margin:0;padding:0;}body{font-family:DM Sans,sans-serif;background:white;color:#1a1a1a;padding:20px 24px;font-size:13px;}@page{margin:1.2cm 1cm;}`;
 let _printStyles = '';
@@ -4702,7 +4820,8 @@ function openPrintWindow(title, styles, bodyHTML) {
 function printList(section,sport,catName,today,ms,evs){
   const items=[...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const groups={};items.forEach(it=>{const d=it.type==='event'?(it.data.dateStart||''):it.date;if(!groups[d])groups[d]=[];groups[d].push(it);});
-  let body='';Object.keys(groups).sort().forEach(date=>{
+  let body='';const _ord=_printOrder(Object.keys(groups));const _firstPast=_ord.find(k=>k<_todayLocal());_ord.forEach(date=>{
+    if(date===_firstPast&&_ord[0]!==date)body+='<div style="font-family:Bricolage Grotesque,sans-serif;font-size:13px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin:26px 0 12px;border-top:2px dashed #d1d5db;padding-top:12px">✅ Risultati</div>';
     const d=new Date(date+'T12:00:00');
     const label=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     // Group matches by time for this day
@@ -4741,7 +4860,7 @@ function printList(section,sport,catName,today,ms,evs){
     .ev-row{border:1px solid #d1d5db;border-left:3px solid #e8620a;border-radius:6px;padding:8px 12px;margin-bottom:7px;}
     .ev-row-type{font-size:10px;font-weight:800;text-transform:uppercase;color:#e8620a;}.ev-row-title{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:800;}.ev-row-meta{font-size:11px;color:#888;margin-top:3px;}
   `;
-  openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
+  openPrintWindow('Elenco '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${CSS}</style>`,buildPrintHeader(sport,catName,today)+body);
 }
 // ─── TABLE VIEW ──────────────────────────────────────
 
@@ -4754,7 +4873,7 @@ function printListA4(section,sport,catName,today,ms,evs){
   const groups={};
   [...ms.map(m=>({date:m.date,time:m.time||'00:00',type:'match',data:m})),...evs.map(e=>({date:e.dateStart||'9999',time:'00:00',type:'event',data:e}))].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).forEach(it=>{const d=it.type==='event'?(it.data.dateStart||''):it.date;if(!groups[d])groups[d]=[];groups[d].push(it);});
   let body='<div class="twocol">';
-  Object.keys(groups).sort().forEach(date=>{
+  _printOrder(Object.keys(groups)).forEach(date=>{
     const d=new Date(date+'T12:00:00');
     const label=d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
     const dayMs=groups[date].filter(it=>it.type==='match').sort((a,b)=>(a.data.time||'').localeCompare(b.data.time||''));
@@ -4767,7 +4886,7 @@ function printListA4(section,sport,catName,today,ms,evs){
       const hV=m.home.toUpperCase().includes(VALCH),aV=m.away.toUpperCase().includes(VALCH);
       const hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined;
       const showTime=times.length>1;
-      body+=`<div class="mrow c-${m.cat}"><div class="mr1">${showTime?`<span class="mtm">${m.time||'--'}</span>`:''}<span class="mteams"><span${hV?' class="v"':''}>${m.home}</span><span class="vs">vs</span><span${aV?' class="v"':''}>${m.away}</span></span>${hasSc?`<span class="msc">${m.scoreHome}-${m.scoreAway}</span>`:''}</div>${m.location?`<div class="mloc">${m.location}</div>`:''}<div class="mr2"><span class="cb c-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="sb ${hasSc?'sd':'st'}">${hasSc?'Finale':'Da giocare'}</span></div></div>`;
+      body+=`<div class="mrow c-${m.cat}"><div class="mr1">${showTime?`<span class="mtm">${m.time||'--'}</span>`:''}<span class="mteams"><span${hV?' class="v"':''}>${m.home}</span><span class="vs">vs</span><span${aV?' class="v"':''}>${m.away}</span></span>${hasSc?`<span class="msc">${m.scoreHome}-${m.scoreAway}</span>`:''}</div>${m.location?`<div class="mloc">${venueLabel(m.location)}</div>`:''}<div class="mr2"><span class="cb c-${m.cat}">${cat.icon||''} ${cat.short||''}</span><span class="sb ${hasSc?'sd':'st'}">${hasSc?'Finale':'Da giocare'}</span></div></div>`;
     });
     dayEvs.forEach(it=>{const e=it.data;const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?fmt(e.dateStart)+'->'+fmt(e.dateEnd):fmt(e.dateStart||'');body+=`<div class="evr">${e.title||''} - ${dates}${e.location?' - '+e.location:''}</div>`;});
     body+='</div>';
@@ -4784,7 +4903,7 @@ function printListPocket(section,sport,catName,today,ms,evs){
   ms.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   const groups={};ms.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m);});
   let body='<div class="pg">';
-  Object.keys(groups).sort().forEach(date=>{
+  _printOrder(Object.keys(groups)).forEach(date=>{
     const d=new Date(date+'T12:00:00');
     const label=d.toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
     groups[date].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach((m,i)=>{
@@ -4794,7 +4913,7 @@ function printListPocket(section,sport,catName,today,ms,evs){
     });
   });
   body+='</div>';
-  const hdr=`<div class="hd"><div><div class="hdn">HP Valchisone F.</div><div class="hds">${catName} - 25/26</div></div><div class="hdd">${today}</div></div>`;
+  const hdr=`<div class="hd"><div><div class="hdn">HP Valchisone F.</div><div class="hds">${catName} - 2026/27</div></div><div class="hdd">${today}</div></div>`;
   const css=`@page{size:A5;margin:.6cm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:9px;color:#1a1a1a}.hd{display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #1a7a2e;padding-bottom:5px;margin-bottom:6px}.hdn{font-size:11px;font-weight:800;color:#1a7a2e}.hds{font-size:8px;color:#6b7280}.hdd{margin-left:auto;font-size:8px;color:#9ca3af;text-align:right}.pg{display:flex;flex-direction:column;gap:2px}.pc{border-left:2px solid #9ca3af;padding:3px 5px;break-inside:avoid}.c-af{border-left-color:#be185d}.c-rf{border-left-color:#6d28d9}.c-alf{border-left-color:#0e7490}.c-a1f{border-left-color:#c2410c}.c-rfi{border-left-color:#6d28d9}.c-alfi{border-left-color:#0e7490}.pc1{display:flex;align-items:center;gap:3px}.pcd{font-size:7px;font-weight:700;text-transform:uppercase;color:#6b7280;white-space:nowrap;min-width:52px}.pct{font-size:10px;font-weight:800;color:#1a7a2e;text-transform:uppercase;white-space:nowrap;min-width:28px}.pcts{font-size:8px;font-weight:800;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcts .v{color:#e8620a}.pvs{font-size:7px;color:#bbb;margin:0 1px}.pc2{display:flex;gap:3px;margin-top:1px;padding-left:80px}.cb{font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px;border:1px solid currentColor;text-transform:uppercase}.sb{font-size:7px;font-weight:600;padding:1px 3px;border-radius:2px;border:1px solid currentColor}.sd{color:#166534}.st{color:#c2410c}`;
   openPrintWindow('Tascabile - '+sport,`<style>${css}</style>`,hdr+body);
 }
@@ -4840,7 +4959,7 @@ function printStandings() {
     .dr-pos{color:#16a34a;font-weight:700;}.dr-neg{color:#dc2626;font-weight:700;}
   `;
   openPrintWindow('Classifica ' + sport,
-    `<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${CSS}</style>`,
+    `<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${CSS}</style>`,
     buildPrintHeader(sport, 'Classifica', today) + content
   );
 }
@@ -4857,13 +4976,13 @@ function printMatchRow(m, hideTime){
     <span class="match-teams"><span${hV?' class="valch"':''}>${m.home}</span><span class="match-vs">vs</span><span${aV?' class="valch"':''}>${m.away}</span></span>
     ${hasSc?`<span class="match-score">${m.scoreHome}–${m.scoreAway}</span>`:''}
   </div>
-  ${m.location?`<div class="match-line2">📍 ${m.location}</div>`:''}
+  ${m.location?`<div class="match-line2">📍 ${venueLabel(m.location)}</div>`:''}
   <div class="match-line3">
     <span class="cat-badge cat-${m.cat}">${catChip(m.cat)}</span>
     <span class="status-badge ${hasSc?'s-done':'s-todo'}">${hasSc?'Risultato Finale':'Da giocare'}</span>
   </div>
 </div>`;}
-function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+e.location:''}${(e.placement||e.result)?' · '+(e.placement?e.placement+' ':'')+(e.result?'🏑 '+e.result:''):''}</div></div>`;}
+function printEventRow(e){const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});const dates=e.dateEnd&&e.dateEnd!==e.dateStart?`${fmt(e.dateStart)} → ${fmt(e.dateEnd)}`:fmt(e.dateStart);return`<div class="ev-row"><div class="ev-row-type">🏆 ${e.type||'Evento'}</div><div class="ev-row-title">${e.title||''}</div><div class="ev-row-meta">📅 ${dates}${e.location?' 📍 '+venueLabel(e.location):''}${(e.placement||e.result)?' · '+(e.placement?e.placement+' ':'')+(e.result?'🏑 '+e.result:''):''}</div></div>`;}
 function printCalView(section,sport,catName,today,ms,evs){
   const allDts=[...ms.map(m=>m.date),...evs.map(e=>e.dateStart||'').filter(Boolean)];if(!allDts.length){alert('Nessuna partita da stampare');return;}
   allDts.sort();const firstDate=new Date(allDts[0]+'T12:00:00'),lastDate=new Date(allDts[allDts.length-1]+'T12:00:00');
@@ -4871,7 +4990,7 @@ function printCalView(section,sport,catName,today,ms,evs){
   const byDate={};ms.forEach(m=>{if(!byDate[m.date])byDate[m.date]=[];byDate[m.date].push({type:'match',data:m});});evs.forEach(e=>{const d=e.dateStart||'';if(!d)return;if(!byDate[d])byDate[d]=[];byDate[d].push({type:'event',data:e});});
   const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];let calHTML='';
   months.forEach(mDate=>{const yr=mDate.getFullYear(),mo=mDate.getMonth(),label=MONTHS_IT[mo]+' '+yr;let firstDay=new Date(yr,mo,1).getDay();firstDay=firstDay===0?6:firstDay-1;const dim=new Date(yr,mo+1,0).getDate();calHTML+=`<div class="cal-month-block"><div class="cal-month-title">${label}</div><table class="cal-table"><colgroup><col class="weekday"><col class="weekday"><col class="weekday"><col class="weekday"><col class="weekday"><col class="weekend"><col class="weekend"></colgroup><thead><tr>${DAYS.map((d,i)=>`<th${i>=5?' class="weekend-h"':''}>${d}</th>`).join('')}</tr></thead><tbody>`;let dc=1,rows=Math.ceil((dim+firstDay)/7);for(let r=0;r<rows;r++){calHTML+='<tr>';for(let c=0;c<7;c++){const ci=r*7+c;if(ci<firstDay||dc>dim){calHTML+='<td class="cal-empty"></td>';}else{const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dc).padStart(2,'0');const items=byDate[ds]||[];calHTML+=`<td class="cal-day${c>=5?' weekend':''}${items.length?' has-events':''}"><div class="cal-day-num">${dc}</div>`;items.forEach(it=>{if(it.type==='match'){const m=it.data,cat=CATS[m.cat]||{},isV=m.home.toUpperCase().includes(VALCH)||m.away.toUpperCase().includes(VALCH),hasSc=m.scoreHome!==undefined&&m.scoreAway!==undefined,tA=m.home.replace('HOCKEY PRATO VALCHISONE FEMMINILE','HP Valchisone').replace('ASD ','').replace('USD ',''),tB=m.away.replace('HOCKEY PRATO VALCHISONE FEMMINILE','HP Valchisone').replace('ASD ','').replace('USD ','');calHTML+=`<div class="cal-event match-ev cat-ev-${m.cat}${isV?' valch-ev':''}"><span class="ev-time">${m.time||''}</span> <span class="ev-teams">${tA} <span class="ev-sep">vs</span> ${tB}${hasSc?' <strong>'+m.scoreHome+'–'+m.scoreAway+'</strong>':''}</span></div>`;}else{const e=it.data;calHTML+=`<div class="cal-event special-ev">🏆 ${e.title||'Evento'}</div>`;}});calHTML+='</td>';dc++;}}calHTML+='</tr>';}calHTML+='</tbody></table></div>';});
-  openPrintWindow('Calendario '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"><style>${PRINT_BASE_CSS}
+  openPrintWindow('Calendario '+sport,`<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${PRINT_BASE_CSS}
   @page{size:A4 landscape;margin:1cm;}
   .cal-month-block{margin-bottom:24px;break-inside:avoid;}
   .cal-month-title{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;color:#1a3a22;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;border-left:5px solid #1a7a2e;padding-left:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -5218,8 +5337,8 @@ function _postDiScorta(testo) {
 function _postComuni() {
   var cat = (CATS[liveData.cat] && CATS[liveData.cat].label) || '';
   return {
-    casa: String(abbrevTeam(liveData.home, 24) || '').toUpperCase(),
-    ospite: String(abbrevTeam(liveData.away, 24) || '').toUpperCase(),
+    casa: String(_fitName(liveData.home, 24)).toUpperCase(),
+    ospite: String(_fitName(liveData.away, 24)).toUpperCase(),
     punteggio: (liveData.scoreHome || 0) + '  -  ' + (liveData.scoreAway || 0),
     categoria: cat.toUpperCase()
   };
@@ -5273,6 +5392,7 @@ function _lastGoal() {
   });
   return gs[gs.length - 1];
 }
+function _fitName(n, max) { var t = teamLong(n); return t.length > max ? teamShort(n) : t; }
 function _testoGol(g) {
   var isV = String(g.team || '').toUpperCase().indexOf(VALCH) >= 0;
   var chi = ((g.jersey ? '#' + g.jersey + ' ' : '') + (g.player || '')).trim();
@@ -5280,13 +5400,13 @@ function _testoGol(g) {
   var quarto = g.quarter ? (' \u00b7 ' + g.quarter + '\u00b0 quarto') : '';
   var cat = (CATS[liveData.cat] && CATS[liveData.cat].label)
     ? ' \u2014 ' + CATS[liveData.cat].label : '';
-  var testa = isV ? '\ud83c\udfd1\u26bd GOL VALCHISONE!'
-    : '\u26bd Gol ' + abbrevTeam(g.team || '', 25);
+  var testa = isV ? '\ud83c\udfd1 GOL VALCHISONE!'
+    : '\ud83e\udd45 Gol ' + _fitName(g.team || '', 25);
   var riga = (chi ? chi + ' \u2014 ' : '') + min + "'" + quarto;
   var text = testa + cat + '\n' + riga + '\n\n'
-    + abbrevTeam(liveData.home, 25) + '  '
+    + _fitName(liveData.home, 25) + '  '
     + (liveData.scoreHome || 0) + ' - ' + (liveData.scoreAway || 0)
-    + '  ' + abbrevTeam(liveData.away, 25)
+    + '  ' + _fitName(liveData.away, 25)
     + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
   return text;
 }
@@ -5294,9 +5414,9 @@ function _testoFinale() {
   var cat = (CATS[liveData.cat] && CATS[liveData.cat].label)
     ? ' \u2014 ' + CATS[liveData.cat].label : '';
   var text = '\ud83c\udfd1 Diretta' + cat + '\n\n'
-    + abbrevTeam(liveData.home, 25) + '  '
+    + _fitName(liveData.home, 25) + '  '
     + (liveData.scoreHome || 0) + ' - ' + (liveData.scoreAway || 0)
-    + '  ' + abbrevTeam(liveData.away, 25)
+    + '  ' + _fitName(liveData.away, 25)
     + (liveData.finished ? '\n\nFINALE' : '')
     + '\n\nSegui la diretta \ud83d\udc49 ' + VF_APP_URL;
   return text;
@@ -5305,36 +5425,62 @@ function _testoFinale() {
 function shareMatch(m) {
   const d = new Date(m.date+'T12:00:00');
   const dateStr = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
-  const home = abbrevTeam(m.home, 25);
-  const away = abbrevTeam(m.away, 25);
+  const home = teamLong(m.home);
+  const away = teamLong(m.away);
   const score = (m.scoreHome !== undefined) ? ' — Risultato: '+m.scoreHome+'–'+m.scoreAway : '';
-  const loc = m.location ? '\n📍 '+m.location : '';
-  const cat = CATS[m.cat] ? ' ('+CATS[m.cat].label+')' : '';
+  const cat = CATS[m.cat] ? '\n🏷️ '+CATS[m.cat].label : '';
   const time = m.time ? ' ore '+m.time : '';
-  const appUrl = window.location.href.split('?')[0];
+  const loc = m.location ? '\n📍 '+venueLabel(m.location)+'\n🗺️ '+getMapUrl(m.location) : '';
+  const appUrl = window.location.href.split('?')[0].split('#')[0];
+  // v50: niente parentesi doppie, con il link per arrivare al campo
   const text = '🏑 '+home+' vs '+away+score
+    + cat
     + '\n📅 '+dateStr+time
     + loc
-    + cat
-    + '\n\n'+appUrl;
+    + '\n\nCalendario completo 👉 '+appUrl;
   const waUrl = 'https://wa.me/?text='+encodeURIComponent(text);
   window.open(waUrl, '_blank');
 }
 
-function abbrevTeam(name, maxLen) {
-  if (!name) return name;
-  if (name.length <= maxLen) return name;
-  const abbrevs = {
-    'HOCKEY PRATO VALCHISONE FEMMINILE': 'HP Valchisone',
-    'HP VALCHISONE FEMMINILE': 'HP Valchisone',
-    'HOCKEY PRATO VALCHISONE': 'HP Valchisone',
-  };
-  const upper = name.toUpperCase();
-  for (const [k,v] of Object.entries(abbrevs)) {
-    if (upper.includes(k)) return v;
-  }
-  // Remove common prefixes
-  return name.replace(/^(ASD |USD |SSD |US |AC |AS |HC |GS )/i, '').substring(0, maxLen-1) + '…';
+// v50: nome breve e uguale ovunque nell'app (stampe e messaggi usano teamLong)
+function teamShort(name) {
+  var u = String(name || '').toUpperCase().trim();
+  if (!u) return name || '';
+  if (u.indexOf('VALCHISONE') >= 0) return 'Valchisone';
+  if (u.indexOf('MONCALVESE') >= 0) return 'Moncalvese';
+  if (u.indexOf('LORENZONI') >= 0) return (/\bB$/.test(u) || u.indexOf('RIS') >= 0) ? 'Lorenzoni B' : 'Lorenzoni';
+  if (u.indexOf('CUS TORINO') >= 0) return u.indexOf('RIS') >= 0 ? 'CUS Torino Ris.' : 'CUS Torino';
+  if (u.indexOf('MILANO') >= 0) return 'Milano';
+  if (u.indexOf('SUPERBA') >= 0) return 'Superba';
+  if (u.indexOf('GENOVA HOCKEY CLUB') >= 0 || u === 'HC GENOVA') return 'Genova HC';
+  if (u.indexOf('GENOVA 1980') >= 0) return 'HF Genova 1980';
+  var t = String(name).replace(/^(ASD |USD |SSD |US |AC |AS |HC |GS |HF )/i, '').trim();
+  return t.toLowerCase().replace(/(^|[\s'.-])([a-zà-ù])/g, function(m, p, c){ return p + c.toUpperCase(); });
+}
+function teamLong(name) {
+  var u = String(name || '').toUpperCase();
+  if (u.indexOf('VALCHISONE') >= 0) return 'HP Valchisone Femminile';
+  return String(name || '').trim();
+}
+function abbrevTeam(name, maxLen) { return teamShort(name); }
+// v50: nome del campo uguale ovunque (Naviga usa sempre l'indirizzo completo)
+function venueLabel(loc) {
+  var l = String(loc || '').toLowerCase();
+  if (!l) return '';
+  if (l.indexOf('michellonet') >= 0) return 'Campo S. Michellonet, Villar Perosa';
+  if (l.indexOf('lorenzoni') >= 0 || l.indexOf('palmieri') >= 0 || l.indexOf('madonna dei fiori') >= 0) return 'Campo A. Lorenzoni, Bra';
+  if (l.indexOf('micco') >= 0 || l.indexOf('goria') >= 0) return 'Campo U. Micco, Moncalvo';
+  if (l.indexOf('tazzoli') >= 0) return 'Campo Tazzoli, Torino';
+  if (l.indexOf('arnaldi') >= 0 || l.indexOf('bartolomeo bianco') >= 0) return 'Campo G. Arnaldi, Genova';
+  if (l.indexOf('cernusco') >= 0 || l.indexOf('boccaccio') >= 0) return 'Campo Comunale, Cernusco sul Naviglio';
+  if (l.indexOf('torrazza') >= 0) return 'Palestra Torrazza, Torino';
+  if (l.indexOf('pinasca') >= 0) return 'Palazzetto dello Sport, Pinasca';
+  if (l.indexOf('risorgimento') >= 0 || (l.indexOf('palazzetto') >= 0 && l.indexOf('bra') >= 0)) return 'Palazzetto dello Sport, Bra';
+  return String(loc);
+}
+function _shortDate(ds) {
+  if (!ds) return '';
+  return new Date(ds + 'T12:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
 }
 
 
@@ -5375,7 +5521,7 @@ function updateHeroStats() {
   if (!catFiltered) { statsEl.innerHTML = ''; return; }
   let html = chip('Totali', total) + chip('Giocate', played);
   if (upcoming > 0) html += chip('Prossime', upcoming);
-  if (valchPlayed.length > 0) {
+  if (valchPlayed.length > 0 && (cat !== 'all' || catEx)) {
     html += chip('V', valchW, '#22c55e', 'white');
     if (valchD > 0) html += chip('N', valchD, '#f59e0b', 'white');
     html += chip('P', valchL, '#ef4444', 'white');
@@ -5419,39 +5565,39 @@ initPrivacy();
 // ─── TOUR GUIDATO ───────────────────────────────────────────
 const TOUR_STEPS = [
   {
-    target: '.hero',
-    title: 'Benvenuta... e benvenuto! 🏑',
-    desc: 'Questa app è dedicata alle nostre ragazze di HP Valchisone Femminile. Siamo una squadra femminile... ma l’app la possono guardare anche i maschietti! 😄 Scorri avanti per scoprire come funziona.',
-    position: 'bottom'
-  },
-  {
-    target: '#btn-sport-prato',
-    title: 'Prato e Indoor',
-    desc: 'Passa tra le partite su prato e quelle indoor con questi bottoni. I contatori si aggiornano automaticamente.',
-    position: 'bottom'
-  },
-  {
-    target: '.cal-wrap',
-    title: 'Calendario partite 📅',
-    desc: 'Tocca un giorno evidenziato (sfondo verde) per filtrare le partite di quella data. Il punto arancione indica giorni con partite. Dal bottone Stampa puoi stampare il calendario in vari modi: elenco, pagina A4 a due colonne, formato tascabile o calendario.',
-    position: 'bottom'
-  },
-  {
-    target: '.filter-bar',
-    title: 'Filtra per categoria',
-    desc: 'Tocca una categoria per vedere solo quelle partite. Qui trovi le partite di tutte le squadre dei gironi: il bottone arancione mostra solo quelle di HP Valchisone.',
+    target: '.logo-wrap',
+    title: 'Benvenuti! 🏑',
+    desc: 'Questa è l’app di HP Valchisone Femminile: calendario, risultati, classifiche e diretta delle nostre squadre, sul prato e in palestra. Bastano pochi passi per scoprire come funziona.',
     position: 'bottom'
   },
   {
     target: '#nav-pill-prato',
-    title: 'Naviga tra le sezioni',
-    desc: 'Usa la barra in alto per passare tra Partite, Indoor, Classifica, Live ed Eventi. Su smartphone scorri orizzontalmente.',
+    title: 'Le sezioni',
+    desc: 'Dalla barra in alto passi tra Prato, Indoor, Live, Classifica, Eventi e Archivio. Sul telefono la barra scorre di lato.',
+    position: 'bottom'
+  },
+  {
+    target: '#nmb-prato .next-match-banner',
+    title: 'La prossima partita',
+    desc: 'Qui trovi sempre la prossima partita di Valchisone, con giorno, ora e campo. Toccala per vederla nel calendario.',
+    position: 'bottom'
+  },
+  {
+    target: '#valch-filter-btn',
+    title: 'Le nostre partite o tutte',
+    desc: 'All’apertura vedi solo le partite di HP Valchisone. Tocca il bottone arancione per vedere anche quelle delle altre squadre dei gironi. Con i bottoni delle categorie scegli la tua squadra: l’app si ricorda la scelta.',
+    position: 'bottom'
+  },
+  {
+    target: '.cal-wrap',
+    title: 'Calendario 📅',
+    desc: 'Tocca un giorno evidenziato per vedere le partite di quel giorno. Ogni partita ha Naviga, per arrivare al campo, e Condividi, per mandarla su WhatsApp. Con Stampa prepari il calendario da stampare.',
     position: 'bottom'
   },
   {
     target: '#nav-live-btn',
-    title: 'Tabellone Live 🔴',
-    desc: "Durante le partite puoi seguire il punteggio in tempo reale! Appare quando c'e una partita attiva.",
+    title: 'Diretta 🔴',
+    desc: 'Durante alcune partite puoi seguire punteggio e marcatrici in tempo reale: quando c’è una diretta il bottone Live diventa rosso.',
     position: 'bottom'
   }
 ];
