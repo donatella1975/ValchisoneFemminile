@@ -734,6 +734,43 @@ body.on-live .hero { display:none; }
   button[onclick^="goToToday"] { min-height:34px; padding:6px 16px !important; }
   #page-archivio-pub table td, #page-archivio-pub table th { padding:5px 4px !important; }
 }
+
+/* ═══════════ v51: filtri in una riga, carte compatte, diretta ═══════════ */
+.chip-short { display:none; }
+.valch-seg { display:inline-flex; border:2px solid #fed7aa; border-radius:22px; overflow:hidden; background:white; flex-shrink:0; }
+.seg-btn { background:white; color:#9a3412; border:none; padding:6px 12px; font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; min-height:32px; white-space:nowrap; }
+.seg-btn + .seg-btn { border-left:2px solid #fed7aa; }
+.seg-btn.on { background:var(--orange); color:white; }
+.mc-round { color:var(--ink3); font-size:11px; white-space:nowrap; }
+.mc-round::before { content:'· '; }
+.mc-actions { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.btn-res { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; }
+.mc-right .btn.btn-sm.btn-ghost { display:none; }
+.live-more summary { color:rgba(255,255,255,.8); font-size:12px; cursor:pointer; padding:4px 2px 8px; }
+#page-live .eli-minute { font-family:'DM Sans',sans-serif; }
+@media (max-width:640px) {
+  .filter-bar { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding:0 28px 2px 0; -webkit-mask-image:linear-gradient(to right,#000 85%,transparent); mask-image:linear-gradient(to right,#000 85%,transparent); }
+  .filter-bar::-webkit-scrollbar { display:none; }
+  .ftab { padding:6px 10px; font-size:12px; white-space:nowrap; flex-shrink:0; }
+  .seg-btn { font-size:12px; padding:6px 10px; min-height:36px; }
+  .match-card .mc-time { min-width:56px; padding:8px 6px; }
+  .match-card .mc-body { padding:8px 10px 10px; }
+  .match-card .mc-right { display:none !important; }
+  .mc-info .status-badge { display:none; }
+  .mc-meta { gap:4px 6px; }
+  .mc-loc { flex-basis:auto; }
+  .mc-actions { flex-wrap:nowrap; }
+  .mc-actions .btn-map, .mc-actions .btn-share, .mc-actions .btn-res { flex:1 1 0; justify-content:center; text-align:center; min-height:36px; padding:6px 6px; white-space:nowrap; display:inline-flex; align-items:center; }
+  .mc-actions-admin .btn-res { flex:0 0 auto; padding:6px 12px; }
+  #page-live .event-log-item { padding:7px 10px; gap:8px; }
+  #page-live .eli-icon { font-size:14px; }
+  #page-live .eli-player { font-size:14px; }
+}
+@media (max-width:400px) {
+  .ftab { padding:6px 9px; font-size:12px; }
+  .mc-actions .btn-lbl { display:none; }
+  .mc-actions .btn-res { flex:0 0 44px; }
+}
 </style>
 </head>
 <body>
@@ -824,7 +861,7 @@ body.on-live .hero { display:none; }
   <div class="filter-bar-wrap">
     <div class="filter-bar" id="filter-partite"></div>
     <div style="display:flex;align-items:center;gap:5px">
-      <button class="ftab valch" id="valch-filter-btn" onclick="toggleValch()" title="Mostra solo partite di Valchisone" style="padding:6px 14px;font-size:12px;border-radius:20px;border-width:2px;font-weight:700">🟠 Solo Valchisone</button>
+      <div class="valch-seg" role="group" aria-label="Quali partite vedere"><button type="button" class="seg-btn" id="valch-filter-btn" onclick="setValch(true)">🟠 Valchisone</button><button type="button" class="seg-btn" id="valch-all-btn" onclick="setValch(false)">Tutte le squadre</button></div>
       <div class="print-box" style="flex-shrink:0;margin-left:auto">
         <button class="print-btn-main" onclick="togglePrintMenu('print-menu-partite')">🖨️ Stampa ▾</button>
         <div class="print-dropdown" id="print-menu-partite">
@@ -836,7 +873,6 @@ body.on-live .hero { display:none; }
       </div>
     </div>
   </div>
-  <div class="valch-hint" id="valch-hint-prato"></div>
   <div class="view-tabs">
     <button class="view-tab active" id="tab-cal-prato" onclick="switchView('prato','cal')">📅 Calendario</button>
     <button class="view-tab" id="tab-gio-prato" onclick="switchView('prato','gio')">📋 Giornate</button>
@@ -873,7 +909,7 @@ body.on-live .hero { display:none; }
     <div class="filter-bar" id="filter-indoor"></div>
     <!-- v47: anche l'Indoor ha il suo pulsante Solo Valchisone -->
     <div style="display:flex;align-items:center;gap:5px">
-      <button class="ftab valch" id="valch-filter-btn-indoor" onclick="toggleValch()" title="Mostra solo partite di Valchisone" style="padding:6px 14px;font-size:12px;border-radius:20px;border-width:2px;font-weight:700">🟠 Solo Valchisone</button>
+      <div class="valch-seg" role="group" aria-label="Quali partite vedere"><button type="button" class="seg-btn" id="valch-filter-btn-indoor" onclick="setValch(true)">🟠 Valchisone</button><button type="button" class="seg-btn" id="valch-all-btn-indoor" onclick="setValch(false)">Tutte le squadre</button></div>
       <div class="print-box" style="flex-shrink:0;margin-left:auto">
         <button class="print-btn-main" onclick="togglePrintMenu('print-menu-indoor')">🖨️ Stampa ▾</button>
         <div class="print-dropdown" id="print-menu-indoor">
@@ -885,7 +921,6 @@ body.on-live .hero { display:none; }
       </div>
     </div>
   </div>
-  <div class="valch-hint" id="valch-hint-indoor"></div>
   <div class="view-tabs">
     <button class="view-tab active" id="tab-cal-indoor" onclick="switchView('indoor','cal')">📅 Calendario</button>
     <button class="view-tab" id="tab-gio-indoor" onclick="switchView('indoor','gio')">📋 Giornate</button>
@@ -1420,18 +1455,13 @@ function _saveFiltri() {
   try { localStorage.setItem('vf_filtri', JSON.stringify({onlyValch:onlyValch, fPartite:fPartite, fIndoor:fIndoor})); } catch(e) {}
 }
 function _syncValchUI() {
-  ['valch-filter-btn', 'valch-filter-btn-indoor'].forEach(function(id) {
-    var b = document.getElementById(id);
-    if (b) { b.className = 'ftab valch' + (onlyValch ? ' active' : ''); b.innerHTML = onlyValch ? '🟠 Solo Valchisone ✓' : '🟠 Solo Valchisone'; }
-  });
-  ['valch-hint-prato', 'valch-hint-indoor'].forEach(function(id) {
-    var h = document.getElementById(id);
-    if (!h) return;
-    h.innerHTML = onlyValch
-      ? 'Vedi solo le partite di <b>HP Valchisone</b>. <button type="button" onclick="toggleValch()">Mostra tutte le squadre</button>'
-      : 'Vedi le partite di <b>tutte le squadre</b> dei gironi. <button type="button" onclick="toggleValch()">Solo Valchisone</button>';
+  [['valch-filter-btn','valch-all-btn'],['valch-filter-btn-indoor','valch-all-btn-indoor']].forEach(function(p) {
+    var v = document.getElementById(p[0]), t = document.getElementById(p[1]);
+    if (v) { v.classList.toggle('on', onlyValch); v.setAttribute('aria-pressed', onlyValch ? 'true' : 'false'); }
+    if (t) { t.classList.toggle('on', !onlyValch); t.setAttribute('aria-pressed', onlyValch ? 'false' : 'true'); }
   });
 }
+function setValch(v) { if (onlyValch !== v) toggleValch(); }
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSelected = null;
 let calIndoorYear = new Date().getFullYear();
 let calIndoorMonth = new Date().getMonth();
@@ -1695,7 +1725,8 @@ function buildFilters(containerId, active, setter, includeValch, indoorOnly) {
     const isExtra = extra===ch.v;
     const isActive = isPrimary || isExtra;
     const showPlus = active!=='all' && !isPrimary && !isExtra;
-    return `<span style="display:inline-flex;align-items:center;gap:2px"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')" title="${ch.lf||ch.l}">${ch.l}</button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi ${ch.lf||ch.l}">+</button>`:''}</span>`;
+    const _sh = (CATS[ch.v] && CATS[ch.v].icon ? CATS[ch.v].icon + ' ' : '') + ({af:'A2',cffb:'Coppa',rf:'U16',alf:'U14',jf:'U20',a1f:'A1',jfi:'U20',rfi:'U16',alfi:'U14'}[ch.v] || ch.l);
+    return `<span style="display:inline-flex;align-items:center;gap:2px;flex-shrink:0"><button class="ftab${isActive?' active':''}" onclick="${setter}('${ch.v}')" title="${ch.lf||ch.l}"><span class="chip-long">${ch.l}</span><span class="chip-short">${_sh}</span></button>${showPlus?`<button onclick="${addFn}('${ch.v}')" style="background:#e5e7eb;color:#6b7280;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;padding:0" title="Aggiungi ${ch.lf||ch.l}">+</button>`:''}</span>`;
   }).join('');
   // Valchisone button is rendered separately in HTML
   c.innerHTML = html;
@@ -2063,7 +2094,28 @@ function getMapCoords(location) {
   }
   return null;
 }
+// v51: per i campi che Google Maps conosce si apre la scheda del campo (con il nome),
+// non piu' un punto con le coordinate. Gli altri restano come prima.
+const VENUE_PLACES = [
+  { m:['michellonet','villar perosa','campo hockey villar','campo da hockey villar'], q:'Hockey Prato Val Chisone, Via Dante Alighieri 9, Villar Perosa', id:'ChIJP3V6f9gxiEcRbr942sWU6zM' },
+  { m:['lorenzoni','palmieri','madonna dei fiori'], q:'Hockey Club Bra, Viale Madonna dei Fiori 49, Bra', id:'ChIJ7RqsOzOr0hIRR9JYbu9C2gQ' },
+  { m:['tazzoli'], q:'Campo da Hockey, Corso Enrico Tazzoli 78, Torino', id:'ChIJJ_kLUyUTiEcRRjKuvd123Qg' },
+  { m:['arnaldi','bartolomeo bianco'], q:'Campo Giorgio Arnaldi, Via Bartolomeo Bianco, Genova', id:'ChIJm6mFU6tG0xIRdYNNqTJILDo' },
+  { m:['cernusco','boccaccio','goldoni'], q:'Cernusco Field Hockey, Via Carlo Goldoni 19, Cernusco sul Naviglio', id:'ChIJEcaN5CC3hkcRPa_ovFjxh3A' },
+  { m:['risorgimento','palasport bra'], q:'Palazzetto dello sport, Viale Risorgimento 31A, Bra', id:'ChIJDZKxIQ-r0hIRX2A9RMTFzZ4' },
+  { m:['pinasca'], q:'Palasport Comunale, Strada Provinciale 23 del Colle di Sestriere 51, Pinasca', id:'ChIJlx-w1vIxiEcRoc0Rwi3Tl90' }
+];
+function _venuePlace(location) {
+  var l = String(location || '').toLowerCase();
+  if (!l || l.indexOf('torrazza') >= 0) return null;
+  for (var i = 0; i < VENUE_PLACES.length; i++) {
+    if (VENUE_PLACES[i].m.some(function(k){ return l.indexOf(k) >= 0; })) return VENUE_PLACES[i];
+  }
+  return null;
+}
 function getMapUrl(location) {
+  const pl = _venuePlace(location);
+  if (pl) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(pl.q) + '&query_place_id=' + pl.id;
   const coords = getMapCoords(location);
   if (coords) return `https://www.google.com/maps/search/?api=1&query=${coords}`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getMapAddress(location))}`;
@@ -2108,10 +2160,9 @@ function matchCardHTML(m, showAdmin) {
       return '<div class="mc-scorers-line">\ud83c\udfd1 '+parts.join(', ')+'</div>';
     })()}
     <div class="mc-meta">
-      ${m.location ? `<span class="mc-loc">📍 ${venueLabel(m.location)}</span> ${hasSc ? '' : `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>`}` : ''}
-      ${m.round ? `· ${_roundKey(m.round)}` : ''}
-      ${hasSc ? '' : `<button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>`}
+      ${m.location ? `<span class="mc-loc">📍 ${venueLabel(m.location)}</span>` : ''}${m.round ? `<span class="mc-round">${_roundKey(m.round)}</span>` : ''}
     </div>
+    ${hasSc ? (showAdmin && isAdminOpen && !_isLiveOnly ? `<div class="mc-actions mc-actions-admin"><button class="btn-res" onclick="openResultModal('${m.id}')">✏️ Modifica risultato</button></div>` : '') : `<div class="mc-actions">${m.location ? `<a class="btn-map" href="${getMapUrl(m.location)}" target="_blank" rel="noopener">🗺️ Naviga</a>` : ''}<button class="btn-share" onclick="shareMatchById('${m.id}')" title="Condividi su WhatsApp">📤 Condividi</button>${showAdmin && isAdminOpen && !_isLiveOnly ? `<button class="btn-res" onclick="openResultModal('${m.id}')" title="Inserisci risultato">🏑<span class="btn-lbl"> Risultato</span></button>` : ''}</div>`}
   </div>
   <div class="mc-right">
     <span class="cat-badge cat-${m.cat}">${cat.icon||''} ${cat.label||cat.short||''}</span>
@@ -2165,7 +2216,8 @@ function renderLiveBadge() {
     badge.classList.add('visible');
     navLive.classList.add('nav-live');
     navLive.style.display = '';
-    matchText.textContent = liveData.home + ' vs ' + liveData.away;
+    navLive.style.opacity = '';
+    matchText.textContent = teamShort(liveData.home) + ' vs ' + teamShort(liveData.away);
   } else {
     badge.classList.remove('visible');
     navLive.classList.remove('nav-live');
@@ -2351,10 +2403,10 @@ function renderLivePage() {
       </div>
       ${l.location ? `<div class="sb-info"><div class="sb-info-item">📍 ${venueLabel(l.location)}</div></div>` : ''}
     </div>
-    <div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
+    ${_liveCommentsPublicHTML(l)}<div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px">
       <div class="events-log-title">🏑 Marcatrici</div>
       ${goalsHtml}
-    </div>${_liveCommentsPublicHTML(l)}`;
+    </div>`;
 }
 
 // ─── LIVE ADMIN PANEL ───────────────────────────────────
@@ -2411,10 +2463,14 @@ function _liveCommentsAdminHTML(l) {
     + rows + '</div>';
 }
 function _liveCommentsPublicHTML(l) {
-  const list = _liveCommentList(l).slice(0, 10);
-  if (!list.length) return '';
+  const all = _liveCommentList(l);
+  if (!all.length) return '';
+  // v51: sopra le marcatrici, gli ultimi 3 (il piu' recente in alto); gli altri si aprono
+  const list = all.slice(0, 3), more = all.slice(3, 15);
   return '<div class="events-log" style="background:rgba(255,255,255,.08);border-radius:16px;margin:0 16px 16px;padding:12px"><div class="events-log-title">\ud83d\udcac Dal campo</div>'
-    + list.map(function(c){ return '<div class="live-comment">' + _escHtml(c.text) + '</div>'; }).join('') + '</div>';
+    + list.map(function(c){ return '<div class="live-comment">' + _escHtml(c.text) + '</div>'; }).join('')
+    + (more.length ? '<details class="live-more"><summary>Commenti precedenti (' + more.length + ')</summary>' + more.map(function(c){ return '<div class="live-comment">' + _escHtml(c.text) + '</div>'; }).join('') + '</details>' : '')
+    + '</div>';
 }
 
 
@@ -2458,7 +2514,7 @@ function importMatchesFile(input) {
 var _operators = {};      // {id: {name, email}}
 var _assignData = null;   // {matchId: email}
 function _escH(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function _matchLabel(m){ return fmtDate(m.date) + ' ' + (m.time||'') + ' – ' + m.home + ' vs ' + m.away; }
+function _matchLabel(m){ return fmtDate(m.date) + (m.time ? ' ore ' + m.time : '') + ' – ' + teamLong(m.home) + ' vs ' + teamLong(m.away) + (CATS[m.cat] ? ' (' + CATS[m.cat].label + ')' : ''); }
 
 function openAssignDialog() {
   if (_isLiveOnly || !isAdminOpen) return;
@@ -4372,6 +4428,8 @@ function saveMatch() {
   if (sh !== '' && sa !== '') { m.scoreHome = parseInt(sh); m.scoreAway = parseInt(sa); }
   if (!CATS[m.cat]) { alert('Scegli la categoria della partita: senza categoria non compare da nessuna parte.'); document.getElementById('m-cat').focus(); return; }
   if (!m.date||!m.home||!m.away) { alert('Compila data, casa e ospite!'); return; }
+  var _yy = parseInt(String(m.date).slice(0,4), 10);
+  if (!(_yy >= 2020 && _yy <= 2100)) { alert('Controlla la data: l\'anno risulta ' + String(m.date).slice(0,4) + '.'); document.getElementById('m-date').focus(); return; }
   const all = [...allMatches, ...allIndoor, ...allOrphans];
   const obj = {};
   all.forEach(x => { obj[x.id] = x; });
@@ -5585,7 +5643,7 @@ const TOUR_STEPS = [
   {
     target: '#valch-filter-btn',
     title: 'Le nostre partite o tutte',
-    desc: 'All’apertura vedi solo le partite di HP Valchisone. Tocca il bottone arancione per vedere anche quelle delle altre squadre dei gironi. Con i bottoni delle categorie scegli la tua squadra: l’app si ricorda la scelta.',
+    desc: 'Con 🟠 Valchisone vedi solo le nostre partite, con Tutte le squadre anche quelle delle altre squadre dei gironi. Con i bottoni delle categorie scegli la tua squadra: l’app si ricorda la scelta.',
     position: 'bottom'
   },
   {
