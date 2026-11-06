@@ -97,6 +97,7 @@
 body.live-only #admin-dashboard > button { display:none !important; }
 body.live-only #admin-dashboard > div:nth-child(2) > button:not(#tab-live-admin) { display:none !important; }
 body.live-only #missing-results-banner { display:none !important; }
+body.live-only #admin-back-btn { display:none !important; }
 body.on-live #app-credits { display:none !important; }
 </style>
 <style>
@@ -2516,79 +2517,216 @@ var _assignData = null;   // {matchId: email}
 function _escH(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function _matchLabel(m){ return fmtDate(m.date) + (m.time ? ' ore ' + m.time : '') + ' – ' + teamLong(m.home) + ' vs ' + teamLong(m.away) + (CATS[m.cat] ? ' (' + CATS[m.cat].label + ')' : ''); }
 
+// ═══ v53: 3 accessi fissi per le dirette + link che fa entrare con un tocco ═══
+// Gli accessi (email e password) stanno in operators/slots, leggibile solo dall'amministratrice.
+// Un accesso da solo non puo' fare nulla: il permesso arriva con l'assegnazione (liveAssign),
+// che si chiude a "Fine partita" oppure da sola 3 ore dopo l'inizio (fine prevista + 1 ora).
+var VF_APP_PAGE = 'https://donatella1975.github.io/ValchisoneFemminile/vf-app-2026.html';
+var SLOT_IDS = ['s1', 's2', 's3'];
+function _slots() { return (_operators && _operators.slots) || {}; }
+function _slotLabel(k) { return 'Diretta ' + k.slice(1); }
+function _slotOfEmail(email) {
+  var e = String(email || '').toLowerCase(), sl = _slots();
+  return SLOT_IDS.find(function(k){ return sl[k] && String(sl[k].email).toLowerCase() === e; }) || null;
+}
+function _b64u(str) { return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function _unb64u(t) { t = String(t).replace(/-/g,'+').replace(/_/g,'/'); while (t.length % 4) t += '='; return decodeURIComponent(escape(atob(t))); }
+function _assignLink(slot) { return VF_APP_PAGE + '#diretta=' + _b64u(JSON.stringify({ e: slot.email, p: slot.pw })); }
+function _assignMsg(name, m, link) {
+  var d = new Date(m.date + 'T12:00:00').toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+  return 'Ciao ' + name + '! 🏑\n'
+    + d.charAt(0).toUpperCase() + d.slice(1) + (m.time ? ' alle ' + m.time : '') + ' fai la diretta di *' + teamShort(m.home) + ' – ' + teamShort(m.away) + '*'
+    + (CATS[m.cat] ? ' (' + CATS[m.cat].label + ')' : '') + '.\n'
+    + (m.location ? '📍 ' + venueLabel(m.location) + '\n' : '')
+    + '\n1️⃣ Tocca questo link ed entri subito:\n' + link + '\n'
+    + '2️⃣ Quando inizia la partita tocca «🔴 Avvia Live».\n'
+    + '3️⃣ Alla fine tocca «Fine partita».\n\n'
+    + 'Se esci per sbaglio, ritocca lo stesso link e torni nella stessa partita.\n'
+    + 'Il link vale fino a un\'ora dopo la fine della partita. Grazie! 💚🧡';
+}
 function openAssignDialog() {
   if (_isLiveOnly || !isAdminOpen) return;
   var old = document.getElementById('assign-overlay'); if (old) old.parentNode.removeChild(old);
-  var matches = allMatches.concat(allIndoor)
-    .filter(function(m){ return (m.home.toUpperCase().indexOf(VALCH) >= 0 || m.away.toUpperCase().indexOf(VALCH) >= 0) && (m.scoreHome === undefined || m.scoreAway === undefined); })
+  var today = _todayLocal();
+  var pool = allMatches.concat(allIndoor);
+  var matches = pool
+    .filter(function(m){ return (m.home.toUpperCase().indexOf(VALCH) >= 0 || m.away.toUpperCase().indexOf(VALCH) >= 0) && (m.scoreHome === undefined || m.scoreAway === undefined) && m.date >= today; })
     .sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
-  if (!matches.length) { alert('Nessuna partita di Valchisone senza risultato.'); return; }
+  var sl = _slots(), meta = (_operators && _operators.meta) || {};
+  var ready = SLOT_IDS.filter(function(k){ return sl[k] && sl[k].email && sl[k].pw; });
+  var busy = {};
+  Object.keys(_assignData || {}).forEach(function(mid){ var k = _slotOfEmail(_assignData[mid]); if (k) busy[k] = mid; });
   var ov = document.createElement('div'); ov.id = 'assign-overlay';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto';
-  var mOpts = matches.map(function(m){ return '<option value="'+_escH(m.id)+'">'+_escH(_matchLabel(m))+'</option>'; }).join('');
-  var oOpts = Object.keys(_operators).map(function(k){ var o=_operators[k]; return '<option value="'+_escH(k)+'">'+_escH(o.name)+' ('+_escH(o.email)+')</option>'; }).join('');
-  var cur = Object.keys(_assignData||{}).map(function(mid){
-    var m = allMatches.concat(allIndoor).find(function(x){ return x.id === mid; });
-    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><div><b>'+_escH(_assignData[mid])+'</b><br>'+_escH(m ? _matchLabel(m) : mid)+'</div><button data-revoca="'+_escH(mid)+'" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:12px">Revoca</button></div>';
-  }).join('');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto';
   var box = document.createElement('div');
-  box.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:360px;width:100%;font-family:DM Sans,sans-serif';
-  box.innerHTML = '<div style="font-weight:800;font-size:16px;color:#1a3a22;margin-bottom:12px">🔑 Assegna diretta</div>'
-    + '<div style="font-size:13px;color:#6b7280;margin-bottom:6px">Partita:</div>'
-    + '<select id="as-match" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:12px">'+mOpts+'</select>'
-    + '<div style="font-size:13px;color:#6b7280;margin-bottom:6px">Operatore:</div>'
-    + '<select id="as-op" style="width:100%;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:8px">'+oOpts+'<option value="__new__">➕ Nuovo operatore…</option></select>'
-    + '<div id="as-new" style="display:none;margin-bottom:8px">'
-    +   '<input id="as-name" placeholder="Nome (es. Giulia)" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;margin-bottom:6px">'
-    +   '<input id="as-email" type="email" autocapitalize="none" placeholder="Email dell\'account (quella creata in Firebase)" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px">'
-    + '</div>'
-    + '<div style="display:flex;gap:8px;margin-top:6px"><button id="as-go" style="flex:1;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">Assegna</button>'
-    + '<button id="as-cancel" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer">Chiudi</button></div>'
-    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin:16px 0 4px">Assegnazioni attive</div>'
-    + (cur || '<div style="font-size:12px;color:#9ca3af">Nessuna.</div>');
+  box.style.cssText = 'background:white;border-radius:18px;padding:18px;max-width:420px;width:100%;font-family:DM Sans,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.3)';
+  var inp = 'width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;margin-bottom:10px;font-family:inherit';
+  var lab = 'font-size:13px;color:#6b7280;margin-bottom:5px;font-weight:600';
+  var mOpts = matches.map(function(m){ return '<option value="'+_escH(m.id)+'">'+_escH(fmtDate(m.date)+(m.time?' '+m.time:'')+' · '+teamShort(m.home)+' – '+teamShort(m.away)+(CATS[m.cat]?' ('+CATS[m.cat].label+')':''))+'</option>'; }).join('');
+  var sOpts = ready.map(function(k){
+    var mid = busy[k], m = mid && pool.find(function(x){ return x.id === mid; });
+    return '<option value="'+k+'">'+_slotLabel(k)+(mid ? ' — occupato: '+_escH(m ? fmtDate(m.date)+' '+teamShort(m.home)+' – '+teamShort(m.away) : mid) : ' — libero')+'</option>';
+  }).join('');
+  var cur = Object.keys(_assignData || {}).map(function(mid){
+    var m = pool.find(function(x){ return x.id === mid; }), k = _slotOfEmail(_assignData[mid]);
+    var who = (meta[mid] && meta[mid].name) ? meta[mid].name : _assignData[mid];
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:12px"><div><b>'+_escH(who)+'</b> · '+(k?_slotLabel(k):'altro accesso')+'<br>'+_escH(m ? fmtDate(m.date)+(m.time?' '+m.time:'')+' · '+teamShort(m.home)+' – '+teamShort(m.away) : mid)+'</div>'
+      + (k && sl[k] && sl[k].pw && m ? '<button data-rimanda="'+_escH(mid)+'" style="background:#dcfce7;color:#166534;border:none;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer">📱 Rimanda</button>' : '')
+      + '<button data-revoca="'+_escH(mid)+'" style="background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;padding:6px 8px;font-size:12px;font-weight:700;cursor:pointer">Revoca</button></div>';
+  }).join('');
+  var slotRows = SLOT_IDS.map(function(k){
+    var v = sl[k] || {};
+    return '<div style="font-size:12px;font-weight:700;color:#1a3a22;margin:8px 0 4px">'+_slotLabel(k)+'</div>'
+      + '<input data-slot-email="'+k+'" type="email" autocapitalize="none" placeholder="diretta'+k.slice(1)+'@diretta.hpvalchisone.it" value="'+_escH(v.email||'')+'" style="'+inp+'margin-bottom:4px">'
+      + '<input data-slot-pw="'+k+'" type="text" autocapitalize="none" autocomplete="off" placeholder="Password (almeno 6 caratteri)" value="'+_escH(v.pw||'')+'" style="'+inp+'">';
+  }).join('');
+  box.innerHTML = '<div style="font-weight:800;font-size:17px;color:#1a3a22;margin-bottom:12px">🔑 Assegna diretta</div>'
+    + (ready.length
+      ? (matches.length
+        ? '<div style="'+lab+'">Partita</div><select id="as-match" style="'+inp+'">'+mOpts+'</select>'
+          + '<div style="'+lab+'">Chi fa la diretta (il nome va solo nel messaggio)</div><input id="as-name" placeholder="es. Giulia" style="'+inp+'">'
+          + '<div style="'+lab+'">Accesso da usare</div><select id="as-slot" style="'+inp+'">'+sOpts+'</select>'
+          + '<button id="as-go" style="width:100%;background:#1a7a2e;color:white;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Assegna e prepara il messaggio</button>'
+        : '<div style="font-size:13px;color:#6b7280;margin-bottom:10px">Nessuna partita di Valchisone da giocare.</div>')
+      : '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px;font-size:13px;color:#9a3412;margin-bottom:10px">Prima imposta gli accessi qui sotto: email e password dei 3 account creati in Firebase.</div>')
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin:18px 0 4px">Assegnazioni attive</div>'
+    + (cur || '<div style="font-size:12px;color:#9ca3af">Nessuna.</div>')
+    + '<details style="margin-top:16px"'+(ready.length?'':' open')+'><summary style="font-size:13px;font-weight:700;color:#1a7a2e;cursor:pointer">⚙️ Accessi diretta (si impostano una volta)</summary>'
+    +   '<div style="font-size:12px;color:#6b7280;margin:8px 0">Scrivi qui le stesse email e password usate in Firebase → Authentication → Utenti. Le vede solo l\'amministratrice.</div>'
+    +   slotRows
+    +   '<button id="as-save-slots" style="width:100%;background:#f3f4f6;color:#1a3a22;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">💾 Salva accessi</button>'
+    + '</details>'
+    + '<button id="as-cancel" style="width:100%;margin-top:12px;background:none;color:#6b7280;border:none;padding:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Chiudi</button>';
   ov.appendChild(box); document.body.appendChild(ov);
   var close = function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); };
-  var opSel = box.querySelector('#as-op'), newBox = box.querySelector('#as-new');
-  var toggleNew = function(){ newBox.style.display = (opSel.value === '__new__') ? '' : 'none'; };
-  opSel.addEventListener('change', toggleNew); toggleNew();
   box.querySelector('#as-cancel').addEventListener('click', close);
+  box.querySelector('#as-save-slots').addEventListener('click', function(){
+    var next = Object.assign({}, _operators || {}), ns = {};
+    for (var i = 0; i < SLOT_IDS.length; i++) {
+      var k = SLOT_IDS[i];
+      var e = (box.querySelector('[data-slot-email="'+k+'"]').value || '').trim().toLowerCase();
+      var p = (box.querySelector('[data-slot-pw="'+k+'"]').value || '').trim();
+      if (!e && !p) continue;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { alert(_slotLabel(k) + ': email non valida.'); return; }
+      if (p.length < 6) { alert(_slotLabel(k) + ': la password deve avere almeno 6 caratteri.'); return; }
+      ns[k] = { email: e, pw: p };
+    }
+    next.slots = ns;
+    Promise.resolve(window._fbSaveOperators(next)).then(function(){ _operators = next; close(); openAssignDialog(); })
+      .catch(function(e){ alert('Accessi non salvati: ' + e.message); });
+  });
   Array.prototype.forEach.call(box.querySelectorAll('[data-revoca]'), function(btn){
     btn.addEventListener('click', function(){
       var mid = btn.getAttribute('data-revoca');
-      if (!confirm('Revocare l\'assegnazione?')) return;
-      Promise.resolve(window._fbClearAssign(mid)).then(close).catch(function(e){ alert('Errore: ' + e.message); });
+      if (!confirm('Revocare l\'assegnazione? Il link smette subito di funzionare.')) return;
+      Promise.resolve(window._fbClearAssign(mid)).then(function(){ close(); openAssignDialog(); }).catch(function(e){ alert('Errore: ' + e.message); });
     });
   });
-  box.querySelector('#as-go').addEventListener('click', function(){
-    var mid = box.querySelector('#as-match').value, name, email, p = Promise.resolve();
-    if (opSel.value === '__new__') {
-      name = box.querySelector('#as-name').value.trim();
-      email = box.querySelector('#as-email').value.trim().toLowerCase();
-      if (!name) { alert('Scrivi il nome dell\'operatore.'); return; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email non valida.'); return; }
-      var id = 'op' + Date.now(), next = Object.assign({}, _operators); next[id] = { name: name, email: email };
-      p = Promise.resolve(window._fbSaveOperators(next)).then(function(){ _operators = next; });
-    } else {
-      var o = _operators[opSel.value]; if (!o) { alert('Scegli un operatore.'); return; }
-      name = o.name; email = String(o.email).toLowerCase();
-    }
-    p.then(function(){ return window._fbSetAssign(mid, email); }).then(function(){
-      close();
-      var m = allMatches.concat(allIndoor).find(function(x){ return x.id === mid; });
-      var label = m ? _matchLabel(m) : mid;
-      var siteUrl = window.location.href.split('?')[0].split('#')[0];
-      var waMsg = 'Ciao ' + name + '! Sei assegnato/a alla diretta di: ' + label + '.\nApri ' + siteUrl + ' > Admin e accedi con la tua email (' + email + ') e la password che ti ha dato Lella.';
-      var o2 = document.createElement('div');
-      o2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-      var d2 = document.createElement('div');
-      d2.style.cssText = 'background:white;border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center;font-family:DM Sans,sans-serif';
-      d2.innerHTML = '<div style="font-size:30px">✅</div><div style="font-weight:800;color:#1a3a22;margin:6px 0">Assegnata a ' + _escH(name) + '</div><div style="font-size:12px;color:#6b7280;margin-bottom:14px">' + _escH(label) + '</div>'
-        + '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" target="_blank" style="background:#25d366;color:white;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block;margin-bottom:8px">📱 Avvisa su WhatsApp</a>'
-        + '<button id="as-ok" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Chiudi</button>';
-      o2.appendChild(d2); document.body.appendChild(o2);
-      d2.querySelector('#as-ok').addEventListener('click', function(){ document.body.removeChild(o2); });
-    }).catch(function(e){ alert('Errore: ' + e.message); });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-rimanda]'), function(btn){
+    btn.addEventListener('click', function(){
+      var mid = btn.getAttribute('data-rimanda'), m = pool.find(function(x){ return x.id === mid; });
+      var k = _slotOfEmail(_assignData[mid]), who = (meta[mid] && meta[mid].name) || '';
+      close(); _showAssignDone(who, m, sl[k]);
+    });
   });
+  var go = box.querySelector('#as-go');
+  if (go) go.addEventListener('click', function(){
+    var mid = box.querySelector('#as-match').value, k = box.querySelector('#as-slot').value;
+    var name = (box.querySelector('#as-name').value || '').trim();
+    var m = pool.find(function(x){ return x.id === mid; }), slot = sl[k];
+    if (!name) { alert('Scrivi il nome di chi fa la diretta.'); return; }
+    if (!m || !slot) { alert('Scegli partita e accesso.'); return; }
+    var p = Promise.resolve();
+    // un accesso segue una partita alla volta
+    var prev = Object.keys(_assignData || {}).filter(function(x){ return x !== mid && _slotOfEmail(_assignData[x]) === k; });
+    if (prev.length) {
+      var pm = pool.find(function(x){ return x.id === prev[0]; });
+      if (!confirm(_slotLabel(k) + ' è già assegnato a ' + (pm ? fmtDate(pm.date) + ' ' + teamShort(pm.home) + ' – ' + teamShort(pm.away) : prev[0]) + '.\nSpostarlo su questa partita? Il vecchio link smetterà di funzionare.')) return;
+      p = Promise.all(prev.map(function(x){ return window._fbClearAssign(x); }));
+    }
+    p.then(function(){ return window._fbSetAssign(mid, String(slot.email).toLowerCase()); })
+     .then(function(){
+       var next = Object.assign({}, _operators || {}); next.meta = Object.assign({}, next.meta || {}); next.meta[mid] = { name: name, slot: k };
+       Object.keys(next.meta).forEach(function(x){ if (!(_assignData || {})[x] && x !== mid) delete next.meta[x]; });
+       return Promise.resolve(window._fbSaveOperators(next)).then(function(){ _operators = next; });
+     })
+     .then(function(){ close(); _showAssignDone(name, m, slot); })
+     .catch(function(e){ alert('Errore: ' + e.message); });
+  });
+}
+function _showAssignDone(name, m, slot) {
+  if (!m || !slot) return;
+  var link = _assignLink(slot), waMsg = _assignMsg(name || 'ciao', m, link);
+  var o2 = document.createElement('div');
+  o2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var d2 = document.createElement('div');
+  d2.style.cssText = 'background:white;border-radius:20px;padding:22px;max-width:360px;width:100%;text-align:center;font-family:DM Sans,sans-serif';
+  d2.innerHTML = '<div style="font-size:30px">✅</div><div style="font-weight:800;color:#1a3a22;margin:6px 0">Diretta assegnata' + (name ? ' a ' + _escH(name) : '') + '</div>'
+    + '<div style="font-size:12px;color:#6b7280;margin-bottom:12px">' + _escH(fmtDate(m.date) + (m.time ? ' ' + m.time : '') + ' · ' + teamShort(m.home) + ' – ' + teamShort(m.away)) + '</div>'
+    + '<div style="text-align:left;white-space:pre-wrap;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:12px;color:#374151;max-height:210px;overflow:auto;margin-bottom:12px">' + _escH(waMsg) + '</div>'
+    + '<a href="https://wa.me/?text=' + encodeURIComponent(waMsg) + '" target="_blank" style="background:#25d366;color:white;border-radius:12px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;display:block;margin-bottom:8px">📱 Manda su WhatsApp</a>'
+    + '<button id="as-copy" style="background:#f3f4f6;color:#1a3a22;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:6px;font-family:inherit">📋 Copia il messaggio</button>'
+    + '<button id="as-ok" style="background:none;color:#6b7280;border:none;padding:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">Chiudi</button>';
+  o2.appendChild(d2); document.body.appendChild(o2);
+  d2.querySelector('#as-ok').addEventListener('click', function(){ document.body.removeChild(o2); });
+  d2.querySelector('#as-copy').addEventListener('click', function(){
+    var b = this;
+    Promise.resolve(navigator.clipboard && navigator.clipboard.writeText(waMsg)).then(function(){ b.textContent = '✅ Copiato'; }).catch(function(){ b.textContent = 'Copia non riuscita'; });
+  });
+}
+
+// Scadenza: 3 ore dopo l'inizio (fine prevista + 1 ora), ma mai mentre la diretta e' in corso
+function _assignExpired(mid) {
+  var m = allMatches.concat(allIndoor).find(function(x){ return x.id === mid; });
+  if (!m || !m.date) return false;
+  if (liveData && liveData.active && liveData.id === mid && !liveData.finished) return false;
+  var t = new Date(m.date + 'T' + (m.time || '23:59') + ':00').getTime();
+  return !isNaN(t) && Date.now() > t + 3 * 3600 * 1000;
+}
+function _cleanExpiredAssign() {
+  var u = window._authUser; if (!u || !_assignData || !window._fbClearAssign) return;
+  var isAdm = u.provider === 'google.com', me = String(u.email || '').toLowerCase();
+  Object.keys(_assignData).forEach(function(mid){
+    if (!_assignExpired(mid)) return;
+    if (isAdm || String(_assignData[mid]).toLowerCase() === me) Promise.resolve(window._fbClearAssign(mid)).catch(function(){});
+  });
+}
+setInterval(_cleanExpiredAssign, 5 * 60 * 1000);
+
+// Link di accesso per l'operatore: #diretta=...
+var _pendingOpLogin = null, _goLiveAfterLogin = false;
+function _readOpHash() {
+  var h = location.hash || '';
+  if (h.indexOf('#diretta=') !== 0) return false;
+  try { var o = JSON.parse(_unb64u(h.slice(9))); if (o && o.e && o.p) _pendingOpLogin = { e: String(o.e).toLowerCase(), p: String(o.p) }; } catch(e) {}
+  try { history.replaceState(null, '', location.pathname + location.search); } catch(e) {}
+  return !!_pendingOpLogin;
+}
+_readOpHash();
+// se l'app e' gia' aperta e si tocca di nuovo il link, la pagina non si ricarica: lo gestiamo qui
+window.addEventListener('hashchange', function(){ if (_readOpHash() && window._fbLoginEmail && 'vfAuthSeen' in window) _doPendingOpLogin(); });
+function _doPendingOpLogin() {
+  if (!_pendingOpLogin || !window._fbLoginEmail) return;
+  var cred = _pendingOpLogin; _pendingOpLogin = null;
+  var u = window._authUser || null;
+  _goLiveAfterLogin = true;
+  if (u && String(u.email || '').toLowerCase() === cred.e) { _applyAuth(); _openLiveForOperator(); return; }
+  var doLogin = function(){
+    window._fbLoginEmail(cred.e, cred.p).catch(function(e){
+      _goLiveAfterLogin = false;
+      showPage('admin', document.getElementById('nav-admin-btn'));
+      _loginError(e);
+    });
+  };
+  if (u) {
+    if (u.provider === 'google.com' && !confirm('Sei collegata come amministratrice.\nVuoi entrare come operatore della diretta? Uscirai dall\'area admin.')) { _goLiveAfterLogin = false; return; }
+    Promise.resolve(window._fbLogout()).then(doLogin);
+  } else doLogin();
+}
+function _openLiveForOperator() {
+  if (!_goLiveAfterLogin || !_isLiveOnly) return;
+  _goLiveAfterLogin = false;
+  showPage('admin', document.getElementById('nav-admin-btn'));
 }
 
 
@@ -2605,16 +2743,16 @@ function renderLiveAdminPanel() {
       : allPool.filter(m => { const hasSc = m.scoreHome!==undefined&&m.scoreAway!==undefined; return !hasSc; });
     const matchOpts = poolFiltered
       .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))
-      .map(m => `<option value="${m.id}">${fmtDate(m.date)} ${m.time||''} – ${m.home} vs ${m.away}</option>`)
+      .map(m => `<option value="${m.id}">${fmtDate(m.date)} ${m.time||''} – ${teamShort(m.home)} vs ${teamShort(m.away)}${CATS[m.cat] ? ' (' + CATS[m.cat].label + ')' : ''}</option>`)
       .join('');
     if (_isLiveOnly && !poolFiltered.length) {
-      el.innerHTML = '<p style="font-size:14px;color:#374151;line-height:1.5">Non hai ancora nessuna partita assegnata.<br>Chiedi a Lella di assegnartela: comparirà qui da sola.</p>';
+      el.innerHTML = '<div style="text-align:center;padding:10px 4px"><div style="font-size:34px">🏑</div><p style="font-size:15px;color:#1a3a22;font-weight:700;margin:6px 0">Nessuna diretta assegnata a questo accesso</p><p style="font-size:13px;color:#6b7280;line-height:1.5">Se la partita è finita: grazie per la diretta! 💚🧡<br>Se deve ancora iniziare, chiedi a Lella di assegnartela: comparirà qui da sola.</p></div>';
       return;
     }
     el.innerHTML = `
-      <p style="font-size:13px;color:#6b7280;margin-bottom:14px">Seleziona la partita da trasmettere in diretta:</p>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:14px">${_isLiveOnly ? 'Ecco la tua partita. Tocca <b>Avvia Live</b> quando inizia: il tabellone compare a tutti.' : 'Seleziona la partita da trasmettere in diretta:'}</p>
       <div class="form-field"><label>Partita</label>
-        <select id="live-match-select"><option value="">— Seleziona —</option>${matchOpts}</select>
+        <select id="live-match-select">${_isLiveOnly && poolFiltered.length === 1 ? '' : '<option value="">— Seleziona —</option>'}${matchOpts}</select>
       </div>
       <div class="lap-row">
         <button class="btn-live-start" onclick="startLive()">🔴 Avvia Live</button>
@@ -4323,7 +4461,7 @@ function doLoginEmail() {
 }
 function _assignedFor(email) {
   var e = String(email || '').toLowerCase();
-  return Object.keys(_assignData || {}).filter(function(k){ return String(_assignData[k]).toLowerCase() === e; });
+  return Object.keys(_assignData || {}).filter(function(k){ return String(_assignData[k]).toLowerCase() === e && !_assignExpired(k); });
 }
 function _applyAuth() {
   var u = window._authUser || null;
@@ -4350,7 +4488,8 @@ window.addEventListener('vf-auth', function() {
     _authListening = true;
     window._fbListenAssign(function(v){
       _assignData = v || {};
-      if (window._authUser && window._authUser.provider !== 'google.com') { _applyAuth(); }
+      if (window._authUser && window._authUser.provider !== 'google.com') { _applyAuth(); _openLiveForOperator(); }
+      _cleanExpiredAssign();
     });
     if (u.provider === 'google.com' && window._fbListenOperators) {
       window._fbListenOperators(function(v){ _operators = v || {}; });
@@ -4369,6 +4508,9 @@ window.addEventListener('vf-auth', function() {
   }
   if (!u) { _authListening = false; _assignData = null; _operators = {}; rosaValchisone = []; _rosaSeen = false; }
   _applyAuth();
+  // v53: link di accesso dell'operatore (si prova dopo aver saputo chi e' collegato)
+  window.vfAuthSeen = true;
+  if (_pendingOpLogin) _doPendingOpLogin();
 });
 
 function doLogout() {
