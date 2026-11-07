@@ -6095,6 +6095,7 @@ function visualizzaArchivio(stagione) {
     }
 
     el.innerHTML = html;
+    el.scrollTop = 0;
   });
 }
 
@@ -6379,6 +6380,7 @@ function toggleStandingsCols() {
 <div class="modal-overlay" id="nuova-stagione-modal" role="dialog" aria-modal="true">
   <div class="modal" style="max-width:420px">
     <div class="modal-title">📦 Nuova Stagione</div>
+    <div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px">
     <p style="font-size:13px;color:#374151;margin-bottom:16px;line-height:1.6">
       Questa operazione <strong>archivia</strong> tutte le partite e gli eventi della stagione corrente
       e prepara l'app per la nuova stagione. I dati archiviati resteranno consultabili.
@@ -6394,7 +6396,8 @@ function toggleStandingsCols() {
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:12px;color:#9a3412;margin-bottom:16px">
       ⚠️ Attenzione: le partite correnti verranno cancellate dopo l'archiviazione. Questa azione non si può annullare.
     </div>
-    <div class="btn-row">
+    </div>
+    <div class="btn-row" style="padding:12px 24px 16px;border-top:1px solid #f3f4f6;flex-shrink:0;margin:0">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('nuova-stagione-modal').classList.remove('open')">Annulla</button>
       <button class="btn btn-green" onclick="eseguiNuovaStagione()">📦 Archivia e Riparte</button>
     </div>
@@ -6405,10 +6408,10 @@ function toggleStandingsCols() {
 <div class="modal-overlay" id="archivio-modal" role="dialog" aria-modal="true">
   <div class="modal" style="max-width:500px">
     <div class="modal-title">🗂️ Archivio Stagioni</div>
-    <div id="archivio-content" style="min-height:80px;font-size:13px;color:#374151">
+    <div id="archivio-content" style="flex:1;min-height:80px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 24px 8px;font-size:13px;color:#374151">
       <div class="loading">Caricamento archivio...</div>
     </div>
-    <div class="btn-row" style="margin-top:16px">
+    <div class="btn-row" style="padding:12px 24px 16px;border-top:1px solid #f3f4f6;flex-shrink:0;margin:0">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('archivio-modal').classList.remove('open')">Chiudi</button>
     </div>
   </div>
