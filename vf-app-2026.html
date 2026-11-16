@@ -98,6 +98,10 @@ body.live-only #admin-dashboard > button { display:none !important; }
 body.live-only #admin-dashboard > div:nth-child(2) > button:not(#tab-live-admin) { display:none !important; }
 body.live-only #missing-results-banner { display:none !important; }
 body.live-only #admin-back-btn { display:none !important; }
+.op-bar { display:none; }
+body.live-only .op-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:8px 10px 8px 12px; margin-bottom:12px; font-size:12px; color:#1a3a22; }
+body.live-only .op-bar span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body.live-only .op-bar button { flex-shrink:0; background:white; border:1px solid #d1d5db; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; color:#374151; cursor:pointer; font-family:'DM Sans',sans-serif; min-height:36px; }
 body.on-live #app-credits { display:none !important; }
 </style>
 <style>
@@ -380,6 +384,21 @@ body.on-live .hero { display:none; }
 .nmb-countdown { font-family:'Bricolage Grotesque',sans-serif; font-size:22px; font-weight:800; color:white; text-align:right; flex-shrink:0; line-height:1; }
 .nmb-countdown small { display:block; font-size:10px; font-weight:400; opacity:.7; text-align:center; margin-top:2px; }
 .nmb-today { background:#e8620a; }
+.next-match-banner.nmb-multi { display:block; padding:10px 12px 6px; cursor:default; }
+.nmb-head { margin:0 4px 6px; }
+.nmb-row { display:flex; align-items:center; gap:10px; padding:8px 6px; border-top:1px solid rgba(255,255,255,.14); border-radius:10px; cursor:pointer; }
+.nmb-head + .nmb-row { border-top:none; }
+.nmb-row:hover { background:rgba(255,255,255,.07); }
+.nmb-row.nmb-today { background:#e8620a; border-top-color:transparent; }
+.nmb-today .nmb-teams .valch { color:#fff; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; }
+.nmb-today .nmb-teams span[style] { color:rgba(255,255,255,.8) !important; }
+.nmb-row:not(.nmb-first) .nmb-teams { font-size:13px; }
+.nmb-row:not(.nmb-first) .nmb-countdown { font-size:15px; opacity:.85; }
+.nmb-row .nmb-label { margin-bottom:2px; color:rgba(255,255,255,.8); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.nmb-tag { display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; padding:2px 7px; border-radius:6px; color:white; line-height:1.3; }
+.nmb-tag-p { background:#22a447; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
+.nmb-tag-i { background:#2563eb; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
+.nmb-row .nmb-meta { margin-top:2px; line-height:1.4; }
 @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 .skeleton { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
 .sk-card { background:white; border-radius:var(--radius); box-shadow:0 2px 10px rgba(0,0,0,.06); padding:12px; margin-bottom:10px; display:flex; gap:10px; overflow:hidden; }
@@ -1037,6 +1056,8 @@ body.on-live .hero { display:none; }
     <div id="login-error" style="color:#dc2626;font-size:12px;margin-top:10px;display:none"></div>
   </div>
   <div id="admin-panel" style="display:none">
+    <!-- v56: barra dell'operatore della diretta, sempre visibile, con il tasto per uscire -->
+    <div id="op-bar" class="op-bar"><span>👤 Collegato come <b id="op-bar-who"></b></span><button type="button" onclick="doLogout()">🚪 Esci</button></div>
     <!-- ADMIN DASHBOARD -->
     <div id="admin-dashboard" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -1440,21 +1461,10 @@ const DEFAULT_FIELDS = [
   'C.S. Seveninfinity - Via Toscana, 7, 20064 Gorgonzola MI'
 ];
 let fPartite = 'all', fIndoor = 'all', fPartiteExtra = null, fIndoorExtra = null, onlyValch = true;
-// v50: le scelte (categoria e Solo Valchisone) restano salvate sul telefono.
-// Chi apre l'app la prima volta vede solo le partite di Valchisone.
-(function(){
-  try {
-    var f = JSON.parse(localStorage.getItem('vf_filtri') || 'null');
-    if (f) {
-      if (typeof f.onlyValch === 'boolean') onlyValch = f.onlyValch;
-      if (f.fPartite && (f.fPartite === 'all' || (typeof CATS !== 'undefined' && CATS[f.fPartite]))) fPartite = f.fPartite;
-      if (f.fIndoor && (f.fIndoor === 'all' || (typeof CATS !== 'undefined' && CATS[f.fIndoor]))) fIndoor = f.fIndoor;
-    }
-  } catch(e) {}
-})();
-function _saveFiltri() {
-  try { localStorage.setItem('vf_filtri', JSON.stringify({onlyValch:onlyValch, fPartite:fPartite, fIndoor:fIndoor})); } catch(e) {}
-}
+// v57: a ogni apertura l'app riparte da Tutte le categorie + solo Valchisone
+// (la scelta vale finche' l'app resta aperta; non viene piu' ricordata)
+try { localStorage.removeItem('vf_filtri'); } catch(e) {}
+function _saveFiltri() {}
 function _syncValchUI() {
   [['valch-filter-btn','valch-all-btn'],['valch-filter-btn-indoor','valch-all-btn-indoor']].forEach(function(p) {
     var v = document.getElementById(p[0]), t = document.getElementById(p[1]);
@@ -1487,7 +1497,7 @@ window.addEventListener('load', () => {
       allMatches = all.filter(m => FEMALE_CATS.includes(m.cat));
       allIndoor  = all.filter(m => INDOOR_CATS.includes(m.cat));
       allOrphans = all.filter(m => m && m.id && !CATS[m.cat]);
-      if (!window._autoMonthDone && all.length) { window._autoMonthDone = true; _autoMonth('prato'); _autoMonth('indoor'); }
+      if (!window._autoMonthDone && all.length) { window._autoMonthDone = true; _autoMonth('prato'); _autoMonth('indoor'); _autoSport(); }
       renderCalendar(); renderCalendarIndoor(); updateHeroStats(); renderNextMatchBanner();
   renderMatches(); renderIndoor(); renderStandings(); _syncValchUI();
       renderAdminList();
@@ -1742,7 +1752,7 @@ function setFPartite(v) {
   }
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
   _saveFiltri(); _autoMonth('prato');
-  renderCalendar(); renderMatches(); updateHeroStats();
+  renderCalendar(); renderMatches(); updateHeroStats(); renderNextMatchBanner();
   if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function setFIndoor(v) {
@@ -1771,13 +1781,13 @@ function toggleValch() {
 function addFPartiteExtra(v) {
   fPartiteExtra = (fPartiteExtra === v) ? null : v;
   buildFilters('filter-partite', fPartite, 'setFPartite', true, false);
-  renderCalendar(); renderMatches(); updateHeroStats();
+  renderCalendar(); renderMatches(); updateHeroStats(); renderNextMatchBanner();
   if (document.getElementById('view-gio-prato') && document.getElementById('view-gio-prato').style.display !== 'none') renderGiornate('prato');
 }
 function addFIndoorExtra(v) {
   fIndoorExtra = (fIndoorExtra === v) ? null : v;
   buildFilters('filter-indoor', fIndoor, 'setFIndoor', true, true);
-  renderCalendarIndoor(); renderIndoor(); updateHeroStats();
+  renderCalendarIndoor(); renderIndoor(); updateHeroStats(); renderNextMatchBanner();
   if (document.getElementById('view-gio-indoor') && document.getElementById('view-gio-indoor').style.display !== 'none') renderGiornate('indoor');
 }
 
@@ -4074,38 +4084,89 @@ function skeletonCards(n) {
   return h;
 }
 
+// v55: il riquadro mostra la prossima partita PRATO e la prossima INDOOR (in ordine di data),
+// uguale nei due tab; se nel tab e' scelta una categoria, vale anche per l'altro sport (categoria corrispondente)
+var NMB_P2I = { af:['a1f'], cffb:['a1f'], rf:['rfi'], alf:['alfi'], jf:['jfi'] };
+var NMB_I2P = { a1f:['af','cffb'], rfi:['rf'], alfi:['alf'], jfi:['jf'] };
+function _nmbCats(sport, tab) {
+  // categorie da considerare per 'sport' guardando i filtri del tab 'tab' (null = tutte)
+  var pi = tab === 'indoor';
+  var f = pi ? fIndoor : fPartite, fx = pi ? fIndoorExtra : fPartiteExtra;
+  if (f === 'all') return null;
+  var sel = [f]; if (fx) sel.push(fx);
+  if ((sport === 'indoor') === pi) return sel;
+  var map = pi ? NMB_I2P : NMB_P2I, out = [];
+  sel.forEach(function(c){ (map[c] || []).forEach(function(x){ if (out.indexOf(x) < 0) out.push(x); }); });
+  return out;
+}
+function _nmbNext(sport, cats) {
+  var today = _todayLocal();
+  return (sport === 'indoor' ? allIndoor : allMatches)
+    .filter(function(m){ return !cats || cats.indexOf(m.cat) >= 0; })
+    .filter(function(m){ return m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH); })
+    .filter(function(m){ return m.scoreHome === undefined && m.date >= today; })
+    .sort(function(a,b){ return (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')); })[0] || null;
+}
+function venueTown(loc) {
+  // solo il paese: "Campo S. Michellonet, Villar Perosa" -> "Villar Perosa"
+  var v = venueLabel(loc); if (!v) return '';
+  var parts = String(v).split(','); var t = parts[parts.length - 1].trim();
+  t = t.replace(/^\d{5}\s+/, '').replace(/\s+[A-Z]{2}$/, '').trim();
+  return t;
+}
+// v57: all'apertura si va sul tab (Prato o Indoor) della prossima partita di Valchisone
+function _autoSport() {
+  if (currentPage !== 'partite') return;           // l'utente e' gia' altrove (es. link della diretta)
+  var p = _nmbNext('prato', null), i = _nmbNext('indoor', null);
+  if (!i) return;
+  if (!p || (i.date + (i.time||'')) < (p.date + (p.time||''))) switchSport('indoor');
+}
 function renderNextMatchBanner() {
-  // v50: in cima alla pagina Prato e Indoor; segue la categoria scelta
   [['prato','nmb-prato'],['indoor','nmb-indoor']].forEach(function(p) {
     var container = document.getElementById(p[1]);
     if (!container) return;
-    var isI = p[0] === 'indoor';
-    var f = isI ? fIndoor : fPartite, fx = isI ? fIndoorExtra : fPartiteExtra;
-    var today = _todayLocal();
-    var upcoming = (isI ? allIndoor : allMatches)
-      .filter(function(m){ return f === 'all' || m.cat === f || (fx && m.cat === fx); })
-      .filter(function(m){ return m.home.toUpperCase().includes(VALCH) || m.away.toUpperCase().includes(VALCH); })
-      .filter(function(m){ return m.scoreHome === undefined && m.date >= today; })
-      .sort(function(a,b){ return (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')); });
-    if (!upcoming.length) { container.innerHTML = ''; return; }
-    var m = upcoming[0];
-    var matchDate = new Date(m.date + 'T00:00:00');
+    var rows = [];
+    ['indoor','prato'].forEach(function(sp){
+      var m = _nmbNext(sp, _nmbCats(sp, p[0]));
+      if (m) rows.push({ sp: sp, m: m });
+    });
+    if (!rows.length) { container.innerHTML = ''; return; }
+    rows.sort(function(a,b){ return (a.m.date + (a.m.time||'')).localeCompare(b.m.date + (b.m.time||'')); });
     var todayDate = new Date(); todayDate.setHours(0,0,0,0);
-    var diffDays = Math.round((matchDate - todayDate) / 86400000);
-    var dateStr = matchDate.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
-    var isToday = diffDays === 0, isTomorrow = diffDays === 1;
-    var countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : 'tra ' + diffDays + ' g';
-    var hV = m.home.toUpperCase().includes(VALCH), aV = m.away.toUpperCase().includes(VALCH);
-    container.innerHTML =
-      '<div class="next-match-banner' + (isToday ? ' nmb-today' : '') + '" onclick="goToMatchDay(\'' + p[0] + '\',\'' + m.date + '\')" role="button" tabindex="0">'
-      + '<div class="nmb-left">'
-      + '<div class="nmb-label">🏑 Prossima partita · ' + catShortLabel(m.cat) + '</div>'
-      + '<div class="nmb-teams"><span class="' + (hV ? 'valch' : '') + '">' + teamShort(m.home) + '</span> <span style="color:rgba(255,255,255,.55)">vs</span> <span class="' + (aV ? 'valch' : '') + '">' + teamShort(m.away) + '</span></div>'
-      + '<div class="nmb-meta">📅 ' + dateStr + (m.time ? ' · ore ' + m.time : '') + (m.location ? '<br>📍 ' + venueLabel(m.location) : '') + '</div>'
-      + '</div>'
-      + '<div class="nmb-countdown">' + countdownLabel + '</div>'
-      + '</div>';
+    var html = '<div class="next-match-banner nmb-multi">'
+      + '<div class="nmb-label nmb-head">🏑 ' + (rows.length > 1 ? 'Prossime partite' : 'Prossima partita') + '</div>';
+    rows.forEach(function(r, i) {
+      var m = r.m;
+      var matchDate = new Date(m.date + 'T00:00:00');
+      var diffDays = Math.round((matchDate - todayDate) / 86400000);
+      var dateStr = matchDate.toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+      var isToday = diffDays === 0, isTomorrow = diffDays === 1;
+      var countdownLabel = isToday ? 'Oggi!' : isTomorrow ? 'Domani' : 'tra ' + diffDays + ' g';
+      var hV = m.home.toUpperCase().includes(VALCH), aV = m.away.toUpperCase().includes(VALCH);
+      var town = venueTown(m.location);
+      var isI = r.sp === 'indoor';
+      html += '<div class="nmb-row' + (i === 0 ? ' nmb-first' : '') + (isToday ? ' nmb-today' : '') + '" onclick="goToNextMatch(\'' + r.sp + '\',\'' + m.cat + '\',\'' + m.date + '\')" role="button" tabindex="0"'
+        + ' aria-label="' + (isI ? 'Indoor' : 'Prato') + ', ' + catShortLabel(m.cat) + ', ' + dateStr + (m.time ? ' ore ' + m.time : '') + '">'
+        + '<div class="nmb-left">'
+        + '<div class="nmb-label"><span class="nmb-tag ' + (isI ? 'nmb-tag-i' : 'nmb-tag-p') + '">' + (isI ? 'Indoor' : 'Prato') + '</span>' + catShortLabel(m.cat) + '</div>'
+        + '<div class="nmb-teams"><span class="' + (hV ? 'valch' : '') + '">' + teamShort(m.home) + '</span> <span style="color:rgba(255,255,255,.55)">vs</span> <span class="' + (aV ? 'valch' : '') + '">' + teamShort(m.away) + '</span></div>'
+        + '<div class="nmb-meta">📅 ' + dateStr + (m.time ? ' · ' + m.time : '') + (town ? ' · 📍 ' + town : '') + '</div>'
+        + '</div>'
+        + '<div class="nmb-countdown">' + countdownLabel + '</div>'
+        + '</div>';
+    });
+    container.innerHTML = html + '</div>';
   });
+}
+// tocco su una riga: va al giorno della partita, cambiando tab Prato/Indoor se serve
+function goToNextMatch(sport, cat, ds) {
+  var isI = sport === 'indoor';
+  if ((currentPage === 'indoor') !== isI || (currentPage !== 'indoor' && currentPage !== 'partite')) switchSport(sport);
+  var f = isI ? fIndoor : fPartite, fx = isI ? fIndoorExtra : fPartiteExtra;
+  if (f !== 'all' && f !== cat && fx !== cat) { if (isI) setFIndoor(cat); else setFPartite(cat); }
+  goToMatchDay(sport, ds);
+  // porta sotto gli occhi il calendario con il giorno selezionato
+  setTimeout(function(){ var t = document.querySelector('#page-' + (isI ? 'indoor' : 'partite') + ' .cal-wrap'); if (t && t.scrollIntoView) t.scrollIntoView({behavior:'smooth', block:'start'}); }, 200);
 }
 function goToMatchDay(sport, ds) {
   if (sport === 'indoor') {
@@ -4478,6 +4539,8 @@ function _applyAuth() {
   document.body.classList.toggle('live-only', _isLiveOnly);
   var who = document.getElementById('admin-who');
   if (who) who.textContent = u ? ('Collegata come: ' + u.email) : '';
+  var ow = document.getElementById('op-bar-who');
+  if (ow) ow.textContent = u ? String(u.email || '').split('@')[0] : '';
   _loginMsg('');
   try { renderMatches(); } catch(e) {}
   if (currentPage === 'admin') showAdminLogin();
@@ -5777,19 +5840,19 @@ const TOUR_STEPS = [
     position: 'bottom'
   },
   {
-    target: '#nmb-prato .next-match-banner',
-    title: 'La prossima partita',
-    desc: 'Qui trovi sempre la prossima partita di Valchisone, con giorno, ora e campo. Toccala per vederla nel calendario.',
+    target: '.page.active .next-match-banner',
+    title: 'Le prossime partite',
+    desc: 'Qui trovi sempre le prossime partite di Valchisone, sia sul prato sia indoor, con giorno, ora e paese. La più vicina è in alto: toccala per vederla nel calendario.',
     position: 'bottom'
   },
   {
-    target: '#valch-filter-btn',
+    target: '.page.active .valch-seg',
     title: 'Le nostre partite o tutte',
-    desc: 'Con 🟠 Valchisone vedi solo le nostre partite, con Tutte le squadre anche quelle delle altre squadre dei gironi. Con i bottoni delle categorie scegli la tua squadra: l’app si ricorda la scelta.',
+    desc: 'Con 🟠 Valchisone vedi solo le nostre partite, con Tutte le squadre anche quelle delle altre squadre dei gironi. Con i bottoni delle categorie scegli la tua squadra. A ogni apertura l’app riparte da tutte le categorie.',
     position: 'bottom'
   },
   {
-    target: '.cal-wrap',
+    target: '.page.active .cal-wrap',
     title: 'Calendario 📅',
     desc: 'Tocca un giorno evidenziato per vedere le partite di quel giorno. Ogni partita ha Naviga, per arrivare al campo, e Condividi, per mandarla su WhatsApp. Con Stampa prepari il calendario da stampare.',
     position: 'bottom'
